@@ -6,7 +6,7 @@ Capacitor 8.5.2, application ID `ro.icdapps.apartmentbookingmanager`, nume `Apar
 
 `npm run build:web` copiază exact `index.html` și `src/` în `www/`; `npm run android:sync` le include în assets Android. Nu există `server.url`, CDN sau descărcare a aplicației din GitHub Pages. Originea locală rămâne `https://localhost`, iar `localStorage` și cheia existentă de date sunt păstrate. Închiderea/redeschiderea păstrează datele. APK-ul și browserul web au spații de stocare separate: datele browserului nu sunt migrate și nu sunt resetate.
 
-Nu dezinstala aplicația și nu folosi Clear data pentru actualizare: acestea șterg stocarea Android. Actualizările necesită același package ID și aceeași cheie de semnare. Păstrează cheia debug de pe calculator (`~/.android/debug.keystore`); cheia unui runner CI nou poate fi diferită, deci nu presupune că APK-urile generate independent pot fi instalate ca actualizare peste primul APK. Nu încărca chei în Git.
+Nu dezinstala aplicația și nu folosi Clear data pentru actualizare: acestea șterg stocarea Android. Actualizările necesită același package ID și aceeași cheie de semnare. Folosește exclusiv cheia privată stabilă din backup-ul BASIC 1.0.2, conform instrucțiunilor de mai jos. Nu încărca chei în Git. Compatibilitatea de update cu aceeași semnătură începe de la versiunea 1.0.2.
 
 ## Generare pe calculator
 
@@ -32,11 +32,11 @@ cd android
 .\gradlew.bat assembleDebug
 ```
 
-APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
+Cu cheia privată restaurată, APK: `android/app/build/outputs/apk/debug/app-debug.apk`. Fără cheie se generează numai `app-debug-unsigned.apk`, care trebuie semnat conform pașilor de mai jos.
 
 ## Generare GitHub Actions
 
-Actions → Android debug APK → Run workflow → main. După succes, descarcă artifactul `Apartment-Booking-Manager-debug`, dezarhivează și instalează `app-debug.apk`. Workflowul rulează și la schimbările relevante din main, fără publicare într-un magazin. Prima instalare necesită permisiunea Android pentru instalare din sursa aleasă.
+Actions → Android debug APK → Run workflow → main. După succes, descarcă artifactele `Apartment-Booking-Manager-unsigned-candidate` și `Android-SDK-apksigner`, dezarhivează și semnează candidatul cu cheia privată stabilă, conform pașilor de mai jos. Instalează doar APK-ul semnat rezultat. Workflowul rulează și la schimbările relevante din main, fără publicare într-un magazin. Prima instalare necesită permisiunea Android pentru instalare din sursa aleasă.
 
 ## Verificare pe telefon
 
@@ -69,3 +69,7 @@ The script verifies the resulting APK against the committed certificate fingerpr
 **Compatibility boundary:** the first two APKs used lost, different ephemeral CI keys. This stable-key APK cannot update those older installations. Same-key update compatibility begins with 1.0.2; there is no claim of having migrated Android data from the old APK. Do not uninstall an old installation containing real data without a separately agreed transfer plan.
 
 The 30-day and 12-month layouts now resize using CSS container widths. The application remains fully bundled and offline. Browser viewport tests do not replace a physical Fold/Android installation test.
+
+## BASIC 1.0.3
+
+versionCode 4, versionName 1.0.3. Phone-only refinement and centralized RO/EN translations. The private signing key and certificate are reused from 1.0.2; no new signing key is generated. Package ID, local origin and booking-storage key remain unchanged. Language preference uses its own local key and survives same-key updates. CI still produces an unsigned candidate; the delivered APK is privately signed using the existing backup with `scripts/sign-apk.py`. No GitHub Secrets action is required for this private signing workflow. Do not install the unsigned CI candidate.
