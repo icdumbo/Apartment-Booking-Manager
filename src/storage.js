@@ -1,4 +1,4 @@
-import {validateApartment,validateBooking} from './domain.js';
+import {validateApartment,validateBooking} from './domain.js?v=0.2';
 const KEY='apartment-booking-manager:v1';
 export function validateState(state) {
   if (state?.version!==1 || !Array.isArray(state.apartments) || !Array.isArray(state.bookings)) throw new Error('Format de date incompatibil.');

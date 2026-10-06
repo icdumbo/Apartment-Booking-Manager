@@ -1,7 +1,7 @@
-import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain.js';
-import {createLocalRepository} from './storage.js';
-import {demoState} from './demo.js';
-import {renderTimeline} from './timeline.js';
+import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain.js?v=0.2';
+import {createLocalRepository} from './storage.js?v=0.2';
+import {demoState} from './demo.js?v=0.2';
+import {renderTimeline} from './timeline.js?v=0.2';
 const $=id=>document.getElementById(id);
 let repository,state,blocked=false;
 try {repository=createLocalRepository();state=repository.load();if(!state){state=demoState();repository.save(state);}}

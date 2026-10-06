@@ -1,4 +1,4 @@
-import {barGeometry,dayNumber,isoDay,today,monthSegments,handoverDays} from './domain.js';
+import {barGeometry,dayNumber,isoDay,today,monthSegments,handoverDays} from './domain.js?v=0.2';
 export function renderTimeline(root,state,start,days,{editApartment,editBooking,newBooking}) {
  root.replaceChildren(); root.style.setProperty('--days',days);
  const head=document.createElement('div');head.className='timeline-head';
