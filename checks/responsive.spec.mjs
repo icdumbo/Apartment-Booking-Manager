@@ -44,3 +44,13 @@ for(const width of [360,390,430]){
   await page.locator('.timeline-scroll').evaluate(el=>{el.scrollLeft=el.scrollWidth;el.scrollTop=0});const last=await page.locator('.day-heading').last().boundingBox();const viewport=(await measure()).viewport;expect(last.x+last.width).toBeLessThanOrEqual(viewport.right+.5);
  });
 }
+
+test('BASIC ten-apartment limit preserves existing data and editing',async({page})=>{
+ const fixtures={version:1,apartments:Array.from({length:9},(_,i)=>({...state.apartments[0],id:'limit-'+i,name:'Apartment '+i})),bookings:[]};
+ await page.goto('/');await page.evaluate(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),fixtures);await page.reload();
+ await page.locator('#add-apartment').click();await page.getByLabel('Nume / identificare',{exact:true}).fill('Apartment 10');await page.getByLabel('Adresă',{exact:true}).fill('Test address');await page.getByLabel('Localitate',{exact:true}).fill('Test city');await page.getByRole('button',{name:'Salvează',exact:true}).click();
+ await expect(page.locator('.timeline-row')).toHaveCount(10);await expect(page.locator('#add-apartment')).toBeDisabled();
+ await page.locator('.timeline-row .apartment-label').first().click();await page.getByLabel('Nume / identificare',{exact:true}).fill('Edited apartment');await page.getByRole('button',{name:'Salvează',exact:true}).click();await expect(page.locator('.timeline-row').first()).toContainText('Edited apartment');
+ await page.reload();await expect(page.locator('.timeline-row')).toHaveCount(10);await expect(page.locator('#add-apartment')).toBeDisabled();
+ await page.locator('.top [data-language="en"]').click();await expect(page.locator('#add-apartment')).toHaveAttribute('title','The BASIC version allows up to 10 apartments.');
+});

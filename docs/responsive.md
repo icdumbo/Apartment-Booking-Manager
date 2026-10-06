@@ -17,3 +17,5 @@ The additional browser checks cover S24 Ultra at a representative 412px CSS view
 At viewport widths up to 600px the apartment column is clamp(110px, 30vw, 130px). The 30-day content width is twice the scroll viewport minus that column, which gives exactly 15 visible day widths beside the pinned apartment column. Both axes use a single native scroll viewport: month/day headers and bookings share one grid; the header sticks to its top and apartment labels to its left. All 30 dates remain available by horizontal swipe. No booking/date/storage logic changes. Large-screen CSS remains unchanged.
 
 Tests at 360, 390 and 430px measure visible day count, digit containment, two-line names, pinned labels/header, shared scroll displacement and half-day changeover geometry. Ten apartments are test fixtures only, never seeded into the application.
+
+The previously missing BASIC guard now prevents adding an eleventh apartment, including submit-time validation; existing records are not removed and editing/deleting remains available. The limit message uses the central RO/EN dictionary.
