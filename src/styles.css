@@ -69,5 +69,5 @@
  .corner{font-size:9px;padding-inline:7px;white-space:nowrap}
  .calendar-head{grid-template-rows:30px 42px}.day-heading{height:42px;gap:3px}.day-heading strong{font-size:min(13px,75cqw);font-weight:700}.day-heading small{display:block;font-size:min(7px,36cqw);white-space:nowrap;line-height:1.2}
  .booking{font-size:9px;padding-inline:3px}
- .months .month{justify-content:flex-start}.month-label{font-size:min(12px,11cqw);padding-inline:6px}.months .month-short{justify-content:center}.month-short .month-label{padding-inline:0}
+ .months .month{justify-content:flex-start;overflow:clip}.month-label{position:sticky;left:var(--apartment-width);flex-shrink:0;font-size:min(12px,11cqw);padding-inline:6px}.months .month-short{justify-content:center}.month-short .month-label{left:auto;padding-inline:0}
 }
