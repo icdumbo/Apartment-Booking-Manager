@@ -16,3 +16,10 @@ test('bars clip at viewport edges and hide outside dates',()=>{assert.deepEqual(
 test('local adapter round-trip and empty state are preserved',()=>{const mem=new Map();const repo=createLocalRepository({getItem:k=>mem.get(k)??null,setItem:(k,v)=>mem.set(k,v)});assert.equal(repo.load(),null);repo.save(state);assert.deepEqual(repo.load(),state);const empty={version:1,apartments:[],bookings:[]};repo.save(empty);assert.deepEqual(repo.load(),empty);});
 test('corrupt storage is rejected without overwriting original',()=>{let raw='broken';const repo=createLocalRepository({getItem:()=>raw,setItem:(_,v)=>raw=v});assert.throws(()=>repo.load());assert.equal(raw,'broken');});
 test('storage failure propagates',()=>{const repo=createLocalRepository({setItem(){throw new Error('quota');}});assert.throws(()=>repo.save(state),/quota/);});
+import {monthSegments,handoverDays} from '../src/domain.js';
+import {demoState} from '../src/demo.js';
+test('month headers align exactly with date columns across years',()=>assert.deepEqual(monthSegments(dayNumber('2026-12-20'),30),[{key:'2026-12',start:0,days:12},{key:'2027-01',start:12,days:18}]));
+test('month headers handle leap year',()=>assert.deepEqual(monthSegments(dayNumber('2028-02-20'),30),[{key:'2028-02',start:0,days:10},{key:'2028-03',start:10,days:20}]));
+test('handover markers only for same apartment and exact date',()=>{assert.deepEqual(handoverDays([b,next()]),['2026-07-10']);assert.deepEqual(handoverDays([b,next({apartmentId:'other'})]),[]);assert.deepEqual(handoverDays([b,next({checkIn:'2026-07-11'})]),[]);assert.deepEqual(handoverDays([b]),[]);});
+test('demo has three genuine handovers and both statuses',()=>{const demo=demoState();assert.equal(demo.apartments.reduce((n,a)=>n+handoverDays(demo.bookings.filter(b=>b.apartmentId===a.id)).length,0),3);demo.bookings.forEach(b=>validateBooking(b,demo));assert.ok(demo.bookings.some(b=>b.status==='unconfirmed'));});
+test('legacy bookings remain valid and invalid statuses fail',()=>{assert.doesNotThrow(()=>validateBooking(b,state));assert.throws(()=>validateBooking(next({status:'unknown'}),state),/Status/);});

@@ -15,13 +15,13 @@ Cu Node.js 20+ instalat, rulează `npm test` pentru testele automate. `npm insta
 
 ## Funcții
 
-- Timeline de 14 sau 30 zile, navigare înainte/înapoi și revenire la astăzi.
+- Timeline de 30 zile simultan, fără scroll orizontal, cu antet pe luni, navigare înainte/înapoi și revenire la astăzi.
 - Apartamente individuale, fără grupare pe localitate; numele și adresa rămân vizibile la derularea orizontală.
-- Zile libere verzi, rezervări portocalii și ziua curentă evidențiată.
+- Zile libere verde vizibil, rezervări confirmate roșii și neconfirmate galbene și ziua curentă evidențiată.
 - Adăugare/modificare/ștergere apartamente și rezervări. Selectarea barei deschide detaliile; selectarea unei celule completează apartamentul și data pentru o rezervare nouă.
 - Client, telefon, check-in și check-out, cu validări și prevenirea suprapunerilor.
 - Confirmare înainte de ștergere. Ștergerea apartamentului elimină și rezervările asociate, cu numărul acestora afișat în confirmare.
-- Trei apartamente și patru rezervări fictive, inițializate o singură dată la prima deschidere. Două rezervări consecutive la primul apartament demonstrează schimbarea clienților în aceeași zi.
+- Trei apartamente și șase rezervări fictive, inițializate o singură dată la prima deschidere. Fiecare apartament are un schimb de clienți în aceeași zi, marcat printr-o linie albastră în centrul coloanei.
 - Salvare locală automată după fiecare modificare validă.
 
 ## Regula intervalelor
@@ -49,6 +49,14 @@ JavaScript ES modules, HTML și CSS responsive, fără framework sau dependențe
 - `tests/domain.test.js`: teste de regresie.
 - `docs/architecture.md`: extensii viitoare și verificări.
 
-Pentru o bază de date, adapterul local poate fi înlocuit cu unul asincron, adaptând coordonarea încărcării/salvării. Backend-ul va trebui să impună și el regulile de suprapunere, atomic, pentru editarea simultană. Prețuri, plăți, statusuri, filtre, statistici, PDF/Excel și PWA nu sunt implementate în această etapă.
+Pentru o bază de date, adapterul local poate fi înlocuit cu unul asincron, adaptând coordonarea încărcării/salvării. Backend-ul va trebui să impună și el regulile de suprapunere, atomic, pentru editarea simultană. Prețuri, plăți, statusuri avansate, filtre, statistici, PDF/Excel și PWA nu sunt implementate în această etapă.
 
 Toată dezvoltarea se face exclusiv în `icdumbo/Apartment-Booking-Manager`.
+
+## Actualizare calendar v0.2
+
+Rânduri compacte, weekenduri diferențiate și status Confirmată/Neconfirmată în formularul rezervării. Rezervările existente fără status sunt afișate drept confirmate. Bara are poziția și lățimea calculate procentual din același interval de 30 zile; linia albastră apare numai la check-out/check-in identice pentru același apartament.
+
+Datele salvate nu sunt înlocuite de demo-ul nou. Pentru a vedea cele 3 schimburi demonstrative fără a pierde datele existente, deschide site-ul într-o fereastră incognito sau într-un browser nou.
+
+Testele automate sunt acum 15, inclusiv antetele lunilor (schimb de an și an bisect), markerii de schimb, statusurile și cele 3 cazuri demo.
