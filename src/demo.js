@@ -1,4 +1,4 @@
-import {dayNumber,isoDay,today} from './domain.js?v=0.2';
+import {dayNumber,isoDay,today} from './domain.js?v=0.2.1';
 export function demoState() {
  const t=dayNumber(today());
  const apartments=[{id:'demo-a',name:'Apartament Marina',address:'Strada Exemplu 1',city:'Constanța'},{id:'demo-b',name:'Studio Lumina',address:'Strada Exemplu 2',city:'Lumina'},{id:'demo-c',name:'Apartament Sunset',address:'Strada Exemplu 3',city:'Năvodari'}];
