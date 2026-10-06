@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Apartment Booking Manager</string>
+    <string name="title_activity_main">Apartment Booking Manager</string>
+    <string name="package_name">ro.icdapps.apartmentbookingmanager</string>
+    <string name="custom_url_scheme">ro.icdapps.apartmentbookingmanager</string>
+</resources>

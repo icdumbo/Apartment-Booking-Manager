@@ -1,0 +1,7 @@
+{
+  "appId": "ro.icdapps.apartmentbookingmanager",
+  "appName": "Apartment Booking Manager",
+  "webDir": "www",
+  "server": { "hostname": "localhost", "androidScheme": "https" },
+  "android": { "backgroundColor": "#f4f6f3" }
+}

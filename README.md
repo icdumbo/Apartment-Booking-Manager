@@ -60,3 +60,7 @@ Rânduri compacte, weekenduri diferențiate și status Confirmată/Neconfirmată
 Datele salvate nu sunt înlocuite de demo-ul nou. Pentru a vedea cele 3 schimburi demonstrative fără a pierde datele existente, deschide site-ul într-o fereastră incognito sau într-un browser nou.
 
 Testele automate sunt acum 15, inclusiv antetele lunilor (schimb de an și an bisect), markerii de schimb, statusurile și cele 3 cazuri demo.
+
+## Android BASIC pentru test personal
+
+Proiectul Android Capacitor împachetează aplicația existentă pentru utilizare offline. ID: `ro.icdapps.apartmentbookingmanager`. Vezi [instrucțiunile Android](docs/android.md) pentru generarea APK-ului debug, instalare și testarea persistenței. Nu există publicare Google Play sau reclame.
