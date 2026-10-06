@@ -69,3 +69,7 @@ The script verifies the resulting APK against the committed certificate fingerpr
 **Compatibility boundary:** the first two APKs used lost, different ephemeral CI keys. This stable-key APK cannot update those older installations. Same-key update compatibility begins with 1.0.2; there is no claim of having migrated Android data from the old APK. Do not uninstall an old installation containing real data without a separately agreed transfer plan.
 
 The 30-day and 12-month layouts now resize using CSS container widths. The application remains fully bundled and offline. Browser viewport tests do not replace a physical Fold/Android installation test.
+
+## BASIC 1.0.3
+
+versionCode 4, versionName 1.0.3. Phone-only refinement and centralized RO/EN translations. The private signing key and certificate are reused from 1.0.2; no new signing key is generated. Package ID, local origin and booking-storage key remain unchanged. Language preference uses its own local key and survives same-key updates. CI still produces an unsigned candidate; the delivered APK is privately signed using the existing backup with `scripts/sign-apk.py`. No GitHub Secrets action is required for this private signing workflow. Do not install the unsigned CI candidate.
