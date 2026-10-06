@@ -9,3 +9,27 @@
 .month-selector{padding:0 18px 12px}.year-navigation{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px}.year-navigation button{padding:2px 12px;font-size:22px;line-height:1.2}.year-navigation strong{font-size:13px}.month-options-scroll{overflow-x:auto}.month-options{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));min-width:660px;border:1px solid #dce4dd;border-radius:8px;overflow:hidden}.month-option{border:0;border-right:1px solid #dce4dd;border-radius:0;padding:9px 3px;font-size:11px;white-space:nowrap}.month-option:last-child{border-right:0}.month-option.active{background:#214f3d;color:#fff;font-weight:700}.month-option.active:hover{background:#163d2e}@media(max-width:760px){.month-selector{padding:0 12px 12px}}
 
 .month-option.upcoming{box-shadow:inset 0 0 0 2px #214f3d;background:#fff;color:#234037}
+
+/* Size the same 30-day geometry to the available component width. */
+.calendar-card{min-width:0;container-type:inline-size}
+.timeline{container-type:inline-size;--apartment-width:clamp(60px,16cqw,180px)}
+.timeline-head,.timeline-row{display:grid;grid-template-columns:var(--apartment-width) minmax(0,1fr)}
+.apartment-label{width:100%;min-width:0;max-width:100%;padding:clamp(4px,.8cqw,8px);overflow:hidden}
+.apartment-label strong{font-size:clamp(8px,1.1cqw,12px);white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.2}
+.apartment-label small{max-width:100%;font-size:clamp(6px,.9cqw,10px)}
+.corner{font-size:clamp(6px,.9cqw,10px);letter-spacing:0;overflow-wrap:anywhere}
+.calendar-head,.track{width:100%;min-width:0}
+.day-heading{container-type:inline-size;overflow:hidden;padding:0}
+.day-heading strong{font-size:min(13px,62cqw);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap;max-width:100%;flex-shrink:0}
+.day-heading small{font-size:min(8px,26cqw)}
+.month{container-type:inline-size;padding:0}
+.month-label{min-width:0;max-width:100%;font-size:min(12px,11cqw);line-height:1.1;text-align:center;white-space:nowrap}
+.month-short .month-label{font-size:min(12px,14cqw);white-space:pre}
+.booking{font-size:clamp(6px,1cqw,10px);padding-inline:clamp(0px,.4cqw,5px)}
+.month-selector{container-type:inline-size;padding-inline:clamp(4px,1.4cqw,18px)}
+.month-options-scroll{overflow:visible;min-width:0}
+.month-options{min-width:0;width:100%;container-type:inline-size}
+.month-option{min-width:0;padding:clamp(6px,1.2cqw,9px) 0;font-size:min(11px,2.1cqw);line-height:1.4}
+.navigation,.toolbar label{min-width:0}
+.navigation h2{overflow-wrap:anywhere}
+@media(max-width:760px){.shell{padding-inline:clamp(4px,2vw,8px)}.toolbar{padding:clamp(6px,2vw,12px)}.legend{padding-inline:clamp(6px,2vw,12px)}}

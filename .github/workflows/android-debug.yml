@@ -8,6 +8,8 @@ on:
       - 'src/**'
       - 'index.html'
       - 'scripts/build-web.mjs'
+      - 'checks/**'
+      - 'playwright.config.mjs'
       - 'capacitor.config.json'
       - 'package*.json'
       - '.github/workflows/android-debug.yml'
@@ -28,13 +30,31 @@ jobs:
           java-version: '21'
       - run: npm ci
       - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:responsive
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Responsive-layout-checks
+          path: test-results/*.png
+          retention-days: 30
       - run: npm run android:sync
       - name: Build debug APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: Apartment-Booking-Manager-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: Apartment-Booking-Manager-unsigned-candidate
+          path: android/app/build/outputs/apk/debug/*unsigned.apk
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Prepare official SDK signing tool
+        run: |
+          mkdir -p signing-tool
+          cp "$ANDROID_HOME/build-tools/36.0.0/lib/apksigner.jar" signing-tool/apksigner.jar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Android-SDK-apksigner
+          path: signing-tool/apksigner.jar
           retention-days: 30

@@ -41,7 +41,7 @@ Actions → Android debug APK → Run workflow → main. După succes, descarcă
 ## Verificare pe telefon
 
 1. Instalează APK-ul, apoi activează modul avion înainte de prima deschidere.
-2. Verifică timeline, selector luni/ani, Astăzi și detalii demo.
+2. Verifică pornirea goală, timeline, selector luni/ani și Astăzi.
 3. Adaugă un apartament și o rezervare fictivă; verifică suprapunerile și predarea în aceeași zi.
 4. Închide complet aplicația, redeschide în modul avion și verifică păstrarea datelor.
 5. Verifică și editarea/ștergerea cu confirmare, tastatura și rotirea telefonului.
@@ -53,3 +53,19 @@ Buildul reușit și verificarea assets nu înlocuiesc testarea pe telefon. Versi
 Selectorul afișează numai lunile, cu chenar pe luna următoare. Datele introduse/afișate folosesc DD/MM/YYYY; stocarea internă rămâne ISO. Instalările noi pornesc goale. Migrarea unică verifică ID-urile și câmpurile originale demo, inclusiv coerența datelor dintre rezervările originale; păstrează datele modificate/ambigue și apartamentele cu rezervări reale. Nu folosește clear().
 
 Cheia temporară a primului build CI nu a fost păstrată. APK-ul 1.0.1 nu poate fi prezentat ca actualizare garantat compatibilă cu primul. Nu dezinstala și nu șterge datele aplicației vechi pentru instalare; migrarea Android pe acea instalare necesită cheia originală sau o cale de transfer aprobată separat.
+
+## BASIC 1.0.2 — stable private test signing
+
+This APK establishes a stable BASIC test signing identity. The package ID and local origin are unchanged. The public SHA-256 fingerprint is in `android/basic-test-certificate.sha256`. The private JKS and signing properties are never committed. A private backup named `Apartment-Booking-Manager-BASIC-signing-backup.zip` contains the existing `.android-signing/` directory. Restore it at the repository root before future builds. Do not generate a replacement key.
+
+Local Gradle debug builds load `.android-signing/signing.properties` and reuse that key. When the key is missing, Gradle creates an **unsigned candidate**, never a randomly signed installable APK. GitHub Actions likewise produces `Apartment-Booking-Manager-unsigned-candidate` and an official Android SDK `apksigner.jar`. Download both artifacts, extract them and sign privately:
+
+```sh
+python scripts/sign-apk.py --apksigner-jar /path/to/apksigner.jar /path/to/app-debug-unsigned.apk /path/to/Apartment-Booking-Manager-debug.apk
+```
+
+The script verifies the resulting APK against the committed certificate fingerprint. Keep the private backup confidential. Use increasing versionCode values and the same key, package ID and local origin for every subsequent update. Installing an update preserves local data; do not uninstall or clear storage.
+
+**Compatibility boundary:** the first two APKs used lost, different ephemeral CI keys. This stable-key APK cannot update those older installations. Same-key update compatibility begins with 1.0.2; there is no claim of having migrated Android data from the old APK. Do not uninstall an old installation containing real data without a separately agreed transfer plan.
+
+The 30-day and 12-month layouts now resize using CSS container widths. The application remains fully bundled and offline. Browser viewport tests do not replace a physical Fold/Android installation test.

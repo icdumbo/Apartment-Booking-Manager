@@ -3,7 +3,7 @@ import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain
 import {createLocalRepository} from './storage.js?v=0.2.1';
 import {removeOriginalDemo} from './demo-migration.js?v=0.2.5';
 import {displayDate,parseDate} from './date-format.js?v=0.2.5';
-import {renderTimeline} from './timeline.js?v=0.2.5';
+import {renderTimeline} from './timeline.js?v=0.2.6';
 const $=id=>document.getElementById(id);
 let repository,state,blocked=false;
 try {repository=createLocalRepository();state=repository.load();if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}}

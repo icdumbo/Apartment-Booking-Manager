@@ -12,3 +12,9 @@ www/
 *.keystore
 *.jks
 android/local.properties
+
+.android-signing/
+*.apk
+*.idsig
+test-results/
+playwright-report/
