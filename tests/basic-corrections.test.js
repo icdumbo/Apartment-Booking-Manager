@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {parseDate,displayDate} from '../src/date-format.js';
+import {removeOriginalDemo} from '../src/demo-migration.js';import {demoState} from '../src/demo.js';
+test('European dates round trip, reject invalid dates and US order',()=>{assert.equal(parseDate('28/10/2026'),'2026-10-28');assert.equal(displayDate('2026-10-28'),'28/10/2026');for(const d of ['10/28/2026','31/02/2026','1/2/2026','29/02/2027'])assert.throws(()=>parseDate(d));assert.equal(parseDate('29/02/2028'),'2028-02-29');});
+test('migration removes original demos once and preserves unrelated data',()=>{const s=demoState();const a={id:'real',name:'Apartament Marina',address:'Real',city:'Real'};const b={id:'real-booking',apartmentId:'demo-a',guest:'Client real',phone:'0712345678',checkIn:'2030-01-01',checkOut:'2030-01-02'};s.apartments.push(a);s.bookings.push(b);const m=removeOriginalDemo(s);assert.deepEqual(m.bookings,[b]);assert.deepEqual(m.apartments,[s.apartments[0],a]);assert.equal(removeOriginalDemo(m),m);assert.equal(s.bookings.length,7);});
+test('modified demos and real records with demo-like names are preserved',()=>{const s=demoState();s.apartments[1].name='Apartamentul meu';s.bookings[0].phone='0712345678';s.bookings[1].id='user-generated';const m=removeOriginalDemo(s);assert.ok(m.bookings.some(b=>b.id==='demo-1'));assert.ok(m.bookings.some(b=>b.id==='user-generated'));assert.ok(m.apartments.some(a=>a.id==='demo-b'));});
+
+test('migration preserves changed booking dates',()=>{const s=demoState();s.bookings[0].checkIn='2030-01-01';s.bookings[0].checkOut='2030-01-06';assert.ok(removeOriginalDemo(s).bookings.some(b=>b.id==='demo-1'));});

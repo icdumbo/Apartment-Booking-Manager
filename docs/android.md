@@ -47,3 +47,9 @@ Actions → Android debug APK → Run workflow → main. După succes, descarcă
 5. Verifică și editarea/ștergerea cu confirmare, tastatura și rotirea telefonului.
 
 Buildul reușit și verificarea assets nu înlocuiesc testarea pe telefon. Versiunea web BASIC continuă să fie publicată din rădăcina main, fără modificări UI sau de logică pentru Android.
+
+## Corecții BASIC 1.0.1
+
+Selectorul afișează numai lunile, cu chenar pe luna următoare. Datele introduse/afișate folosesc DD/MM/YYYY; stocarea internă rămâne ISO. Instalările noi pornesc goale. Migrarea unică verifică ID-urile și câmpurile originale demo, inclusiv coerența datelor dintre rezervările originale; păstrează datele modificate/ambigue și apartamentele cu rezervări reale. Nu folosește clear().
+
+Cheia temporară a primului build CI nu a fost păstrată. APK-ul 1.0.1 nu poate fi prezentat ca actualizare garantat compatibilă cu primul. Nu dezinstala și nu șterge datele aplicației vechi pentru instalare; migrarea Android pe acea instalare necesită cheia originală sau o cale de transfer aprobată separat.
