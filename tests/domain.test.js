@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validateBooking,barGeometry,dayNumber,overlaps} from '../src/domain.js';
+import {createLocalRepository} from '../src/storage.js';
+const a={id:'a',name:'Demo',address:'Exemplu',city:'Demo'};
+const b={id:'b',apartmentId:'a',guest:'Demo',phone:'0700000000',checkIn:'2026-07-05',checkOut:'2026-07-10'};
+const state={version:1,apartments:[a,{...a,id:'other'}],bookings:[b]};
+const next=(changes={})=>({...b,id:'next',checkIn:'2026-07-10',checkOut:'2026-07-15',...changes});
+test('same-day check-out/check-in is allowed in both directions',()=>{assert.doesNotThrow(()=>validateBooking(next(),state));assert.doesNotThrow(()=>validateBooking(next({checkIn:'2026-07-01',checkOut:'2026-07-05'}),state));assert.equal(overlaps(b,next()),false);});
+test('partial, enclosed, enclosing and identical overlaps are rejected',()=>{for(const [checkIn,checkOut] of [['2026-07-09','2026-07-12'],['2026-07-06','2026-07-08'],['2026-07-01','2026-07-20'],['2026-07-05','2026-07-10']])assert.throws(()=>validateBooking(next({checkIn,checkOut}),state),/suprapune/);});
+test('another apartment can use identical dates',()=>assert.doesNotThrow(()=>validateBooking(next({apartmentId:'other',checkIn:b.checkIn,checkOut:b.checkOut}),state)));
+test('editing excludes self but still checks other bookings',()=>{assert.doesNotThrow(()=>validateBooking(b,state));assert.throws(()=>validateBooking({...b,checkOut:'2026-07-12'},{...state,bookings:[b,next()]}),/suprapune/);});
+test('dates, guest, phone and apartment are validated',()=>{for(const change of [{checkIn:'2026-02-30'},{checkOut:'2026-07-10'},{checkOut:'2026-07-09'},{guest:' '},{phone:'abc'},{apartmentId:'missing'}])assert.throws(()=>validateBooking(next(change),state));});
+test('adjacent bars meet exactly at half-day boundary',()=>{const start=dayNumber('2026-07-01');const first=barGeometry(b,start,20),second=barGeometry(next(),start,20);assert.equal(first.left,4.5);assert.equal(first.left+first.width,second.left);assert.equal(second.left,9.5);});
+test('bars clip at viewport edges and hide outside dates',()=>{assert.deepEqual(barGeometry(b,dayNumber('2026-07-07'),2),{left:0,width:2});assert.equal(barGeometry(b,dayNumber('2026-08-01'),14),null);});
+test('local adapter round-trip and empty state are preserved',()=>{const mem=new Map();const repo=createLocalRepository({getItem:k=>mem.get(k)??null,setItem:(k,v)=>mem.set(k,v)});assert.equal(repo.load(),null);repo.save(state);assert.deepEqual(repo.load(),state);const empty={version:1,apartments:[],bookings:[]};repo.save(empty);assert.deepEqual(repo.load(),empty);});
+test('corrupt storage is rejected without overwriting original',()=>{let raw='broken';const repo=createLocalRepository({getItem:()=>raw,setItem:(_,v)=>raw=v});assert.throws(()=>repo.load());assert.equal(raw,'broken');});
+test('storage failure propagates',()=>{const repo=createLocalRepository({setItem(){throw new Error('quota');}});assert.throws(()=>repo.save(state),/quota/);});
