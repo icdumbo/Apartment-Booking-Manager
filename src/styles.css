@@ -68,5 +68,6 @@
  .apartment-label{padding:5px 7px}.apartment-label strong{font-size:11px;line-height:1.2;-webkit-line-clamp:2;overflow-wrap:anywhere}.apartment-label small{font-size:8px;margin-top:2px}
  .corner{font-size:9px;padding-inline:7px;white-space:nowrap}
  .calendar-head{grid-template-rows:30px 42px}.day-heading{height:42px;gap:3px}.day-heading strong{font-size:min(13px,75cqw);font-weight:700}.day-heading small{display:block;font-size:min(7px,36cqw);white-space:nowrap;line-height:1.2}
- .booking{font-size:9px;padding-inline:3px}.month-label{font-size:min(12px,11cqw)}
+ .booking{font-size:9px;padding-inline:3px}
+ .months .month{justify-content:flex-start}.month-label{font-size:min(12px,11cqw);padding-inline:6px}.months .month-short{justify-content:center}.month-short .month-label{padding-inline:0}
 }
