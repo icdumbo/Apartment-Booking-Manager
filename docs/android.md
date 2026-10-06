@@ -73,3 +73,7 @@ The 30-day and 12-month layouts now resize using CSS container widths. The appli
 ## BASIC 1.0.3
 
 versionCode 4, versionName 1.0.3. Phone-only refinement and centralized RO/EN translations. The private signing key and certificate are reused from 1.0.2; no new signing key is generated. Package ID, local origin and booking-storage key remain unchanged. Language preference uses its own local key and survives same-key updates. CI still produces an unsigned candidate; the delivered APK is privately signed using the existing backup with `scripts/sign-apk.py`. No GitHub Secrets action is required for this private signing workflow. Do not install the unsigned CI candidate.
+
+## BASIC 1.0.4
+
+Phone-only timeline refinement: 15 visible day widths with native horizontal scrolling, 110–130px pinned apartment column and pinned month/day header. versionCode 5; same private signing key, package ID, local origin and stored data as 1.0.3.

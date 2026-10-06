@@ -1,4 +1,4 @@
-import {t,monthTitle,weekdayTitle} from './i18n.js?v=0.3.0';
+import {t,monthTitle,weekdayTitle} from './i18n.js?v=0.3.1';
 import {displayDate} from './date-format.js?v=0.2.5';
 import {barGeometry,dayNumber,isoDay,today,monthSegments,handoverDays} from './domain.js?v=0.2.1';
 export function renderTimeline(root,state,start,days,{editApartment,editBooking,newBooking}) {
