@@ -1,0 +1,12 @@
+import {test,expect} from '@playwright/test';
+const key='apartment-booking-manager:v1';
+const fixture={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'ui-a',name:'Apartament Central',address:'Adresă de test',city:'Oraș Test'},{id:'ui-b',name:'Studio cu terasă',address:'Adresă de test',city:'Oraș Test'},{id:'ui-c',name:'Apartament Parc',address:'Adresă de test',city:'Oraș Test'}],bookings:[{id:'ui-one',apartmentId:'ui-a',guest:'Client Test A',phone:'0700000000',checkIn:'2026-10-04',checkOut:'2026-10-10',status:'confirmed'},{id:'ui-two',apartmentId:'ui-a',guest:'Client Test B',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15',status:'unconfirmed'}]};
+for(const width of [360,390,430,840,1440])test(`final interface ${width}`,async({page})=>{
+ await page.setViewportSize({width,height:900});await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});await page.reload();const before=await page.evaluate(k=>localStorage.getItem(k),key);
+ await expect(page.locator('.day-heading')).toHaveCount(30);await expect(page.locator('.app-navigation button:disabled')).toHaveCount(2);await expect(page.locator('.app-navigation')).toContainText('În curând');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ expect(await page.locator('.booking.confirmed').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(222, 48, 56)');expect(await page.locator('.booking.unconfirmed').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(255, 207, 53)');
+ await page.screenshot({path:`test-results/Final-UI-${width}.png`,fullPage:true});
+ await page.locator('#open-menu').click();await expect(page.locator('#app-menu')).toBeVisible();await expect(page.locator('#menu-add-apartment')).toBeDisabled();await page.locator('#menu-add-booking').click();await expect(page.locator('#editor')).toBeVisible();await page.locator('#cancel').click();expect(await page.evaluate(k=>localStorage.getItem(k),key)).toBe(before);
+});
+test('standalone preview runs the actual interface without external assets',async({page})=>{await page.goto('/ui-preview/Apartment-Booking-Manager-UI.html');await expect(page.locator('.day-heading')).toHaveCount(30);await expect(page.locator('#timeline .empty')).toBeVisible();await page.locator('#open-menu').click();await expect(page.locator('#app-menu')).toBeVisible();});

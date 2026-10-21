@@ -2,6 +2,7 @@
 export const LANGUAGE_KEY='apartment-booking-manager:language';
 export const translations={
  ro:{
+  mainNavigation:'Navigare principală',navCalendar:'Calendar',navApartments:'Apartamente',navStatistics:'Statistici',navReports:'Rapoarte',navMenu:'Meniu',comingSoon:'În curând',apartmentsInCalendar:'Apartamente — administrare în calendar',menuAvailable:'Apartamentele și rezervările se administrează în calendar. Folosește comenzile de mai jos sau selectează un rând ori o rezervare.',futurePremium:'În pregătire · PREMIUM',futureDescription:'Statistici, rapoarte și ecranul dedicat apartamentelor nu sunt încă implementate.',
   premiumTemporary:'PREMIUM cadou activ până la {date}.',
   googleSignIn:'Continuă cu Google',googleSignOut:'Deconectare',authSignedOut:'Autentificarea este opțională. BASIC funcționează fără cont.',authSignedIn:'Cont Google conectat. Verificarea licențelor PREMIUM nu este încă disponibilă.',authPending:'Se conectează…',authCancelled:'Autentificare anulată. BASIC rămâne disponibil.',authError:'Autentificarea nu s-a finalizat. Verifică conexiunea și încearcă din nou. BASIC rămâne disponibil.',
   premiumActive:'PREMIUM permanent activ. Reclamele discrete sunt prevăzute inclusiv în PREMIUM.',
@@ -12,6 +13,7 @@ export const translations={
   monthsShort:['Ian','Feb','Mar','Apr','Mai','Iun','Iul','Aug','Sep','Oct','Nov','Dec'],monthsFull:['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'],weekdays:['dum.','lun.','mar.','mie.','joi','vin.','sâm.']
  },
  en:{
+  mainNavigation:'Main navigation',navCalendar:'Calendar',navApartments:'Apartments',navStatistics:'Statistics',navReports:'Reports',navMenu:'Menu',comingSoon:'Coming soon',apartmentsInCalendar:'Apartments — manage in the calendar',menuAvailable:'Manage apartments and reservations in the calendar. Use the shortcuts below or select an apartment row or reservation.',futurePremium:'In preparation · PREMIUM',futureDescription:'Statistics, reports and a dedicated apartments screen are not implemented yet.',
   premiumTemporary:'Gift PREMIUM active until {date}.',
   googleSignIn:'Continue with Google',googleSignOut:'Sign out',authSignedOut:'Sign-in is optional. BASIC works without an account.',authSignedIn:'Google account connected. PREMIUM license verification is not available yet.',authPending:'Connecting…',authCancelled:'Sign-in cancelled. BASIC remains available.',authError:'Authentication did not complete. Check your connection and try again. BASIC remains available.',
   premiumActive:'Permanent PREMIUM active. Discreet ads are planned in PREMIUM too.',

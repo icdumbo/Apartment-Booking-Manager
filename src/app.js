@@ -132,3 +132,11 @@ if(androidAuth.available){
  androidAuth.initialize().then(updateAccount).catch(()=>{signIn.disabled=true;accountStatus('authError');});
  updateAccount();
 }
+
+// Navigation shortcuts reuse the existing editor, permissions and storage paths.
+$('open-menu').onclick=()=>{
+ for(const kind of ['apartment','booking'])$('menu-add-'+kind).disabled=$('add-'+kind).disabled;
+ $('app-menu').showModal();
+};
+$('close-menu').onclick=()=>$('app-menu').close();
+for(const kind of ['apartment','booking'])$('menu-add-'+kind).onclick=()=>{$('app-menu').close();$('add-'+kind).click();};

@@ -18,3 +18,5 @@ android/local.properties
 *.idsig
 test-results/
 playwright-report/
+
+ui-preview/
