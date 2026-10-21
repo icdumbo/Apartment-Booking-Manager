@@ -4,9 +4,9 @@ import {billingAdapter} from './access.js';
 // Never read endpoint/entitlement/privileged identity from editable local storage.
 export const LICENSE_ENDPOINT=null;
 export function createNativeAuthBridge(plugin){
- let user=null,revision=0,handle;
+ let user=null,revision=0,handle,disposed=false;
  const listeners=new Set();
- const update=value=>{revision++;user=value?.user??null;for(const callback of listeners)callback();};
+ const update=value=>{if(disposed)return;revision++;user=value?.user??null;for(const callback of listeners)callback();};
  return {
   async initialize(){handle=await plugin.addListener('idTokenChanged',update);const request=revision;const current=await plugin.getCurrentUser();if(request===revision)update(current);},
   getCurrentUser:()=>user,
@@ -14,7 +14,7 @@ export function createNativeAuthBridge(plugin){
   async signInWithGoogle(){const response=await plugin.signInWithGoogle();update(response);},
   async signOut(){user=null;revision++;for(const callback of listeners)callback();await plugin.signOut();},
   onIdTokenChanged(callback){listeners.add(callback);return ()=>listeners.delete(callback);},
-  async dispose(){await handle?.remove();handle=null;user=null;listeners.clear();}
+  async dispose(){disposed=true;revision++;user=null;listeners.clear();await handle?.remove();handle=null;}
  };
 }
 export function createOptionalAndroidAuth(capacitor=globalThis.Capacitor){
