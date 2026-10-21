@@ -27,3 +27,7 @@ The provider retains grants only in memory, returns defensive copies and checks 
 - If persistent offline PREMIUM is later required, design signed, short-lived, account/application/audience-bound leases with server time, expiry, issuer/key validation, replay protections and revocation policy. Keep signing keys exclusively on the server; public verification keys are not secrets. Local flags and the device clock alone cannot prove ownership or permanent access.
 
 Until that phase is authorized and implemented, owner access and paid access are recognized only through injected trusted test adapters, not available for real activation. No infrastructure is provisioned and no real purchase or advertisement is enabled.
+
+## Firebase preparation
+
+See [firebase-integration.md](firebase-integration.md) for the optional Google/Firebase bridge contract, HTTPS license verification adapter, pure backend factory, private owner configuration, offline fallback and manual setup. These modules are not connected to the running application. The existing policy/service remains the single access decision point.
