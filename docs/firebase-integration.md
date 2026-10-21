@@ -1,6 +1,8 @@
-# Firebase Google Authentication and license verification — preparation only
+# Firebase Google Authentication and license verification
 
-Status: adapters and pure backend scaffold only. No Firebase SDK dependency, project configuration, login UI, deployment entry point, service account, active backend or Billing implementation has been added. `app.js` does not import these adapters; existing BASIC/TRIAL behavior is unchanged. Do not treat mock tests as Firebase integration tests.
+Status: native Firebase Auth + Android Credential Manager integration is now included for project `apartment-booking-manage-2d218`, using the supplied Android client configuration. `BookingAuthPlugin` is registered in the existing Activity, and `src/native-auth.js` connects the optional account controls outside the calendar. Existing storage, signing and package ID are unchanged. No Firebase Admin SDK, deployment entry point, active license backend, Play Billing or gift writer exists. `LICENSE_ENDPOINT` remains null, so successful Google authentication alone cannot grant PREMIUM. Unit tests use fictional identities; physical-device Google authentication has not been verified in this environment.
+
+The supplied `google-services.json` contains public Firebase/OAuth client configuration, not a server credential or privileged identity. Do not add service account private keys. The Android client certificate in it is checked against the existing APK test certificate during verification.
 
 ## Existing architecture and future composition
 
@@ -12,9 +14,9 @@ Status: adapters and pure backend scaffold only. No Firebase SDK dependency, pro
 - `signOut()` → sign out the Firebase/native session.
 - `onIdTokenChanged(callback)` → subscribe to Firebase identity/token changes, return an unsubscribe function. Callback invalidates the current license immediately. The future composition root must refresh verification after the settled auth event, and on resume/reconnect, with bounded retry/backoff; no automatic network loop is started here.
 
-For Android/Capacitor, plan a native bridge using Android Credential Manager plus Firebase Auth. Do not use an embedded WebView OAuth popup as the native Google login implementation. The bridge is an interface, not an installed Capacitor plugin. Choose and validate native dependency versions in the actual integration phase. No current Gradle or signing changes are needed for this preparation.
+The Android bridge uses Credential Manager and Firebase Auth (versions pinned in app Gradle). Do not use an embedded WebView OAuth popup as the native Google login implementation. The custom BookingAuth Capacitor plugin implements the interface without adding an npm plugin. Gradle adds only Auth/Credential Manager dependencies; signing stays unchanged.
 
-Connect the returned `provider` to the existing `createAccessService` when the real integration is authorized. The composition root should call `start()`, expose optional login/logout separately from BASIC startup and call `dispose()` when removing the integration. Never pass local flags as a trusted verifier.
+The returned provider is now connected to the existing `createAccessService`; without a configured backend it cannot grant PREMIUM. The composition root should call `start()`, expose optional login/logout separately from BASIC startup and call `dispose()` when removing the integration. Never pass local flags as a trusted verifier.
 
 ## Minimal backend contract
 
@@ -28,7 +30,7 @@ Dependencies to provide server-side:
 2. `readOwnerSubject()`: read one owner Firebase UID from access-controlled server configuration/secret storage. Missing configuration grants no owner privilege. Provision the UID only after verifying the owner's actual Google/Firebase account in an administrative process. Never ship that UID in client configuration, email comparisons or source code. Do not grant the owner's spouse or other accounts the same exception. Administrative assignment/revocation must be audited.
 3. `readVerifiedPurchase(subject)`: read only a server-controlled license record `{subject, status: 'active', permanent: true}` backed by a previously verified Google Play purchase. Missing, revoked, mismatched or inactive records grant nothing. No client write permission is allowed. This scaffold does not verify a purchase token and must not be wired to client-submitted records. Play verification, unique token/account binding, acknowledgement and refund/revocation updates remain a later phase.
 
-Response 200 is `{version: 1, subject, entitlement: null}` or `{version: 1, subject, entitlement: {source: 'OWNER_GRANT' | 'GOOGLE_PLAY_PURCHASE', permanent: true, verifiedUntil}}`. The five-minute verification window uses server time; it is not the lifetime of the license. Authentication failure is 401; wrong method 405; unavailable server configuration/repository 503. The client checks schema, account binding, source and expiry and uses only the explicitly configured HTTPS server response. This is an online transport trust boundary, not cryptographically signed offline proof. Configuration and adapters are trusted application code, not user-controlled endpoint settings.
+Response 200 is `{version: 1, subject, entitlement: null}` or `{version: 1, subject, entitlement: {source: 'OWNER_GRANT' | 'GOOGLE_PLAY_PURCHASE' | 'ADMIN_GIFT', permanent: boolean, verifiedUntil, expiresAt?}}`. The five-minute verification window uses server time; it is not the lifetime of the license. Authentication failure is 401; wrong method 405; unavailable server configuration/repository 503. The client checks schema, account binding, source and expiry and uses only the explicitly configured HTTPS server response. This is an online transport trust boundary, not cryptographically signed offline proof. Configuration and adapters are trusted application code, not user-controlled endpoint settings.
 
 A minimal later deployment can be one HTTPS Cloud Function plus a private owner setting and a server-only purchase collection. Firestore client rules should deny all reads/writes to license records; Admin SDK access is controlled with least-privilege IAM. No apartment, reservation, address or guest data needs to leave the device. No Firestore instance/rules/configuration has been created in this phase.
 
@@ -67,3 +69,20 @@ Official references:
 ## Remaining work, only after approval
 
 Configure the Firebase project and native SDK/bridge; wire optional UI and auth lifecycle into the existing service; implement the authenticated server wrapper and Firebase Admin adapters; deploy a restricted backend; test real sign-in and offline lifecycle; separately implement Play Billing and purchase verification. No next phase is started by these files.
+
+
+## Gift license model and administrator boundary
+
+There is no fixed limit on gift recipients: store one independently addressable active/revoked gift per target Firebase subject, with no aggregate user cap. The server-only `readGift(subject)` adapter returns `{subject, status: 'active' | 'revoked', permanent: boolean, expiresAt?}`. Temporary gifts require a finite future epoch-millisecond expiry; permanent gifts use `permanent: true`. The backend checks owner, then purchase, then gift, so revoking a gift never revokes a separately purchased or owner entitlement. The response source is `ADMIN_GIFT`; `verifiedUntil` is at most five minutes and never later than a temporary gift's expiry. Revocations take effect at the next verification or latest at lease expiry; this is not instantaneous offline revocation.
+
+`backend/gift-admin-contract.js` only validates an operation and prepares a frozen plan. It has no HTTP endpoint, database writes or issuance side effects. A future administrator operation must verify the Firebase ID token with revocation checking, authorize the resulting subject against a server-only admin role and require recent authentication. Unverified target UID/role/owner flags do not authorize the caller. The target UID is only a gift destination *after* authorization; a future writer must also verify the target account exists via Admin SDK.
+
+Future server-only admin operations: grant permanent/temporary gift, replace duration and revoke gift. Implement privileged IAM, role management, immutable audit entries, idempotency/concurrency controls, reason, timestamps and server-side target validation before any issuance. Deny all client Firestore access to roles, owner settings, gift and purchase records. Prefer additional administrator MFA. Do not implement roles by comparing emails or placing privileged UIDs in the app. No test/simulation control may activate real licenses.
+
+## Current verification and remaining setup
+
+The native plugin opens explicit Google account selection and exchanges the credential using `FirebaseAuth.signInWithCredential`. It exposes only UID session metadata and an on-demand Firebase ID token; tokens stay out of app storage/logs. Firebase SDK manages its native session. Sign-out clears Firebase state and Credential Manager session; cancellation/failure leaves offline BASIC available. Browser builds do not show native account controls.
+
+Configured input: matching project/package and Android/Web OAuth clients in supplied JSON. Google provider enablement and Firebase Console certificate settings are user-confirmed, not independently tested remotely. Validate OAuth consent/test-user policies and the stable test certificate on a physical device, including cancellation, network loss, process restart, logout and switching accounts. Later Play app-signing certificates must be registered separately.
+
+Still required: real-device sign-in verification, then a separately authorized backend deployment/configuration (Admin token verifier, sole private owner setting, admin roles, private gift/purchase stores). Only after that configure `LICENSE_ENDPOINT` in trusted source/deployment configuration and refresh lifecycle/backoff. Add Play Billing/Google Play purchase validation separately. No backend or console changes were made during this integration. No private signing material was changed and no new certificate was created.

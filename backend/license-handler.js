@@ -1,7 +1,7 @@
 // Pure backend design scaffold. No Firebase initialization, network listener or deployment.
 // verifyIdToken must be Firebase Admin Auth.verifyIdToken(token, true), configured
 // for the intended project. Repository/config adapters must be server-only.
-export function createLicenseHandler({verifyIdToken,readOwnerSubject,readVerifiedPurchase,clock=Date.now}){
+export function createLicenseHandler({verifyIdToken,readOwnerSubject,readVerifiedPurchase,readGift=async()=>null,clock=Date.now}){
  return async function handle({method,authorization}){
   const reply=(status,body)=>({status,headers:{'Cache-Control':'no-store'},body});
   if(method!=='POST')return reply(405,{error:'methodNotAllowed'});
@@ -14,13 +14,17 @@ export function createLicenseHandler({verifyIdToken,readOwnerSubject,readVerifie
   const subject=claims.uid;
   try{
    const owner=await readOwnerSubject();
-   let source=null;
+   let source=null,permanent=true,expiresAt;
    if(typeof owner==='string'&&owner.length>0&&owner===subject)source='OWNER_GRANT';
    else{
     const purchase=await readVerifiedPurchase(subject);
     if(purchase?.subject===subject&&purchase.status==='active'&&purchase.permanent===true)source='GOOGLE_PLAY_PURCHASE';
+    else {
+     const gift=await readGift(subject);
+     if(gift?.subject===subject&&gift.status==='active'&&(gift.permanent===true||(gift.permanent===false&&Number.isFinite(gift.expiresAt)&&gift.expiresAt>clock()))){source='ADMIN_GIFT';permanent=gift.permanent;expiresAt=gift.expiresAt;}
+    }
    }
-   return reply(200,{version:1,subject,entitlement:source?{source,permanent:true,verifiedUntil:clock()+5*60000}:null});
+   return reply(200,{version:1,subject,entitlement:source?{source,permanent,verifiedUntil:permanent?clock()+5*60000:Math.min(clock()+5*60000,expiresAt),...(permanent?{}:{expiresAt})}:null});
   }catch{return reply(503,{error:'verificationUnavailable'});}
  };
 }

@@ -14,7 +14,7 @@ Calendar, responsive CSS, half-day geometry, application ID and signing configur
 
 After successful verification, the adapter must return `{subject, source, permanent: true, verifiedUntil}`. `source` is `GOOGLE_PLAY_PURCHASE` for a one-time purchase or `OWNER_GRANT` for the owner's complimentary lifetime access. `subject` is an opaque authenticated account ID, never an email entered by the user. `verifiedUntil` is the verification lease expiration in epoch milliseconds, not the expiration of the permanent license. This normalized object is a contract for already verified results, not a proof format: merely matching its shape does not authenticate it.
 
-`verifyAccess` must be supplied by trusted integration code that validates the authenticated server response/proof; it must never read editable local entitlement data or simply trust arbitrary JSON. `getAuthenticatedSubject` must read the validated authentication session. No transport, cryptographic verifier, login, backend or Billing SDK is implemented yet. Do not connect these hooks to unverified inputs.
+`verifyAccess` must be supplied by trusted integration code that validates the authenticated server response/proof; it must never read editable local entitlement data or simply trust arbitrary JSON. `getAuthenticatedSubject` must read the validated authentication session. Native Google/Firebase login and the online transport adapter are now implemented; no active backend, offline cryptographic verifier or Billing SDK exists. Do not connect these hooks to unverified inputs.
 
 The provider retains grants only in memory, returns defensive copies and checks the session binding and verification deadline at every read. Refresh clears the old grant before verification. Missing, rejected, expired or failed verification falls back to the existing TRIAL/BASIC rules, preserving all data. Logout must call `clear()`; session changes also invalidate access on read. Generation checks prevent pending responses from restoring a cleared grant or overriding a newer refresh. A restart requires fresh trusted verification; persistent offline PREMIUM proof is deliberately not implemented. The trial's offline behavior remains unchanged.
 
@@ -30,4 +30,9 @@ Until that phase is authorized and implemented, owner access and paid access are
 
 ## Firebase preparation
 
-See [firebase-integration.md](firebase-integration.md) for the optional Google/Firebase bridge contract, HTTPS license verification adapter, pure backend factory, private owner configuration, offline fallback and manual setup. These modules are not connected to the running application. The existing policy/service remains the single access decision point.
+See [firebase-integration.md](firebase-integration.md) for the optional Google/Firebase bridge contract, HTTPS license verification adapter, pure backend factory, private owner configuration, offline fallback and manual setup. The native authentication adapter is connected; the license endpoint remains unconfigured, so login does not grant PREMIUM. The existing policy/service remains the single access decision point.
+
+
+## Gift access extension
+
+`ADMIN_GIFT` is a third verified source alongside purchase and owner grants. A gift can be permanent or temporary; temporary grants carry `permanent: false` plus `expiresAt`, with the verification lease bounded by that expiry. Only server-controlled gift records may supply such grants. The local trial is still exactly 15 days and remains separate. The gift administrator contract performs verification/authorization/validation only and cannot write or activate gifts. See the Firebase document for the server-only role boundary, unlimited recipients, revocation latency and pending infrastructure.

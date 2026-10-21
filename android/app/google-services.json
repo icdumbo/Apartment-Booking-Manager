@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "139551918205",
+    "project_id": "apartment-booking-manage-2d218",
+    "storage_bucket": "apartment-booking-manage-2d218.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139551918205:android:62be4c37db6625aecb8914",
+        "android_client_info": {
+          "package_name": "ro.icdapps.apartmentbookingmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139551918205-859gjframsfe1r3c8k9ebe8g0p7sd7cm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ro.icdapps.apartmentbookingmanager",
+            "certificate_hash": "8312e3829c3ebab76244f5e1bfeb240efeeb83c2"
+          }
+        },
+        {
+          "client_id": "139551918205-0s1knhrp5qgnc5v0l22lier2ulu1a7do.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwMeR4A6rmIOmt080As12bhF7RIsAYnq4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139551918205-0s1knhrp5qgnc5v0l22lier2ulu1a7do.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

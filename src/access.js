@@ -3,9 +3,10 @@ export const ACCESS_KEY='apartment-booking-manager:access:v1';
 export const BASIC_LIMIT=3;
 export const TRIAL_DURATION=15*86400000;
 export const ACCESS_STATES=Object.freeze({TRIAL:'TRIAL',BASIC:'BASIC',PREMIUM:'PREMIUM'});
-export const PREMIUM_SOURCES=Object.freeze({PURCHASE:'GOOGLE_PLAY_PURCHASE',OWNER:'OWNER_GRANT'});
-function validPremiumGrant(grant,now){
- return grant?.permanent===true&&Object.values(PREMIUM_SOURCES).includes(grant.source)&&typeof grant.subject==='string'&&grant.subject.length>0&&Number.isFinite(grant.verifiedUntil)&&grant.verifiedUntil>now;
+export const PREMIUM_SOURCES=Object.freeze({PURCHASE:'GOOGLE_PLAY_PURCHASE',OWNER:'OWNER_GRANT',GIFT:'ADMIN_GIFT'});
+export function validPremiumGrant(grant,now){
+ const lifetime=grant?.permanent===true || (grant?.source===PREMIUM_SOURCES.GIFT&&grant.permanent===false&&Number.isFinite(grant.expiresAt)&&grant.expiresAt>now&&grant.verifiedUntil<=grant.expiresAt);
+ return lifetime&&Object.values(PREMIUM_SOURCES).includes(grant.source)&&typeof grant.subject==='string'&&grant.subject.length>0&&Number.isFinite(grant.verifiedUntil)&&grant.verifiedUntil>now;
 }
 // Trust boundary: verifyAccess must authenticate the session and verify backend proof.
 // Never pass localStorage, an email comparison or an unverified HTTP JSON reader here.
@@ -25,7 +26,7 @@ export function createPremiumProvider({verifyAccess,getAuthenticatedSubject,cloc
    const result=await verifyAccess({subject:account});
    if(request!==generation)return null;
    if(subject()!==account||result?.subject!==account||!validPremiumGrant(result,now()))return null;
-   grant=Object.freeze({subject:result.subject,source:result.source,permanent:true,verifiedUntil:result.verifiedUntil});
+   grant=Object.freeze({subject:result.subject,source:result.source,permanent:result.permanent,verifiedUntil:result.verifiedUntil,...(result.permanent===false?{expiresAt:result.expiresAt}:{})});
    return getVerifiedEntitlement();
   }catch{return null;}
  }});
@@ -40,7 +41,7 @@ export function createAccessService(storage=globalThis.localStorage,clock=Date.n
   if(record&&!unavailable&&now>record.lastSeen){const next={...record,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;}catch{unavailable=true;}}
   const effectiveNow=Math.max(now,record?.lastSeen??now);
   let premium=null;try{const grant=purchaseProvider.getVerifiedEntitlement();if(validPremiumGrant(grant,effectiveNow))premium=grant;}catch{}
-  return {state:premium!==null?'PREMIUM':!unavailable&&record&&effectiveNow<record.startedAt+TRIAL_DURATION?'TRIAL':'BASIC',trialAvailable:!unavailable&&!record&&premium===null,expiresAt:record?record.startedAt+TRIAL_DURATION:null,unavailable,premiumSource:premium?.source??null};
+  return {state:premium!==null?'PREMIUM':!unavailable&&record&&effectiveNow<record.startedAt+TRIAL_DURATION?'TRIAL':'BASIC',trialAvailable:!unavailable&&!record&&premium===null,expiresAt:record?record.startedAt+TRIAL_DURATION:null,unavailable,premiumSource:premium?.source??null,premiumExpiresAt:premium?.permanent===false?premium.expiresAt:null};
  }
  return {snapshot,startTrial(){if(!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;return true;}catch{unavailable=true;return false;}}};
 }

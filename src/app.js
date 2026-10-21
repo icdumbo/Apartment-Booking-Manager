@@ -6,7 +6,9 @@ import {displayDate,parseDate} from './date-format.js?v=0.2.5';
 import {renderTimeline} from './timeline.js?v=0.3.1';
 import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './i18n.js?v=0.3.1';
 import {createAccessService,accessPolicy} from './access.js?v=1';
-const access=createAccessService();
+import {createOptionalAndroidAuth} from './native-auth.js';
+const androidAuth=createOptionalAndroidAuth();
+const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
 const $=id=>document.getElementById(id);
 initializeLanguage();
 let repository,state,blocked=false;
@@ -32,7 +34,7 @@ function renderMonthSelector(){
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
 function render(){
  const entitlement=access.snapshot();
- $('access-message').textContent=t(entitlement.unavailable?'accessUnavailable':entitlement.state==='PREMIUM'?'premiumActive':entitlement.trialAvailable?'trialIntroduction':entitlement.state==='TRIAL'?'trialActive':'basicActive',{date:entitlement.expiresAt?displayDate(new Date(entitlement.expiresAt).toISOString().slice(0,10)):''});
+ $('access-message').textContent=t(entitlement.unavailable?'accessUnavailable':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive'):entitlement.trialAvailable?'trialIntroduction':entitlement.state==='TRIAL'?'trialActive':'basicActive',{date:(entitlement.premiumExpiresAt??entitlement.expiresAt)?displayDate(new Date(entitlement.premiumExpiresAt??entitlement.expiresAt).toISOString().slice(0,10)):''});
  $('start-trial').hidden=!entitlement.trialAvailable;
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>open('booking',b),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
@@ -117,3 +119,16 @@ $('close').onclick=$('cancel').onclick=()=>$('editor').close();$('add-apartment'
 $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next').onclick=()=>{selectorYear++;renderMonthSelector();};
 $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$('next').onclick=()=>{start+=days;selectorYear=calendarYear(start);render();};
 $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};$('days').onchange=e=>{days=Number(e.target.value);render();};refreshLanguage();
+
+// Optional account controls sit outside the calendar; BASIC never waits for Firebase.
+if(androidAuth.available){
+ const panel=$('account-controls'),signIn=$('google-sign-in'),signOut=$('google-sign-out'),status=$('auth-status');
+ panel.hidden=false;
+ function accountStatus(key){status.dataset.i18n=key;status.textContent=t(key);}
+ function updateAccount(){const signedIn=Boolean(androidAuth.bridge.getCurrentUser());signIn.hidden=signedIn;signOut.hidden=!signedIn;accountStatus(signedIn?'authSignedIn':'authSignedOut');}
+ androidAuth.bridge.onIdTokenChanged(updateAccount);
+ async function act(operation){signIn.disabled=signOut.disabled=true;accountStatus('authPending');try{await operation();updateAccount();}catch(error){updateAccount();accountStatus(error.code==='authCancelled'?'authCancelled':'authError');}finally{signIn.disabled=signOut.disabled=false;}}
+ signIn.onclick=()=>act(androidAuth.signIn);signOut.onclick=()=>act(androidAuth.signOut);
+ androidAuth.initialize().then(updateAccount).catch(()=>{signIn.disabled=true;accountStatus('authError');});
+ updateAccount();
+}
