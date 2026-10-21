@@ -9,7 +9,7 @@ test('trial expiry preserves data and restricts overflow while first apartments 
  await page.locator('.timeline-row .apartment-label').first().click();await page.locator('input[name=name]').fill('Editable BASIC');await page.locator('#editor [type=submit]').click();await expect(page.locator('.timeline-row .apartment-label').first()).toContainText('Editable BASIC');
  await page.locator('#start-trial').click();await expect(page.locator('#add-apartment')).toBeEnabled();await expect(page.locator('#start-trial')).toBeHidden();
  await page.locator('.timeline-row .apartment-label').last().click();await expect(page.locator('input[name=name]')).toBeEnabled();await page.locator('input[name=name]').fill('Unsaved after expiry');
- await page.clock.setSystemTime(new Date('2026-10-21T09:00:00Z'));await page.locator('#editor [type=submit]').click();await expect(page.locator('#form-error')).toContainText('BASIC');await page.locator('#cancel').click();await page.reload();
+ await page.clock.setSystemTime(new Date('2026-10-21T09:01:00Z'));await page.locator('#editor [type=submit]').click();await expect(page.locator('#form-error')).toContainText('BASIC');await page.locator('#cancel').click();await page.reload();
  await expect(page.locator('.timeline-row')).toHaveCount(5);await expect(page.locator('#add-apartment')).toBeDisabled();await expect(page.locator('#start-trial')).toBeHidden();
  const after=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);expect(after.bookings).toEqual(JSON.parse(before).bookings);expect(after.apartments[4]).toEqual(fixture.apartments[4]);expect(after.apartments[0].name).toBe('Editable BASIC');
 });
