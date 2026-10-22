@@ -9,8 +9,8 @@
   "vars": {"NEW_TRIALS_ENABLED": "false"},
   "d1_databases": [{
     "binding": "DB",
-    "database_name": "apartment-booking-access",
-    "database_id": "00000000-0000-0000-0000-000000000000",
+    "database_name": "apartment-booking-licenses",
+    "database_id": "8b381c2f-aca1-4799-abb6-f02bea37cfe5",
     "migrations_dir": "migrations"
   }],
   "observability": {"enabled": false}
