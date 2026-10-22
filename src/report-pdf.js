@@ -1,3 +1,4 @@
+import {saveExport} from './file-export.js';
 import {jsPDF} from './vendor/jspdf.js';
 import {normal,bold} from './vendor/report-fonts.js';
 import {selectReservationsReport} from './reservations-report.js';
@@ -55,6 +56,6 @@ export function reservationsPDF(state,filters,entitlement){
  return {bytes:new Uint8Array(doc.output('arraybuffer')),filename:`Reservations-${filters.start}-${filters.end}-${currency}.pdf`,pageCount};
 }
 export function downloadReservationsPDF(state,filters,entitlement){
- const {bytes,filename}=reservationsPDF(state,filters,entitlement),url=URL.createObjectURL(new Blob([bytes],{type:PDF_MIME})),link=document.createElement('a');
- link.href=url;link.download=filename;document.body.append(link);try{link.click();}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+ const {bytes,filename}=reservationsPDF(state,filters,entitlement);
+ return saveExport({bytes,filename,mimeType:PDF_MIME});
 }

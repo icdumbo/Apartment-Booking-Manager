@@ -1,3 +1,4 @@
+import {saveExport} from './file-export.js';
 import {selectReservationsReport} from './reservations-report.js';
 import {dayNumber} from './domain.js?v=0.2.1';
 import {displayDate} from './date-format.js?v=0.2.5';
@@ -37,6 +38,6 @@ export function reservationsExcel(state,filters,entitlement){
  return {bytes:createXlsx(sheet,styles,t('reportSheetName')),filename:`Reservations-${filters.start}-${filters.end}-${currency}.xlsx`};
 }
 export function downloadReservationsExcel(state,filters,entitlement){
- const {bytes,filename}=reservationsExcel(state,filters,entitlement),url=URL.createObjectURL(new Blob([bytes],{type:XLSX_MIME})),link=document.createElement('a');
- link.href=url;link.download=filename;document.body.append(link);try{link.click();}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+ const {bytes,filename}=reservationsExcel(state,filters,entitlement);
+ return saveExport({bytes,filename,mimeType:XLSX_MIME});
 }

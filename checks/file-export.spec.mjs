@@ -1,0 +1,24 @@
+import {test,expect} from '@playwright/test';
+import {collectionsFixture as fixture} from './fixtures/collections.mjs';
+import {xlsxParts} from './helpers/xlsx.mjs';
+async function load(page,language='ro'){
+ await page.addInitScript(()=>{window.__exports=[];window.__exportMode='saved';window.Capacitor={getPlatform:()=> 'android',Plugins:{BookingFileExport:{saveFile:async payload=>{window.__exports.push(payload);if(window.__exportMode==='pending')return new Promise(resolve=>window.__finishExport=resolve);if(window.__exportMode==='error')throw Error('disk/provider failed');if(window.__exportMode==='invalid')return {};return {status:window.__exportMode,filename:payload.filename};}}}};});
+ await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(data=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data)),fixture);await page.reload();await page.locator(`.top [data-language=${language}]`).click();await page.locator('.app-navigation [data-screen=reports]').click();await page.context().setOffline(true);
+}
+for(const language of ['ro','en'])test(`native save transport and confirmation ${language}`,async({page})=>{
+ await page.setViewportSize({width:390,height:900});await load(page,language);const downloads=[];page.on('download',d=>downloads.push(d));const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));
+ await page.locator('#report-currency').selectOption('EUR');await page.locator('#report-apartmentId').selectOption('b');
+ for(const kind of ['excel','pdf']){await page.locator('#report-export-'+kind).click();await expect(page.locator('#report-export-status')).toContainText(language==='ro'?'Fișier salvat':'File saved');await expect(page.locator('#report-export-status')).toContainText(kind==='excel'?'.xlsx':'.pdf');await expect(page.locator('#report-export-'+kind)).toBeEnabled();}
+ const calls=await page.evaluate(()=>window.__exports);expect(calls).toHaveLength(2);expect(calls[0].filename).toContain('-EUR.xlsx');const sheet=xlsxParts(Buffer.from(calls[0].data,'base64'))['xl/worksheets/sheet1.xml'];expect(sheet).toContain('Client Test EUR');expect(sheet).not.toContain('Client Test Cross');expect(sheet).toContain('<c r="G8" s="4"><v>500</v></c>');expect(Buffer.from(calls[1].data,'base64').subarray(0,5).toString()).toBe('%PDF-');expect(downloads).toHaveLength(0);expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(before);
+});
+test('picker cancellation and failure are visible; busy state prevents duplicate exports',async({page})=>{
+ await load(page);await page.evaluate(()=>window.__exportMode='pending');await page.locator('#report-export-excel').click();await expect(page.locator('#report-export-pdf')).toBeDisabled();await expect(page.locator('#report-export-status')).toContainText('locul salvării');expect(await page.evaluate(()=>window.__exports.length)).toBe(1);
+ await page.evaluate(()=>window.__finishExport({status:'cancelled'}));await expect(page.locator('#report-export-status')).toContainText('anulată');await expect(page.locator('#report-export-pdf')).toBeEnabled();
+ await page.evaluate(()=>window.__exportMode='error');await page.locator('#report-export-pdf').click();await expect(page.locator('#report-error')).toContainText('nu a putut fi salvat');await expect(page.locator('#report-export-excel')).toBeEnabled();await page.locator('.top [data-language=en]').click();await page.locator('#report-export-excel').click();await expect(page.locator('#report-error')).toContainText('could not be saved');
+});
+test('Android without a native adapter fails visibly and never attempts Blob download',async({page})=>{
+ await load(page);await page.evaluate(()=>delete window.Capacitor.Plugins.BookingFileExport);const downloads=[];page.on('download',d=>downloads.push(d));await page.locator('#report-export-excel').click();await expect(page.locator('#report-error')).toContainText('Instalează APK-ul');expect(downloads).toHaveLength(0);
+});
+test('BASIC expiry and invalid filters do not invoke native saving',async({page})=>{
+ await load(page);await page.locator('#report-start').fill('2026-11-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-pdf')).toBeDisabled();await page.locator('#report-start').fill('2026-10-01');await page.locator('#report-start').dispatchEvent('change');await page.clock.setSystemTime(new Date('2026-10-22T09:00:00Z'));await page.locator('#report-export-pdf').click();await expect(page.locator('#reports-locked')).toBeVisible();expect(await page.evaluate(()=>window.__exports.length)).toBe(0);
+});

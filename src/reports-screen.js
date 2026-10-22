@@ -19,10 +19,26 @@ export function createReportsScreen({root,getState,getEntitlement}){
  }
  const exportActions=document.createElement('div');exportActions.className='report-export-actions';content.append(exportActions);
  const exportButton=text('button','reportExportExcel',exportActions);exportButton.type='button';exportButton.id='report-export-excel';exportButton.className='primary';
- exportButton.onclick=()=>{try{downloadReservationsExcel(getState(),{...filters},getEntitlement());}catch(reason){if(!canEditPayments(getEntitlement()))render();else{error.textContent=t(reason.message==='reportExportTooLarge'?'reportExportTooLarge':'reportExportFailed');error.hidden=false;}}};
  const pdfButton=text('button','reportExportPDF',exportActions);pdfButton.type='button';pdfButton.id='report-export-pdf';pdfButton.className='primary';
- pdfButton.onclick=()=>{try{downloadReservationsPDF(getState(),{...filters},getEntitlement());}catch{if(!canEditPayments(getEntitlement()))render();else{error.textContent=t('reportPDFFailed');error.hidden=false;}}};
  const error=document.createElement('p');error.id='report-error';error.setAttribute('role','alert');content.append(error);
+ const exportStatus=document.createElement('p');exportStatus.id='report-export-status';exportStatus.setAttribute('role','status');exportStatus.setAttribute('aria-live','polite');content.append(exportStatus);
+ let exporting=false,statusKey='',statusValues={};
+ function status(key,values={}){statusKey=key;statusValues=values;exportStatus.textContent=key?t(key,values):'';}
+ async function runExport(download){
+  if(exporting)return;exporting=true;exportButton.disabled=pdfButton.disabled=true;error.hidden=true;status('exportPreparing');
+  try{
+   const result=await download(getState(),{...filters},getEntitlement());
+   status(result.status==='saved'?'exportSaved':result.status==='cancelled'?'exportCancelled':'exportBrowserStarted',{filename:result.filename});
+  }catch(reason){
+   status('');if(!canEditPayments(getEntitlement()))render();
+   else{const key=['exportNativeUnavailable','exportFileTooLarge'].includes(reason.message)?reason.message:'exportSaveFailed';error.textContent=t(key);error.hidden=false;}
+  }finally{
+   exporting=false;
+   try{selectReservationsReport(getState(),filters,getEntitlement());exportButton.disabled=pdfButton.disabled=false;}
+   catch{exportButton.disabled=pdfButton.disabled=true;}
+  }
+ }
+ exportButton.onclick=()=>runExport(downloadReservationsExcel);pdfButton.onclick=()=>runExport(downloadReservationsPDF);
  const summary=document.createElement('div');summary.id='report-summary';summary.className='collections-summary';summary.setAttribute('aria-live','polite');content.append(summary);
  const count=document.createElement('p');count.id='report-count';count.setAttribute('aria-live','polite');content.append(count);
  const explanation=document.createElement('details');explanation.id='report-explanation';content.append(explanation);text('summary','reportCalculation',explanation);
@@ -30,6 +46,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
  const list=document.createElement('div');list.id='report-list';list.className='report-list';content.append(list);
  function option(select,value,label){const el=document.createElement('option');el.value=value;el.textContent=label;select.append(el);}
  function render(){
+  exportStatus.textContent=statusKey?t(statusKey,statusValues):'';
   const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';error.hidden=true;if(!allowed)return;
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
@@ -37,7 +54,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
   for(const status of ['all','confirmed','unconfirmed'])option(inputs.status,status,t(status==='all'?'reportAllStatus':status));for(const code of ['RON','EUR'])option(inputs.currency,code,code);
   for(const [name,input] of Object.entries(inputs))input.value=filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
-  exportButton.disabled=false;pdfButton.disabled=false;
+  exportButton.disabled=exporting;pdfButton.disabled=exporting;
   for(const [key,value,id] of [['reportTotal',result.totalAmountCents,'total'],['reportReceived',result.receivedAmountCents,'received'],['remainingAmount',result.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id;amount.textContent=formatMoney(value,filters.currency);card.append(amount);summary.append(card);}
   count.textContent=t('reportCount',{count:result.rows.length});
   notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:formatMoney(result.legacyAmountCents,filters.currency)});
