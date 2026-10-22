@@ -1,0 +1,19 @@
+# Central Payments screen (TRIAL / PREMIUM)
+
+The main menu opens Payments / Încasări. The existing booking ledger remains the only source of truth: no new repository, migration, copied payment records or storage keys are introduced. Filtering and aggregation run entirely offline. Selecting a dated receipt or an undated legacy amount opens the original reservation editor; payment creation/edit/delete still happens there, with its existing guards and Save reservation semantics. Saving refreshes the overview using current stored state while retaining filters.
+
+## Filters and financial bases
+
+- Month and year default to the device's current local month/year, independently of the calendar's selected stay period. The year range is 1–9999.
+- Apartment defaults to all apartments; currency defaults to RON. EUR is always a separate selection, with no mixed total or exchange conversion. Missing booking currency remains RON.
+- **Collected amount and payment count:** use actual payment collection dates in the selected calendar month. Stay dates do not restrict these receipts: advances and payments made after checkout count in their payment month. Rows show actual date, guest, apartment, method and amount, ordered newest first with deterministic booking/payment ID ties.
+- **Current outstanding balances, stays in period:** sum the entire current balance of reservations whose stay intersects the selected month. Check-in is included and check-out excluded: a checkout on the first day of the month does not make that stay relevant. Both confirmed and unconfirmed reservations are included. Balances are not historical month-end snapshots and are not prorated by nights; the UI states this explicitly. Thus the same outstanding balance may appear in multiple monthly views when its stay spans months. No total value means an unknown balance: excluded from the numeric sum and disclosed separately by count. Missing collected aggregate is treated as zero only when a total value exists, per the existing booking rules.
+- **Legacy receipts without dates:** display the positive unresolved aggregate (`paidAmountCents` if no ledger, otherwise `legacyPaidAmountCents`) separately for the chosen apartment/currency across ALL periods. These amounts are excluded from monthly received amount/count. Dates and methods remain unknown; no guessed transactions are generated. Current reservation balances still account for these amounts via the existing balance helper, preventing double counting.
+
+`src/collections.js` is the pure, read-only projection; `src/collections-screen.js` owns only transient filter/UI state. Monetary sums use integer minor units and refuse unsafe aggregate totals instead of returning rounded results. Invalid periods and empty results have explicit messages and clear previous totals. No grand total across currencies, statistics, export, refund or bank processing is implemented.
+
+## Access and data retention
+
+The existing access service and `canEditPayments` TRIAL/PREMIUM policy gate the entire central screen. BASIC sees a compact PREMIUM benefit description. The query itself rejects BASIC, and filter changes and receipt clicks recheck current entitlement. Existing timer/resume checks also refresh an active overview after downgrade; the UI removes rendered financial rows/totals and shows the locked state without writing business data. Old payment histories remain available through the existing permitted reservation detail views. No local rights toggle or new authentication/licensing backend is added.
+
+Filters survive navigation, reservation edits and language changes during the current application session; they reset to defaults on restart. Data remains in the existing device-local storage and is not synchronized between devices. This overview is not an accounting ledger or historical audit report.

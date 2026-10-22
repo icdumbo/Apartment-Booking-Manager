@@ -1,3 +1,4 @@
+import {createCollectionsScreen} from './collections-screen.js';
 import {assertCurrencyChange} from './currency.js';
 import {canEditPayments,assertPaymentHistoryAccess} from './payments.js';
 import {BOOKING_EXTRA_FIELDS,readBookingExtras} from './booking-values.js';
@@ -26,6 +27,7 @@ if(!blocked)access.startTrial();
 let activeScreen='calendar';
 let start=dayNumber(today())-2,days=30,editing;
 let selectorYear=calendarYear(start);
+const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 function renderMonthSelector(){
  $('selector-year').textContent=selectorYear;const currentDate=new Date(start*86400000);
  $('month-options').replaceChildren();
@@ -40,7 +42,7 @@ function renderMonthSelector(){
 }
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
 function render(){
- renderAccessStatus();renderApartments();if(editing?.payments)editing.payments.refresh();
+ renderAccessStatus();renderApartments();if(activeScreen==='payments')collectionsScreen.render();if(editing?.payments)editing.payments.refresh();
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>open('booking',b),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
  $('summary').textContent=t('summary',{apartments:state.apartments.length,bookings:state.bookings.length});
@@ -70,13 +72,15 @@ function renderApartments(){
 }
 function selectScreen(screen){
  activeScreen=screen;
+ $('payments-panel').hidden=screen!=='payments';$('apartment-actions').hidden=screen==='payments';if(screen==='payments')collectionsScreen.render();
+ if(screen==='payments')$('open-menu').setAttribute('aria-current','page');else $('open-menu').removeAttribute('aria-current');
  $('calendar-panel').hidden=screen!=='calendar';$('apartments-panel').hidden=screen!=='apartments';$('add-booking').hidden=screen!=='calendar';
  const heading=document.querySelector('h1'),subtitle=$('screen-subtitle');
- heading.dataset.i18n=screen==='calendar'?'heading':'navApartments';heading.textContent=t(heading.dataset.i18n);
- subtitle.dataset.i18n=screen==='calendar'?'subtitle':'apartmentsSubtitle';subtitle.textContent=t(subtitle.dataset.i18n);
+ heading.dataset.i18n=screen==='calendar'?'heading':screen==='payments'?'navPayments':'navApartments';heading.textContent=t(heading.dataset.i18n);
+ subtitle.dataset.i18n=screen==='calendar'?'subtitle':screen==='payments'?'collectionsSubtitle':'apartmentsSubtitle';subtitle.textContent=t(subtitle.dataset.i18n);
  for(const link of document.querySelectorAll('[data-screen]')){if(link.dataset.screen===screen)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
 }
-for(const link of document.querySelectorAll('[data-screen]'))link.onclick=e=>{e.preventDefault();selectScreen(link.dataset.screen);};
+for(const link of document.querySelectorAll('[data-screen]'))link.onclick=e=>{e.preventDefault();if($('app-menu').open)$('app-menu').close();selectScreen(link.dataset.screen);};
 function textLabel(key){const label=document.createElement('label'),text=document.createElement('span');text.dataset.i18n=key;text.textContent=t(key);label.append(text);return label;}
 function field(key,name,value='',type='text'){
  const label=textLabel(key),input=document.createElement('input');input.name=name;input.type=type==='date'?'text':type;input.value=type==='date'?displayDate(value):value;
