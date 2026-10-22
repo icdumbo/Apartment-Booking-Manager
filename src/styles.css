@@ -175,3 +175,6 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
 #report-explanation{margin:12px 0 18px;padding:12px 14px;background:#eef5fd;border:1px solid #d8e7f8;border-radius:12px;min-width:0}
 #report-explanation summary{cursor:pointer;color:#246399;line-height:1.5;min-height:24px;padding:8px 0;overflow-wrap:anywhere}
 #report-explanation summary:focus-visible{outline:2px solid #0875ed;outline-offset:4px}
+
+#report-export-excel{margin-top:14px;min-height:44px}
+@media(max-width:600px){#report-export-excel{width:100%}}
