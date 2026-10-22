@@ -28,8 +28,8 @@ export function reservationsPDF(state,filters,entitlement){
  summary.forEach(([key,value],i)=>{const x=margin+i*(cardWidth+8);doc.setFillColor('#eef5fd');doc.roundedRect(x,y,cardWidth,58,5,5,'F');font(8,'normal',muted);doc.text(lines(t(key),cardWidth-16,8),x+8,y+15);font(11,'bold',blue);doc.text(value,x+8,y+44);});y+=74;
  paragraph(t('reportBasis'));
  paragraph(t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:formatMoney(result.legacyAmountCents,currency)}));
- const widths=[126,116,65,65,46,82,92,92,available-684];
- const headings=['guest','apartment','checkIn','checkOut','reportPDFNights','bookingStatus','reportTotal','reportReceived','remainingAmount'];
+ const widths=[116,126,65,65,46,82,92,92,available-684];
+ const headings=['apartment','guest','checkIn','checkOut','reportPDFNights','bookingStatus','reportTotal','reportReceived','remainingAmount'];
  function tableHeader(){
   const labels=headings.map((key,i)=>lines(t(key),widths[i]-12,8,'bold')),h=Math.max(...labels.map(a=>a.length))*11+14;
   doc.setFillColor(blue);doc.rect(margin,y,available,h,'F');let x=margin;
@@ -38,7 +38,7 @@ export function reservationsPDF(state,filters,entitlement){
  if(y+80>bottom)page();tableHeader();
  function money(amount){return formatMoney(amount,currency);}
  for(const [index,row] of result.rows.entries()){
-  const values=[row.guest+(row.legacyAmountCents?' · '+t('reportLegacy',{amount:money(row.legacyAmountCents)}):''),row.apartment,displayDate(row.checkIn),displayDate(row.checkOut),String(row.nights),t(row.status),money(row.totalAmountCents),money(row.receivedAmountCents),money(row.balanceCents)];
+  const values=[row.apartment,row.guest,displayDate(row.checkIn),displayDate(row.checkOut),String(row.nights),t(row.status),money(row.totalAmountCents),money(row.receivedAmountCents),money(row.balanceCents)];
   const wrapped=values.map((value,i)=>lines(value,widths[i]-12,8)),rowHeight=Math.max(30,Math.max(...wrapped.map(a=>a.length))*11+14);
   if(y+rowHeight>bottom){page();tableHeader();}
   doc.setFillColor(index%2?'#f2f6fb':'#ffffff');doc.rect(margin,y,available,rowHeight,'F');let x=margin;
