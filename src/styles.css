@@ -150,3 +150,11 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
 @media(max-width:600px){.statistics-filters{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.statistics-filters label:nth-child(5){grid-column:1 / -1}.statistics-primary,.statistics-secondary{gap:8px}.statistics-primary>div,.statistics-secondary>div{padding:12px}.statistics-primary strong{font-size:22px}.statistics-secondary strong{font-size:17px}.statistics-chart{padding:12px}.statistics-values{font-size:11px}}
 
 @media(max-width:600px){.statistics-primary>div:last-child strong{font-size:clamp(16px,4.6vw,22px)}}
+
+/* Phone chart values only; dashboard comparison tables and desktop remain unchanged. */
+@media(max-width:600px){
+ .statistics-chart .statistics-values{font-size:14px;line-height:1.55;margin-top:12px}
+ .statistics-chart .statistics-values th,.statistics-chart .statistics-values td{padding:14px 8px;vertical-align:middle}
+ .statistics-chart .statistics-values th:first-child,.statistics-chart .statistics-values td:first-child{width:20%;text-align:left}
+ .statistics-chart .statistics-values th:not(:first-child),.statistics-chart .statistics-values td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+}
