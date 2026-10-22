@@ -9,7 +9,7 @@ The existing offline repository and version-1 business storage are reused; no bu
 - `paidAmountCents`: for bookings with history, equals `legacyPaidAmountCents` (or zero) plus all payment amounts. Validated on load/save so it cannot diverge from the ledger. Without history it keeps its previous aggregate semantics, including the distinction between absent and explicit zero.
 - Remaining balance = booking total minus total collected. Amounts display as Romanian RON in both UI languages. Overpayment, unsafe sums, invalid dates/methods and non-positive payments are rejected. No refunds, commissions, multi-currency or negative payments in this stage.
 
-Payment records are nested under their booking. The central screen joins booking ID to `apartmentId` and filters by payment `date`; apartment or stay changes do not rewrite collection dates. Unknown legacy aggregates have no usable collection period and must remain separate from date-filtered receipts until the user explicitly provides details. The central Payments screen now projects these records read-only; see `docs/collections.md`. Reports and statistics are not implemented.
+Payment records are nested under their booking. The central screen joins booking ID to `apartmentId` and filters by payment `date`; apartment or stay changes do not rewrite collection dates. Unknown legacy aggregates have no usable collection period and must remain separate from date-filtered receipts until the user explicitly provides details. The central Payments screen now projects these records read-only; see `docs/collections.md`. Statistics also reuse these records; reports are not implemented.
 
 ## Legacy conversion without duplication
 

@@ -21,10 +21,10 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --test tests/collections.test.js tests/currency.test.js tests/payments.test.js tests/booking-values.test.js tests/access.test.js tests/domain.test.js tests/i18n.test.js
+      - run: node --test tests/statistics.test.js tests/collections.test.js tests/currency.test.js tests/payments.test.js tests/booking-values.test.js tests/access.test.js tests/domain.test.js tests/i18n.test.js
       - run: node scripts/build-ui-preview.mjs
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test checks/collections.spec.mjs checks/currency.spec.mjs checks/payments.spec.mjs checks/booking-details.spec.mjs checks/access.spec.mjs checks/responsive.spec.mjs checks/i18n.spec.mjs checks/native-auth.spec.mjs checks/ui-preview.spec.mjs
+      - run: npx playwright test checks/statistics.spec.mjs checks/collections.spec.mjs checks/currency.spec.mjs checks/payments.spec.mjs checks/booking-details.spec.mjs checks/access.spec.mjs checks/responsive.spec.mjs checks/i18n.spec.mjs checks/native-auth.spec.mjs checks/ui-preview.spec.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
