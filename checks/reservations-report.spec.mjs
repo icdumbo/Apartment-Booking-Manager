@@ -23,7 +23,7 @@ for(const width of [360,390,430,768,1440])test(`report responsive RO/EN ${width}
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await explanation.locator('summary').tap();await expect(explanation).not.toHaveAttribute('open');
   await expect(page.locator('.report-card')).toHaveCount(3);await expect(page.locator('#report-total')).toHaveText('1.600,00 RON');await expect(page.locator('#report-received')).toHaveText('700,00 RON');await expect(page.locator('#report-balance')).toHaveText('900,00 RON');
-  await expect(page.locator('[data-booking-id=cross]')).toContainText('03/11/2026');await expect(page.locator('[data-booking-id=legacy] .report-legacy')).toContainText('200,00 RON');
+  await expect(page.locator('#report-list .report-card[data-booking-id=cross]')).toContainText('03/11/2026');await expect(page.locator('#report-list .report-card[data-booking-id=legacy] .report-legacy')).toContainText('200,00 RON');
   const layout=await page.locator('#reports-panel').evaluate(root=>({overflow:document.documentElement.scrollWidth>innerWidth,clipped:[...root.querySelectorAll('input,select,dd,dt,h3')].some(el=>{const r=el.getBoundingClientRect();return r.left<0||r.right>innerWidth+.5;})}));expect(layout).toEqual({overflow:false,clipped:false});
  }
  await page.locator('[data-screen=calendar]').click();await expect(page.locator('#calendar-panel')).toBeVisible();await page.locator('#open-menu').click();await page.locator('#app-menu [data-screen=reports]').click();await expect(page.locator('#app-menu')).not.toBeVisible();await expect(page.locator('#reports-content')).toBeVisible();
