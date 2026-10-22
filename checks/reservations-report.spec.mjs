@@ -1,5 +1,6 @@
 import {test,expect} from '@playwright/test';
 import {collectionsFixture as fixture} from './fixtures/collections.mjs';
+test.use({hasTouch:true});
 const key='apartment-booking-manager:v1';
 async function load(page,{expired=false}={}){
  await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');
@@ -12,6 +13,15 @@ for(const width of [360,390,430,768,1440])test(`report responsive RO/EN ${width}
  await page.context().setOffline(true);await reports(page);
  for(const language of ['ro','en']){
   await page.locator(`.top [data-language=${language}]`).click();await expect(page.locator('#reports-content h2')).toHaveText(language==='ro'?'Raport rezervări':'Reservations Report');
+  const explanation=page.locator('#report-explanation');await expect(explanation).not.toHaveAttribute('open');
+  await expect(page.locator('#report-count')).toBeVisible();await expect(page.locator('#report-count')).toHaveText(language==='ro'?'3 rezervări':'3 reservations');
+  await expect(explanation.locator('summary')).toHaveText(language==='ro'?'Cum se calculează raportul?':'How is the report calculated?');
+  await expect(explanation.locator('[data-i18n=reportBasis]')).not.toBeVisible();await expect(page.locator('#report-notice')).not.toBeVisible();
+  await explanation.locator('summary').tap();await expect(explanation).toHaveAttribute('open','');
+  await expect(explanation.locator('[data-i18n=reportBasis]')).toBeVisible();await expect(explanation.locator('[data-i18n=reportBasis]')).toContainText('check-out');
+  await expect(page.locator('#report-notice')).toContainText(language==='ro'?'1 fără valoare':'1 without a value');await expect(page.locator('#report-notice')).toContainText('200,00 RON');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await explanation.locator('summary').tap();await expect(explanation).not.toHaveAttribute('open');
   await expect(page.locator('.report-card')).toHaveCount(3);await expect(page.locator('#report-total')).toHaveText('1.600,00 RON');await expect(page.locator('#report-received')).toHaveText('700,00 RON');await expect(page.locator('#report-balance')).toHaveText('900,00 RON');
   await expect(page.locator('[data-booking-id=cross]')).toContainText('03/11/2026');await expect(page.locator('[data-booking-id=legacy] .report-legacy')).toContainText('200,00 RON');
   const layout=await page.locator('#reports-panel').evaluate(root=>({overflow:document.documentElement.scrollWidth>innerWidth,clipped:[...root.querySelectorAll('input,select,dd,dt,h3')].some(el=>{const r=el.getBoundingClientRect();return r.left<0||r.right>innerWidth+.5;})}));expect(layout).toEqual({overflow:false,clipped:false});

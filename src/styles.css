@@ -170,3 +170,8 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
 .report-card dl{margin:16px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.report-card dl>div{min-width:0}.report-card dt{font-size:12px;color:#627b94}.report-card dd{margin:5px 0 0;font-size:15px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;color:#246399}.report-legacy{padding-top:12px;border-top:1px dashed #dce6f2}
 @media(max-width:1000px){.report-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.report-filters label:last-child{grid-column:1 / -1}.report-list{grid-template-columns:1fr}}
 @media(max-width:600px){.report-card{padding:14px}.report-filters{grid-template-columns:minmax(0,1fr)}.report-filters label:last-child{grid-column:auto}}
+
+#report-count{font-weight:600;color:#246399}
+#report-explanation{margin:12px 0 18px;padding:12px 14px;background:#eef5fd;border:1px solid #d8e7f8;border-radius:12px;min-width:0}
+#report-explanation summary{cursor:pointer;color:#246399;line-height:1.5;min-height:24px;padding:8px 0;overflow-wrap:anywhere}
+#report-explanation summary:focus-visible{outline:2px solid #0875ed;outline-offset:4px}

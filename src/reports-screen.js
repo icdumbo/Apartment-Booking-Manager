@@ -17,11 +17,13 @@ export function createReportsScreen({root,getState,getEntitlement}){
  }
  const error=document.createElement('p');error.id='report-error';error.setAttribute('role','alert');content.append(error);
  const summary=document.createElement('div');summary.id='report-summary';summary.className='collections-summary';summary.setAttribute('aria-live','polite');content.append(summary);
- text('p','reportBasis',content);const notice=document.createElement('p');notice.id='report-notice';content.append(notice);
+ const count=document.createElement('p');count.id='report-count';count.setAttribute('aria-live','polite');content.append(count);
+ const explanation=document.createElement('details');explanation.id='report-explanation';content.append(explanation);text('summary','reportCalculation',explanation);
+ text('p','reportBasis',explanation);const notice=document.createElement('p');notice.id='report-notice';explanation.append(notice);
  const list=document.createElement('div');list.id='report-list';list.className='report-list';content.append(list);
  function option(select,value,label){const el=document.createElement('option');el.value=value;el.textContent=label;select.append(el);}
  function render(){
-  const allowed=canEditPayments(getEntitlement());lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';error.hidden=true;if(!allowed)return;
+  const allowed=canEditPayments(getEntitlement());lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';error.hidden=true;if(!allowed)return;
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of state.apartments)option(inputs.apartmentId,a.id,a.name);
@@ -29,6 +31,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
   for(const [name,input] of Object.entries(inputs))input.value=filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
   for(const [key,value,id] of [['reportTotal',result.totalAmountCents,'total'],['reportReceived',result.receivedAmountCents,'received'],['remainingAmount',result.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id;amount.textContent=formatMoney(value,filters.currency);card.append(amount);summary.append(card);}
+  count.textContent=t('reportCount',{count:result.rows.length});
   notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:formatMoney(result.legacyAmountCents,filters.currency)});
   if(!result.rows.length)text('p','reportEmpty',list);
   for(const row of result.rows){
