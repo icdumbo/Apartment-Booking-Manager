@@ -27,17 +27,21 @@ export function createStatisticsScreen({root,getState,getEntitlement}){
   const section=document.createElement('section');section.className='statistics-chart';text('h2',key,section);
   const previous=result.previousSeries?.some(p=>p.hasData)?result.previousSeries:null;
   const caption=document.createElement('p');caption.textContent=t('statisticsChartYear',{year:result.year,currency:isMoney?filters.currency:'%'});if(previous)caption.textContent+=' · '+t('statisticsChartPrevious',{year:result.year-1});section.append(caption);
-  const svg=node('svg',{viewBox:'0 0 600 230',role:'img','aria-label':t(key)});svg.append(node('title',{},t(key)));const max=isMoney?Math.max(100,...result.series.map(p=>p[metric]),...(previous?.map(p=>p[metric])??[])):100;
-  for(const [i,label] of [[0,isMoney?formatMoney(max,filters.currency):'100%'],[1,isMoney?formatMoney(0,filters.currency):'0%']])svg.append(node('text',{x:4,y:i?202:16,class:'statistics-axis'},label));
-  svg.append(node('line',{x1:8,y1:190,x2:592,y2:190,stroke:'#dbe5ef'}));
+  const peak=Math.max(0,...result.series.map(p=>p[metric]),...(previous?.map(p=>p[metric])??[]));
+  const max=isMoney?Math.max(100,peak):100;
+  // Keep labels in separate rows; compact sparse charts without changing their scale or values.
+  const plotHeight=peak/max<0.1?65:145,baseline=42+plotHeight;
+  const svg=node('svg',{viewBox:`0 0 600 ${baseline+78}`,role:'img','aria-label':t(key)});svg.append(node('title',{},t(key)));
+  for(const [y,label] of [[20,isMoney?formatMoney(max,filters.currency):'100%'],[baseline+29,isMoney?formatMoney(0,filters.currency):'0%']])svg.append(node('text',{x:4,y,class:'statistics-axis'},label));
+  svg.append(node('line',{x1:8,y1:baseline,x2:592,y2:baseline,stroke:'#dbe5ef'}));
   for(let i=0;i<12;i++){
    const x=12+i*48;
    for(const [values,offset,klass] of [[result.series,previous?17:10,'chart-current'],...(previous?[[previous,0,'chart-previous']]:[])]){
     if(klass==='chart-previous'&&!values[i].hasData)continue;
-    const value=values[i][metric],height=value/max*145,width=previous?15:27;
-    const rect=node('rect',{x:x+offset,y:190-height,width,height,rx:3,class:klass});rect.append(node('title',{},`${t('monthsShort')[i]} ${klass==='chart-current'?result.year:result.year-1}: ${isMoney?formatMoney(value,filters.currency):number(value)+'%'}`));svg.append(rect);
+    const value=values[i][metric],height=value/max*plotHeight,width=previous?15:27;
+    const rect=node('rect',{x:x+offset,y:baseline-height,width,height,rx:3,class:klass});rect.append(node('title',{},`${t('monthsShort')[i]} ${klass==='chart-current'?result.year:result.year-1}: ${isMoney?formatMoney(value,filters.currency):number(value)+'%'}`));svg.append(rect);
    }
-   svg.append(node('text',{x:x+19,y:220,'text-anchor':'middle',class:'statistics-month'},t('monthsShort')[i]));
+   svg.append(node('text',{x:x+19,y:baseline+66,'text-anchor':'middle',class:'statistics-month'},t('monthsShort')[i]));
   }
   section.append(svg);
   const detail=document.createElement('details');text('summary','statisticsChartValues',detail);const table=document.createElement('table');table.className='statistics-values';const head=document.createElement('tr');for(const label of [t('collectionMonth'),String(result.year),...(previous?[String(result.year-1)]:[])]){const th=document.createElement('th');th.textContent=label;head.append(th);}table.append(head);

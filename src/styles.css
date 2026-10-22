@@ -158,3 +158,6 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
  .statistics-chart .statistics-values th:first-child,.statistics-chart .statistics-values td:first-child{width:20%;text-align:left}
  .statistics-chart .statistics-values th:not(:first-child),.statistics-chart .statistics-values td:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
 }
+
+/* Leave a physical gap below SVG month labels, independent of SVG scaling. */
+.statistics-chart > details{margin-top:16px}
