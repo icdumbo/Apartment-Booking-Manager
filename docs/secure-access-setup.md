@@ -1,0 +1,24 @@
+# Secure access backend: manual setup, not performed
+
+Project: `apartment-booking-manage-2d218`. Package: `ro.icdapps.apartmentbookingmanager`. Do not change the APK key or version. No deployment credential/administrator connection is available in this workspace; the checked-in code is not a live service.
+
+1. Confirm Google Sign-In on a real device with the existing Firebase Android configuration/test certificate. Keep BASIC anonymous. For later Play distribution register the Play app-signing certificate separately.
+2. Review Cloud Billing/Blaze, Firestore location and function region (`europe-west1`), IAM and budget alerts before deployment. `maxInstances: 2` limits scaling, not total spending or per-account abuse. Authentication alone does not prevent traffic/cost abuse: configure monitoring and an appropriate gateway/App Check/rate policy before public rollout. App Check is not a substitute for Firebase ID-token validation.
+3. Create Firestore in a deliberate location. `backend/firestore.rules` denies all client access; **review/merge existing project rules before deploying**, rather than overwrite any unrelated rules. Only the function service identity may access trials, verified purchases and gifts. No booking/client data is uploaded.
+4. Using an authorized administrator, set Secret Manager values `ABM_OWNER_SUBJECT` (the sole verified owner's Firebase UID) and `ABM_ACCESS_PRIVATE_KEY` (RSA 3072+ PKCS8 PEM). Provision the license-proof signing key in a trusted administrative environment, not this repository. It is distinct from the Android signing certificate; never regenerate or replace that certificate. Use platform service credentials, not a downloaded service-account key in Git. Grant the function identity only required database/secret permissions.
+5. Reconcile legacy accounts **before** setting `ABM_NEW_TRIALS_ENABLED=true`. Trial document ID is SHA-256 of the UID (UTF-8, lowercase hex). A reviewed legacy record is either `{version:1,subject,status:'used',startedAt,expiresAt}` with `expiresAt=startedAt+1296000000`, or `{status:'blocked'}`. Do not derive authorization from client dates/flags. Unknown historical anonymous trials cannot be securely reconstructed. Keep used/blocked records indefinitely under a reviewed retention/deletion policy. Do not expose a client writer or enable TTL.
+6. With an authorized Firebase CLI, install the pinned backend dependencies and deploy only after reviewing costs/configuration:
+
+   ```sh
+   npm ci --prefix backend
+   firebase deploy --project apartment-booking-manage-2d218 --only functions:access
+   ```
+
+   The Firebase codebase name and HTTPS function are both `access`. Review database rules separately; no command here deploys them blindly. CLI will require the bound secret configuration. Confirm the generated HTTPS URL and its IAM/invoker setup. CORS permits only `https://localhost`; this does not authorize requests, which must carry a verified Google/Firebase ID token. Requests are bounded to 2 KiB; errors are sanitized; bearer tokens/proofs must not enter logs.
+7. Export only the matching **public** RSA key as SPKI DER/base64 into Android `access_public_key_spki` and configure the actual HTTPS `LICENSE_ENDPOINT` in `src/native-auth.js`. Never place the private PEM or privileged UID there. Missing URL/key leaves secure activation unavailable. Plan public-key rotation/multiple-key support before rotating an already issued permanent offline proof; blindly replacing the pin can invalidate legitimate offline licenses.
+8. Keep enrolment disabled and run restricted integration tests first: wrong-project/expired/revoked tokens, cross-account responses, failed signing/database calls, concurrent activation, clear-data/reinstall, server-record retention, clock changes, sleep, process kill, phone reboot, expired trial, owner-only grant, offline restart and explicit logout. Test that no dates/payments/apartments change. Mocks are not sufficient evidence of live Firebase or real-device behavior.
+9. Enable new trial enrolment only after cutover approval and those checks. No Play Billing, purchase writer or real payment is deployed by this stage. Offline paid proof support is tested against injected trusted records only, never a simulated activation in the real app.
+
+Offline limitation: temporary rights require reconnection after phone reboot. Indefinite offline purchased rights necessarily delay revocation until reconnection. Missing local signing/cache keys after reinstall require online verification. Restoring a license does not restore reservations; local data transfer/backup is a separate feature.
+
+Costs: Cloud Functions, Firestore, Secret Manager, logs/build/artifacts/network can incur charges on Blaze; free allowances do not guarantee a zero bill. Budget alerts are notifications, not hard spending caps. No Firebase resources or charges were initiated here.

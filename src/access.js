@@ -37,13 +37,16 @@ export function createAccessService(storage=globalThis.localStorage,clock=Date.n
   if(record!==null&&(record.version!==1||!Number.isFinite(record.startedAt)||record.startedAt<0||!Number.isFinite(record.lastSeen)||record.lastSeen<record.startedAt))throw new Error('Invalid entitlement');
  }catch{unavailable=true;}
  function snapshot(){
+  // Native-verified snapshots use signed server time plus a monotonic Android anchor.
+  let trusted=null;try{trusted=purchaseProvider.getVerifiedAccess?.();}catch{}
+  if(trusted&&['BASIC','TRIAL','PREMIUM'].includes(trusted.state))return {state:trusted.state,trialAvailable:false,expiresAt:trusted.expiresAt??null,remainingMs:trusted.remainingMs,unavailable:false,premiumSource:trusted.state==='PREMIUM'?trusted.premiumSource:null,premiumExpiresAt:trusted.state==='PREMIUM'?trusted.expiresAt:null};
   const now=clock();
   if(record&&!unavailable&&now>record.lastSeen){const next={...record,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;}catch{unavailable=true;}}
   const effectiveNow=Math.max(now,record?.lastSeen??now);
   let premium=null;try{const grant=purchaseProvider.getVerifiedEntitlement();if(validPremiumGrant(grant,effectiveNow))premium=grant;}catch{}
-  return {state:premium!==null?'PREMIUM':!unavailable&&record&&effectiveNow<record.startedAt+TRIAL_DURATION?'TRIAL':'BASIC',trialAvailable:!unavailable&&!record&&premium===null,expiresAt:record?record.startedAt+TRIAL_DURATION:null,unavailable,premiumSource:premium?.source??null,premiumExpiresAt:premium?.permanent===false?premium.expiresAt:null};
+  return {legacyTrial:record!==null,legacyTrialPending:Boolean(purchaseProvider.requiresVerifiedTrial&&record),state:premium!==null?'PREMIUM':!purchaseProvider.requiresVerifiedTrial&&!unavailable&&record&&effectiveNow<record.startedAt+TRIAL_DURATION?'TRIAL':'BASIC',trialAvailable:!purchaseProvider.requiresVerifiedTrial&&!unavailable&&!record&&premium===null,expiresAt:record?record.startedAt+TRIAL_DURATION:null,unavailable,premiumSource:premium?.source??null,premiumExpiresAt:premium?.permanent===false?premium.expiresAt:null};
  }
- return {snapshot,startTrial(){if(!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;return true;}catch{unavailable=true;return false;}}};
+ return {snapshot,startTrial(){if(purchaseProvider.requiresVerifiedTrial||!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;return true;}catch{unavailable=true;return false;}}};
 }
 export function accessPolicy(entitlement,apartments){
  const unlimited=['TRIAL','PREMIUM'].includes(entitlement.state);

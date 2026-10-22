@@ -1,0 +1,4 @@
+{
+  "functions": [{"source": "backend", "codebase": "access", "runtime": "nodejs22", "ignore": ["node_modules", "*.log", ".env*", "*.pem", "*.key"]}],
+  "firestore": {"rules": "backend/firestore.rules"}
+}

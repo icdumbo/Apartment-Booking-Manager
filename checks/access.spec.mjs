@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 const key='apartment-booking-manager:v1';
 const fixture={version:1,migrations:{originalDemoRemoved:true},apartments:Array.from({length:5},(_,i)=>({id:'access-'+i,name:'Apartment '+i,address:'Test street',city:'Test city'})),bookings:[{id:'overflow-booking',apartmentId:'access-4',guest:'Test guest',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-12',status:'confirmed'}]};
 test('trial expiry preserves data and restricts overflow while first apartments remain editable',async({page})=>{
- await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({key,fixture})=>localStorage.setItem(key,JSON.stringify(fixture)),{key,fixture});await page.reload();
+ await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({key,fixture})=>{localStorage.setItem(key,JSON.stringify(fixture));const startedAt=Date.now();localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt,lastSeen:startedAt}));},{key,fixture});await page.reload();
  await expect(page.locator('#access-message')).toContainText('15');await expect(page.locator('#add-apartment')).toBeEnabled();
  const before=await page.evaluate(key=>localStorage.getItem(key),key);
  const trial=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'));
@@ -26,11 +26,11 @@ test('apartments tab reuses stored data, CRUD and BASIC overflow guards offline'
  await page.context().setOffline(false);await page.reload();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartment-card')).toHaveCount(4);
  await page.locator('[data-screen=calendar]').click();await expect(page.locator('.timeline-row')).toHaveCount(4);
 });
-test('automatic trial permits apartment creation and persists it after restart',async({page})=>{
- await page.goto('/');await expect(page.locator('#access-message')).toContainText('15');await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartments-empty')).toBeVisible();
+test('new installations stay BASIC without minting a local trial and persist offline data',async({page})=>{
+ await page.goto('/');await expect(page.locator('#access-message')).toContainText('BASIC');expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'))).toBeNull();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartments-empty')).toBeVisible();
  await page.locator('#add-apartment').click();await page.locator('input[name=name]').fill('New test apartment');await page.locator('input[name=address]').fill('Test address');await page.locator('input[name=city]').fill('Test city');await page.locator('#editor [type=submit]').click();
  await expect(page.locator('.apartment-card')).toContainText('New test apartment');await expect(page.locator('.apartment-photo')).toHaveText('Fără fotografie');
- await page.reload();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartment-card')).toHaveCount(1);await expect(page.locator('#access-message')).toContainText('15');
+ await page.reload();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartment-card')).toHaveCount(1);await expect(page.locator('#access-message')).toContainText('BASIC');
 });
 
 test('ongoing trial keeps its original deadline and corrupt trial history is not replaced',async({page})=>{

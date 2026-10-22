@@ -15,7 +15,7 @@ import {renderTimeline} from './timeline.js?v=0.3.1';
 import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './i18n.js?v=0.3.1';
 import {createAccessService,accessPolicy} from './access.js?v=1';
 import {createOptionalAndroidAuth} from './native-auth.js';
-const androidAuth=createOptionalAndroidAuth();
+const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
 const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
 const $=id=>document.getElementById(id);
 initializeLanguage();
@@ -26,7 +26,7 @@ try {
  const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
 }catch(error){state={version:1,apartments:[],bookings:[]};blocked=true;$('notice').dataset.i18n='storageBlocked';}
 // Start only after business storage has loaded successfully; existing trials are never renewed.
-if(!blocked)access.startTrial();
+// Secure activation is explicit and server-backed. Never mint a local trial on startup.
 let activeScreen='calendar';
 let start=dayNumber(today())-2,days=30,editing;
 let selectorYear=calendarYear(start);
@@ -55,9 +55,9 @@ function render(){
 }
 function renderAccessStatus(){
  const entitlement=access.snapshot(),expiry=entitlement.premiumExpiresAt??entitlement.expiresAt;
- const daysLeft=Math.max(0,Math.ceil(((expiry??0)-Date.now())/86400000));
+ const daysLeft=Math.max(0,Math.ceil((entitlement.remainingMs??((expiry??0)-Date.now()))/86400000));
  $('access-message').textContent=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
- $('access-details').textContent=t(entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
+ $('access-details').textContent=t(entitlement.legacyTrialPending?'legacyTrialReview':entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
 }
 function renderApartments(){
  const list=$('apartment-list');list.replaceChildren();
@@ -186,6 +186,22 @@ if(androidAuth.available){
  androidAuth.bridge.onIdTokenChanged(updateAccount);
  async function act(operation){signIn.disabled=signOut.disabled=true;accountStatus('authPending');try{await operation();updateAccount();}catch(error){updateAccount();accountStatus(error.code==='authCancelled'?'authCancelled':'authError');}finally{signIn.disabled=signOut.disabled=false;}}
  signIn.onclick=()=>act(androidAuth.signIn);signOut.onclick=()=>act(androidAuth.signOut);
+ const trial=$('activate-secure-trial');
+ trial.onclick=async()=>{
+  if(!confirm(t('secureTrialTerms')))return;
+  trial.disabled=true;
+  try{
+   if(!androidAuth.configured)throw Error('licenseBackendUnavailable');
+   // Legacy records cannot authorize a new server trial. Reconcile administratively first.
+   if(globalThis.localStorage.getItem('apartment-booking-manager:access:v1')!==null)throw Error('legacyTrialReview');
+   if(!androidAuth.bridge.getCurrentUser())await androidAuth.signIn();
+   const verified=await androidAuth.secure.activateTrial();if(!verified||!['TRIAL','PREMIUM'].includes(verified.state))throw Error('licenseBackendUnavailable');render();
+  }catch(error){accountStatus(error.message==='legacyTrialReview'?'legacyTrialReview':error.message==='licenseBackendUnavailable'?'licenseBackendUnavailable':'secureTrialError');}
+  finally{trial.disabled=false;}
+ };
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)androidAuth.secure.suspend();else androidAuth.secure.read().then(()=>androidAuth.secure.refresh()).then(render).catch(()=>{});});
+ window.addEventListener('online',()=>androidAuth.secure.refresh().then(render).catch(()=>{}));
+ setInterval(()=>androidAuth.secure.read().then(()=>{renderAccessStatus();if(navigator.onLine)return androidAuth.secure.refresh();}).catch(()=>{}),60000);
  androidAuth.initialize().then(updateAccount).catch(()=>{signIn.disabled=true;accountStatus('authError');});
  updateAccount();
 }

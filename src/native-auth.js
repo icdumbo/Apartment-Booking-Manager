@@ -1,4 +1,4 @@
-import {createFirebaseAccess} from './firebase-access.js';
+import {createSecureAccess} from './secure-access.js';
 import {billingAdapter} from './access.js';
 // A deployed, authenticated backend URL can be set here in a future reviewed change.
 // Never read endpoint/entitlement/privileged identity from editable local storage.
@@ -17,13 +17,15 @@ export function createNativeAuthBridge(plugin){
   async dispose(){disposed=true;revision++;user=null;listeners.clear();await handle?.remove();handle=null;}
  };
 }
-export function createOptionalAndroidAuth(capacitor=globalThis.Capacitor){
+export function createOptionalAndroidAuth(capacitor=globalThis.Capacitor,{changed=()=>{}}={}){
  const plugin=capacitor?.getPlatform?.()==='android'?capacitor.Plugins?.BookingAuth:null;
  if(!plugin)return {available:false,provider:billingAdapter};
  const bridge=createNativeAuthBridge(plugin);
- const access=createFirebaseAccess({authBridge:bridge,endpoint:LICENSE_ENDPOINT});
+ const access=createSecureAccess({bridge,plugin:capacitor.Plugins?.BookingAccess,endpoint:LICENSE_ENDPOINT,changed});
  return {available:true,provider:access.provider,bridge,
-  async initialize(){access.start();await bridge.initialize();},
-  signIn:()=>access.signInWithGoogle(),signOut:()=>access.signOut()
+  configured:access.configured,secure:access,
+  async initialize(){bridge.onIdTokenChanged(()=>{access.sessionChanged().then(()=>access.refresh()).catch(()=>{});});await bridge.initialize();await access.sessionChanged();},
+  async signIn(){await bridge.signInWithGoogle();},
+  async signOut(){await access.signOut();await bridge.signOut();}
  };
 }

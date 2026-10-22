@@ -1,3 +1,9 @@
+# Firebase integration — current implementation
+
+The current source implementation and deployment blockers are documented in [access.md](access.md) and [secure-access-setup.md](secure-access-setup.md). They supersede the historical scaffold contract below. The Android client now uses `src/secure-access.js` and `BookingAccessPlugin` for signed persistent proofs; `src/firebase-access.js` remains the earlier short-lease transport contract used by regression tests. No backend has been deployed, no production activation has been verified, and the URL/public key remain unset.
+
+## Historical integration contract (superseded)
+
 # Firebase Google Authentication and license verification
 
 Status: native Firebase Auth + Android Credential Manager integration is now included for project `apartment-booking-manage-2d218`, using the supplied Android client configuration. `BookingAuthPlugin` is registered in the existing Activity, and `src/native-auth.js` connects the optional account controls outside the calendar. Existing storage, signing and package ID are unchanged. No Firebase Admin SDK, deployment entry point, active license backend, Play Billing or gift writer exists. `LICENSE_ENDPOINT` remains null, so successful Google authentication alone cannot grant PREMIUM. Unit tests use fictional identities; physical-device Google authentication has not been verified in this environment.

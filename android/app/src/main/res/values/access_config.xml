@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Public RSA SPKI (base64 DER) only, pinned after server configuration. Never a private key. -->
+    <string name="access_public_key_spki" translatable="false"></string>
+</resources>
