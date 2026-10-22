@@ -1,3 +1,4 @@
+import {validateBookingExtras} from './booking-values.js';
 export const DAY = 86400000;
 export function dayNumber(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Data este invalidă.');
@@ -12,6 +13,7 @@ export function validateApartment(a) {
   if (!a.name.trim() || !a.address.trim() || !a.city.trim()) throw new Error('Completează numele, adresa și localitatea.');
 }
 export function validateBooking(b,state) {
+  validateBookingExtras(b);
   if (b.status!==undefined && !['confirmed','unconfirmed'].includes(b.status)) throw new Error('Status de rezervare invalid.');
   if (!state.apartments.some(a=>a.id===b.apartmentId)) throw new Error('Selectează un apartament existent.');
   if (!b.guest.trim()) throw new Error('Introdu numele clientului.');

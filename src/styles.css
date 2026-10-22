@@ -110,3 +110,24 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
  .access-card{padding:5px 10px;margin-bottom:8px}.access-card summary{font-size:11px}.storage-note{margin-block:8px;font-size:10px}
  .apartment-card{padding:12px;gap:10px}.apartment-photo{width:60px;height:68px}.apartment-info strong{font-size:14px}.apartment-badge{max-width:65px}
 }
+
+/* Booking detail editor only. Calendar geometry and shared apartment forms are unchanged. */
+.booking-editor{width:min(780px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:0;overflow:auto;background:#f6f9fd}
+.booking-editor .dialog-heading{position:sticky;top:0;z-index:1;padding:20px 24px;margin:0;background:#fff;border-bottom:1px solid #e3eaf3;gap:10px}
+.booking-editor h2{font-size:21px;flex:1}.booking-editor #fields{padding:20px 24px;gap:16px}
+.booking-editor fieldset{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0;padding:18px;border:1px solid #e0e8f2;border-radius:12px;background:#fff;min-width:0}
+.booking-editor legend{padding:0 7px;color:#1767b7;font-size:12px;font-weight:700;letter-spacing:.3px}
+.booking-editor #fields label{font-size:12px;color:#526c85;min-width:0;gap:6px}.booking-editor input,.booking-editor select,.booking-editor textarea{min-width:0;width:100%;font-size:14px;background:#fbfcfe;border:1px solid #dbe5ef;border-radius:8px;padding:11px;color:#18334e}
+.booking-editor textarea{font:inherit;resize:vertical;min-height:90px}.booking-editor textarea:focus-visible{outline:3px solid #78b6ff;outline-offset:3px}
+.booking-editor output{display:block;min-height:42px;padding:11px;border-radius:8px;background:#eaf4ff;color:#1468b4;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.booking-editor .booking-notes{grid-column:1 / -1}.booking-optional-hint{margin:0;font-size:11px;line-height:1.5}
+.booking-editor .dialog-actions{position:sticky;bottom:0;z-index:1;background:#fff;border-top:1px solid #e3eaf3;margin:0;padding:14px 24px}.booking-editor #form-error:not(:empty){padding:0 24px}
+@media(max-width:600px){
+ .booking-editor{width:calc(100% - 16px);max-height:calc(100dvh - 16px);border-radius:14px}
+ .booking-editor .dialog-heading{padding:14px 12px;gap:6px}.booking-editor h2{font-size:17px}.booking-editor .dialog-heading button{padding-inline:5px}
+ .booking-editor #fields{padding:14px 12px;gap:12px}.booking-editor fieldset{padding:12px;gap:12px 10px}.booking-editor #fields label{font-size:11px}
+ .booking-editor input,.booking-editor select,.booking-editor textarea{font-size:16px;padding:10px 8px}.booking-editor .dialog-actions{padding:12px}.booking-editor .dialog-actions button{padding:10px 12px}.booking-editor output{font-size:13px;padding:11px 8px}
+ .booking-editor fieldset:first-child{grid-template-columns:1fr}
+}
+
+@media(max-width:600px){.booking-editor .booking-apartmentId,.booking-editor .booking-status{grid-column:1 / -1}}

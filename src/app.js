@@ -1,3 +1,5 @@
+import {BOOKING_EXTRA_FIELDS,readBookingExtras} from './booking-values.js';
+import {renderBookingFields,updateBookingSummary} from './booking-editor.js';
 import {calendarYear,monthStart} from './month-navigation.js?v=0.2.4';
 import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain.js?v=0.2.1';
 import {createLocalRepository} from './storage.js?v=0.2.1';
@@ -84,25 +86,18 @@ function formError(error){const source=error?.message??error;$('form-error').dat
 function open(kind,item=null,defaults={}){
  if(blocked)return;if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
  if(kind==='apartment'){field('apartmentName','name',item?.name);field('address','address',item?.address);field('city','city',item?.city);}
- else{
-  const label=textLabel('apartment'),select=document.createElement('select');select.name='apartmentId';select.required=true;
-  for(const a of state.apartments){const option=document.createElement('option');option.value=a.id;option.textContent=a.name;select.append(option);}
-  select.value=item?.apartmentId||defaults.apartmentId||state.apartments[0]?.id;label.append(select);$('fields').append(label);
-  const statusLabel=textLabel('bookingStatus'),status=document.createElement('select');status.name='status';
-  for(const value of ['confirmed','unconfirmed']){const option=document.createElement('option');option.value=value;option.dataset.i18n=value;option.textContent=t(value);status.append(option);}
-  status.value=item?.status||'confirmed';statusLabel.append(status);$('fields').append(statusLabel);
-  field('guest','guest',item?.guest);field('phone','phone',item?.phone,'tel');const checkIn=item?.checkIn||defaults.checkIn||today();
-  field('checkIn','checkIn',checkIn,'date');field('checkOut','checkOut',item?.checkOut||isoDay(dayNumber(checkIn)+1),'date');
- }
+ else renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel});
+ $('editor').classList.toggle('booking-editor',kind==='booking');
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
  const readOnly=apartmentId&&!policy().canManageApartment(apartmentId);
  if(kind==='booking'&&!item&&readOnly)return;
  for(const option of $('fields').querySelectorAll('select[name=apartmentId] option'))option.disabled=!policy().canManageApartment(option.value);
- for(const input of $('fields').querySelectorAll('input,select'))input.disabled=Boolean(readOnly);
+ for(const input of $('fields').querySelectorAll('input,select,textarea'))input.disabled=Boolean(readOnly);
  $('editor-form').querySelector('[type=submit]').hidden=Boolean(readOnly);$('delete').hidden=!item||Boolean(readOnly);
  if(readOnly)formError('basicReadOnly');
  $('editor').showModal();
 }
+$('fields').addEventListener('input',()=>{if(editing?.kind==='booking')updateBookingSummary($('fields'));});
 function persist(next){try{
  const permissions=policy();
  for(const kind of ['apartments','bookings']){
@@ -114,12 +109,13 @@ $('editor-form').onsubmit=e=>{
  e.preventDefault();const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
  // Browser-native messages follow OS language, so show centralized translated validation instead.
  if([...$('fields').querySelectorAll('[required]')].some(input=>!input.value.trim())){formError('required');return;}
- const item={...values,id:editing.id||crypto.randomUUID()};
+ const key=editing.kind==='apartment'?'apartments':'bookings';
+ const item={...state[key].find(v=>v.id===editing.id),...values,id:editing.id||crypto.randomUUID()};
  try{
   if(editing.kind==='apartment'&&!editing.id&&!policy().canAddApartment)throw new Error('apartmentLimit');
-  if(editing.kind==='booking'){item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);}
+  if(editing.kind==='booking'){item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra);}
   editing.kind==='apartment'?validateApartment(item):validateBooking(item,state);
-  const key=editing.kind==='apartment'?'apartments':'bookings';const next={...state,[key]:editing.id?state[key].map(v=>v.id===editing.id?item:v):[...state[key],item]};
+  const next={...state,[key]:editing.id?state[key].map(v=>v.id===editing.id?item:v):[...state[key],item]};
   if(persist(next))$('editor').close();
  }catch(error){formError(error);}
 };
@@ -133,7 +129,7 @@ $('confirmation').addEventListener('close',()=>{
  const next=editing.kind==='apartment'?{...state,apartments:state.apartments.filter(a=>a.id!==editing.id),bookings:state.bookings.filter(b=>b.apartmentId!==editing.id)}:{...state,bookings:state.bookings.filter(b=>b.id!==editing.id)};
  if(persist(next))$('editor').close();
 });
-function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing)$('editor-title').textContent=t(titleKey());if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());if(editing.kind==='booking')updateBookingSummary($('fields'));}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){
