@@ -83,3 +83,26 @@ test('separate notes section appears only for real notes on included reservation
  data.bookings.find(b=>b.id==='legacy').notes='  Real note kept intact  ';const sheet=exported(data)['xl/worksheets/sheet1.xml'];
  assert.equal(count(sheet),2);assert.match(sheet,/\[1\] Apartament Test B · Client Test Legacy/);assert.match(sheet,/  Real note kept intact  /);assert.doesNotMatch(sheet,/Outside currency filter/);
 });
+
+test('filter boundaries exclude TOTAL, notes and explanations in sheet and Excel database metadata',()=>{
+ selectLanguage('ro');
+ for(const [extra,last] of [[{},10],[{apartmentId:'b'},8],[{status:'unconfirmed'},7]]){
+  const parts=exported(fixture,extra),sheet=parts['xl/worksheets/sheet1.xml'],book=parts['xl/workbook.xml'];
+  assert.match(sheet,new RegExp(`<autoFilter ref="A7:J${last}"`));
+  assert.ok(book.includes(`name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">&apos;Rezervări&apos;!$A$7:$J$${last}</definedName>`));
+  const total=last+1;assert.match(sheet,new RegExp(`<row r="${total}"[^>]*>.*?TOTAL`));
+ }
+ const sheet=exported()['xl/worksheets/sheet1.xml'];
+ const apartments=[...sheet.matchAll(/<c r="A(8|9|10)"[^>]*>.*?<t xml:space="preserve">([^<]*)<\/t>/g)].map(m=>m[2]);
+ assert.deepEqual([...new Set(apartments)].sort(),['Apartament Test A','Apartament Test B']);
+});
+test('TOTAL has blue styles through J; calculation heading is bold dark blue on white',()=>{
+ selectLanguage('ro');const parts=exported(),sheet=parts['xl/worksheets/sheet1.xml'],styles=parts['xl/styles.xml'];
+ const total=sheet.match(/<row r="11"[^>]*>(.*?)<\/row>/)[1];
+ const cells=[...total.matchAll(/<c r="([A-J])11" s="(\d+)"/g)];assert.equal(cells.length,10);
+ assert.deepEqual(cells.map(m=>Number(m[2])),[2,2,2,2,2,2,4,4,4,2]);
+ assert.match(sheet,/<c r="A12" s="10"[^>]*>.*?Cum se calculează raportul/);
+ const xfs=styles.match(/<cellXfs[^>]*>(.*?)<\/cellXfs>/)[1];const heading=[...xfs.matchAll(/<xf ([^>]*)>/g)][10][1];
+ assert.match(heading,/fontId="3"/);assert.match(heading,/fillId="0"/);
+ const fonts=[...styles.matchAll(/<font>(.*?)<\/font>/g)];assert.match(fonts[3][1],/<b\/>/);assert.match(fonts[3][1],/FF18334E/);
+});
