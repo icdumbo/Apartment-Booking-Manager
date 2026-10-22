@@ -182,3 +182,8 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
 .report-export-actions{display:flex;gap:10px;margin-top:14px}
 .report-export-actions #report-export-excel,.report-export-actions #report-export-pdf{margin:0;width:auto;min-height:44px}
 @media(max-width:600px){.report-export-actions>button{flex:1;min-width:0}}
+
+.apartment-entry{min-width:0}.apartment-entry>.apartment-card{width:100%;height:auto}
+.apartment-reservations{margin-top:8px;padding:10px 12px;border:1px solid #d8e7f8;border-radius:10px;background:#fff;color:#246399}
+.apartment-reservations summary{cursor:pointer;padding:5px 0;font-size:13px}
+.apartment-booking-link{display:block;width:100%;text-align:left;white-space:normal;overflow-wrap:anywhere;margin-top:8px;min-height:44px}

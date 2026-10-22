@@ -1,3 +1,4 @@
+import {configureDateInput} from './date-input.js';
 import {assertCurrencyChange} from './currency.js';
 import {t} from './i18n.js?v=0.3.1';
 import {displayDate,parseDate} from './date-format.js?v=0.2.5';
@@ -16,7 +17,7 @@ export function renderPaymentHistory(container,{booking,canManage,onChange,getTo
  function input(key,type='text'){
   const label=text('label',key,form),span=document.createElement('span');span.dataset.i18n=key;span.textContent=t(key);label.removeAttribute('data-i18n');label.replaceChildren(span);
   const control=document.createElement(type==='select'?'select':type==='textarea'?'textarea':'input');if(type==='text')control.type='text';control.dataset.paymentField=key;
-  if(key==='paymentAmount'){control.inputMode='decimal';control.maxLength=18;}if(key==='paymentDate'){control.placeholder='DD/MM/YYYY';control.maxLength=10;}
+  if(key==='paymentAmount'){control.inputMode='decimal';control.maxLength=18;}if(key==='paymentDate')configureDateInput(control);
   if(type==='textarea'){control.maxLength=2000;control.rows=2;}label.append(control);return control;
  }
  const date=input('paymentDate'),amount=input('paymentAmount'),method=input('paymentMethod','select'),notes=input('paymentNotes','textarea');
