@@ -1,3 +1,4 @@
+import {assertCurrencyChange} from './currency.js';
 import {canEditPayments,assertPaymentHistoryAccess} from './payments.js';
 import {BOOKING_EXTRA_FIELDS,readBookingExtras} from './booking-values.js';
 import {renderBookingFields,updateBookingSummary} from './booking-editor.js';
@@ -93,7 +94,7 @@ function open(kind,item=null,defaults={}){
  const readOnly=apartmentId&&!policy().canManageApartment(apartmentId);
  if(kind==='booking'&&!item&&readOnly)return;
  for(const option of $('fields').querySelectorAll('select[name=apartmentId] option'))option.disabled=!policy().canManageApartment(option.value);
- for(const input of $('fields').querySelectorAll('input,select,textarea'))input.disabled=Boolean(readOnly);
+ for(const input of $('fields').querySelectorAll('input,select,textarea'))input.disabled=Boolean(readOnly)||input.dataset.currencyLocked==='true';
  $('editor-form').querySelector('[type=submit]').hidden=Boolean(readOnly);$('delete').hidden=!item||Boolean(readOnly);
  if(readOnly)formError('basicReadOnly');
  $('editor').showModal();
@@ -101,21 +102,23 @@ function open(kind,item=null,defaults={}){
 $('fields').addEventListener('input',()=>{if(editing?.kind==='booking')updateBookingSummary($('fields'));});
 function persist(next){try{
  const permissions=policy();
- for(const booking of next.bookings)assertPaymentHistoryAccess(state.bookings.find(old=>old.id===booking.id),booking,access.snapshot());
+ for(const booking of next.bookings){const old=state.bookings.find(old=>old.id===booking.id);assertCurrencyChange(old,booking);assertPaymentHistoryAccess(old,booking,access.snapshot());}
  for(const kind of ['apartments','bookings']){
   for(const old of state[kind]){const changed=next[kind].find(v=>v.id===old.id);if(JSON.stringify(changed)!==JSON.stringify(old)&&!permissions.canManageApartment(kind==='apartments'?old.id:old.apartmentId))throw new Error('basicReadOnly');}
   for(const item of next[kind]){if(kind==='apartments'&&!state.apartments.some(a=>a.id===item.id)&&!permissions.canAddApartment)throw new Error('apartmentLimit');if(kind==='bookings'&&JSON.stringify(state.bookings.find(b=>b.id===item.id))!==JSON.stringify(item)&&!permissions.canManageApartment(item.apartmentId))throw new Error('basicReadOnly');}
  }
-repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments'].includes(error.message)?error.message:'storageSave');return false;}}
+repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments','currencyLocked'].includes(error.message)?error.message:'storageSave');return false;}}
 $('editor-form').onsubmit=e=>{
  e.preventDefault();const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
  // Browser-native messages follow OS language, so show centralized translated validation instead.
  if([...$('fields').querySelectorAll('[required]')].some(input=>!input.value.trim())){formError('required');return;}
  const key=editing.kind==='apartment'?'apartments':'bookings';
- const item={...state[key].find(v=>v.id===editing.id),...values,id:editing.id||crypto.randomUUID()};
+ const old=state[key].find(v=>v.id===editing.id);
+ if(editing.kind==='booking'){const currency=$('fields').querySelector('[name=currency]').value;if(currency!=='RON'||old?.currency!==undefined)values.currency=currency;else delete values.currency;}
+ const item={...old,...values,id:editing.id||crypto.randomUUID()};
  try{
   if(editing.kind==='apartment'&&!editing.id&&!policy().canAddApartment)throw new Error('apartmentLimit');
-  if(editing.kind==='booking'){if(editing.payments.hasPendingEntry())throw new Error('pendingPayment');item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra,editing.payments.getLedger());}
+  if(editing.kind==='booking'){if(editing.payments.hasPendingEntry())throw new Error('pendingPayment');editing.payments.validateCurrency();item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra,editing.payments.getLedger());}
   editing.kind==='apartment'?validateApartment(item):validateBooking(item,state);
   const next={...state,[key]:editing.id?state[key].map(v=>v.id===editing.id?item:v):[...state[key],item]};
   if(persist(next))$('editor').close();

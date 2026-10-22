@@ -14,7 +14,7 @@ The existing calendar callbacks, editor dialog, mutation guards, repository and 
 
 Money entry accepts a decimal comma or dot and at most two decimal places, without thousands separators. Negative, unsafe, non-finite and exponent values are rejected. Paid amount must not exceed total; a positive payment requires a specified total. Blank and explicit zero amounts remain distinct. Derived balance is total minus paid, or unspecified when no total is recorded. Nights are calculated from UTC date-day differences (check-out excluded), never persisted as a second source of truth.
 
-`src/booking-values.js` centralizes conversion, validation and balance for future statistics, collections and reports. These modules are not implemented. Amount collected is derived from the per-booking payment history when present, plus any explicitly retained legacy aggregate. This is not an invoice, accounting record or Google Play payment. See `docs/payments.md`. Currency is RON only in this stage.
+`src/booking-values.js` centralizes conversion, validation and balance for future statistics, collections and reports. These modules are not implemented. Amount collected is derived from the per-booking payment history when present, plus any explicitly retained legacy aggregate. This is not an invoice, accounting record or Google Play payment. See `docs/payments.md`. Reservation currency supports RON (default for legacy records) and EUR; payment history inherits it without conversion.
 
 ## Compatibility and offline behavior
 
