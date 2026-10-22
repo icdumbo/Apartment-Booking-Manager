@@ -161,3 +161,12 @@ dialog{color:#18334e;border:1px solid #e5ecf5;box-shadow:0 20px 90px #122e4b30}d
 
 /* Leave a physical gap below SVG month labels, independent of SVG scaling. */
 .statistics-chart > details{margin-top:16px}
+
+/* Reservations report: read-only cards keep all fields visible on narrow phones. */
+.report-filters{grid-template-columns:repeat(5,minmax(0,1fr))}
+#reports-panel h2{font-size:20px;color:#18334e}#reports-panel p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+#report-error{color:#ac333e}.report-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.report-card{min-width:0;background:#fff;border:1px solid #dce6f2;border-radius:12px;padding:18px}.report-card h3{margin:0;color:#18334e;overflow-wrap:anywhere}.report-card>p{margin:8px 0;color:#526c85}
+.report-card dl{margin:16px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.report-card dl>div{min-width:0}.report-card dt{font-size:12px;color:#627b94}.report-card dd{margin:5px 0 0;font-size:15px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;color:#246399}.report-legacy{padding-top:12px;border-top:1px dashed #dce6f2}
+@media(max-width:1000px){.report-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.report-filters label:last-child{grid-column:1 / -1}.report-list{grid-template-columns:1fr}}
+@media(max-width:600px){.report-card{padding:14px}.report-filters{grid-template-columns:minmax(0,1fr)}.report-filters label:last-child{grid-column:auto}}
