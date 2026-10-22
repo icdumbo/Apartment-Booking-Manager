@@ -17,6 +17,9 @@ try {
  if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}
  const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
 }catch(error){state={version:1,apartments:[],bookings:[]};blocked=true;$('notice').dataset.i18n='storageBlocked';}
+// Start only after business storage has loaded successfully; existing trials are never renewed.
+if(!blocked)access.startTrial();
+let activeScreen='calendar';
 let start=dayNumber(today())-2,days=30,editing;
 let selectorYear=calendarYear(start);
 function renderMonthSelector(){
@@ -33,14 +36,43 @@ function renderMonthSelector(){
 }
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
 function render(){
- const entitlement=access.snapshot();
- $('access-message').textContent=t(entitlement.unavailable?'accessUnavailable':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive'):entitlement.trialAvailable?'trialIntroduction':entitlement.state==='TRIAL'?'trialActive':'basicActive',{date:(entitlement.premiumExpiresAt??entitlement.expiresAt)?displayDate(new Date(entitlement.premiumExpiresAt??entitlement.expiresAt).toISOString().slice(0,10)):''});
- $('start-trial').hidden=!entitlement.trialAvailable;
+ renderAccessStatus();renderApartments();
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>open('booking',b),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
  $('summary').textContent=t('summary',{apartments:state.apartments.length,bookings:state.bookings.length});
  $('add-booking').disabled=blocked||!state.apartments.length;$('add-apartment').disabled=blocked||!policy().canAddApartment;$('add-apartment').title=!policy().canAddApartment?t('apartmentLimit'):'';
 }
+function renderAccessStatus(){
+ const entitlement=access.snapshot(),expiry=entitlement.premiumExpiresAt??entitlement.expiresAt;
+ const daysLeft=Math.max(0,Math.ceil(((expiry??0)-Date.now())/86400000));
+ $('access-message').textContent=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
+ $('access-details').textContent=t(entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
+}
+function renderApartments(){
+ const list=$('apartment-list');list.replaceChildren();
+ if(!state.apartments.length){const empty=document.createElement('p');empty.className='apartments-empty';empty.textContent=t('empty');list.append(empty);return;}
+ const permissions=policy();
+ for(const apartment of state.apartments){
+  const card=document.createElement('button');card.type='button';card.className='apartment-card';card.onclick=()=>open('apartment',apartment);
+  const photo=document.createElement('span');photo.className='apartment-photo';photo.textContent=t('noPhoto');
+  const info=document.createElement('span');info.className='apartment-info';
+  const name=document.createElement('strong');name.textContent=apartment.name;
+  const address=document.createElement('span');address.textContent=[apartment.address,apartment.city].filter(Boolean).join(' · ');
+  const count=document.createElement('small');count.textContent=t('apartmentBookings',{count:state.bookings.filter(b=>b.apartmentId===apartment.id).length});
+  info.append(name,address,count);
+  const action=document.createElement('span');action.className='apartment-badge';action.textContent=t(permissions.canManageApartment(apartment.id)?'apartmentDetails':'readOnly');
+  card.append(photo,info,action);list.append(card);
+ }
+}
+function selectScreen(screen){
+ activeScreen=screen;
+ $('calendar-panel').hidden=screen!=='calendar';$('apartments-panel').hidden=screen!=='apartments';$('add-booking').hidden=screen!=='calendar';
+ const heading=document.querySelector('h1'),subtitle=$('screen-subtitle');
+ heading.dataset.i18n=screen==='calendar'?'heading':'navApartments';heading.textContent=t(heading.dataset.i18n);
+ subtitle.dataset.i18n=screen==='calendar'?'subtitle':'apartmentsSubtitle';subtitle.textContent=t(subtitle.dataset.i18n);
+ for(const link of document.querySelectorAll('[data-screen]')){if(link.dataset.screen===screen)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
+}
+for(const link of document.querySelectorAll('[data-screen]'))link.onclick=e=>{e.preventDefault();selectScreen(link.dataset.screen);};
 function textLabel(key){const label=document.createElement('label'),text=document.createElement('span');text.dataset.i18n=key;text.textContent=t(key);label.append(text);return label;}
 function field(key,name,value='',type='text'){
  const label=textLabel(key),input=document.createElement('input');input.name=name;input.type=type==='date'?'text':type;input.value=type==='date'?displayDate(value):value;
@@ -101,7 +133,7 @@ $('confirmation').addEventListener('close',()=>{
  const next=editing.kind==='apartment'?{...state,apartments:state.apartments.filter(a=>a.id!==editing.id),bookings:state.bookings.filter(b=>b.apartmentId!==editing.id)}:{...state,bookings:state.bookings.filter(b=>b.id!==editing.id)};
  if(persist(next))$('editor').close();
 });
-function refreshLanguage(){translateUI();render();if(editing)$('editor-title').textContent=t(titleKey());if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing)$('editor-title').textContent=t(titleKey());if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){
@@ -110,10 +142,9 @@ for(const widget of document.querySelectorAll('.language-selector')){
   button.onclick=()=>{if(!selectLanguage(code)&&!blocked)$('notice').dataset.i18n='languageSaveFailed';refreshLanguage();};widget.append(button);
  }
 }
-$('start-trial').onclick=()=>{access.startTrial();render();};
 // Re-evaluate expiry on resume and while the offline app remains open. Mutation guards also recheck.
 let displayedAccess=access.snapshot().state;
-setInterval(()=>{const current=access.snapshot().state;if(current!==displayedAccess){displayedAccess=current;render();}},60000);
+setInterval(()=>{const current=access.snapshot().state;if(current!==displayedAccess){displayedAccess=current;render();}else renderAccessStatus();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
 $('close').onclick=$('cancel').onclick=()=>$('editor').close();$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
 $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next').onclick=()=>{selectorYear++;renderMonthSelector();};

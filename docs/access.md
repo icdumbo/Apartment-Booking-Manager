@@ -1,12 +1,12 @@
 # BASIC / TRIAL / PREMIUM foundation
 
-`src/access.js` owns entitlement persistence and policy. Existing business storage remains version 1 and is not migrated or truncated. A separate versioned key records explicit trial activation and the highest observed timestamp. TRIAL lasts exactly 15 × 24 hours, including offline time; expiry is rechecked on resume, periodic state checks and every write. BASIC permits managing the first three apartments in stored order; all additional apartments/reservations can be viewed read-only. Deleting an active apartment makes the next stored apartment manageable. Reassignment into read-only apartments is blocked. An expired open editor cannot bypass write guards.
+`src/access.js` owns entitlement persistence and policy. Existing business storage remains version 1 and is not migrated or truncated. A separate versioned key records automatic trial activation and the highest observed timestamp. TRIAL lasts exactly 15 × 24 hours, including offline time; expiry is rechecked on resume, periodic state checks and every write. BASIC permits managing the first three apartments in stored order; all additional apartments/reservations can be viewed read-only. Deleting an active apartment makes the next stored apartment manageable. Reassignment into read-only apartments is blocked. An expired open editor cannot bypass write guards.
 
-The first-use RO/EN notice explains expiry, free BASIC, one-time permanent PREMIUM, data retention and planned ads in all tiers. Activation is explicit; no billing or ad SDK is installed. `accessPolicy` already supports PREMIUM; the unavailable Billing adapter exposes purchase/restore integration points. No local premium toggle is accepted. A future verified Google Play purchase provider must resolve permanent entitlement before PREMIUM can be activated.
+The first-use RO/EN notice explains expiry, free BASIC, one-time permanent PREMIUM, data retention and planned ads in all tiers. On the first eligible application startup, after business storage loads successfully, the existing idempotent `startTrial()` method runs automatically. Existing, expired or corrupt records are never replaced; verified permanent rights prevent a new trial. The compact status disclosure shows remaining days and expandable terms; no billing or ad SDK is installed. `accessPolicy` already supports PREMIUM; the unavailable Billing adapter exposes purchase/restore integration points. No local premium toggle is accepted. A future verified Google Play purchase provider must resolve permanent entitlement before PREMIUM can be activated.
 
 This offline foundation is not tamper-resistant: clearing app storage or manipulating local records/device time can affect trial enforcement. Highest observed time prevents simple clock rollback after expiry has been observed, but is not a trusted time source. Corrupt/unavailable entitlement storage fails to BASIC without overwriting it or business data. Add trusted purchase verification and reconcile purchase/restoration/lifecycle results during the Billing phase.
 
-Calendar, responsive CSS, half-day geometry, application ID and signing configuration are unchanged. Nothing is deployed from the working branch.
+Calendar geometry, responsive day count, half-day geometry, application ID and signing configuration are unchanged. Nothing is deployed from the working branch.
 
 ## Trusted PREMIUM verification contract
 
@@ -36,3 +36,7 @@ See [firebase-integration.md](firebase-integration.md) for the optional Google/F
 ## Gift access extension
 
 `ADMIN_GIFT` is a third verified source alongside purchase and owner grants. A gift can be permanent or temporary; temporary grants carry `permanent: false` plus `expiresAt`, with the verification lease bounded by that expiry. Only server-controlled gift records may supply such grants. The local trial is still exactly 15 days and remains separate. The gift administrator contract performs verification/authorization/validation only and cannot write or activate gifts. See the Firebase document for the server-only role boundary, unlimited recipients, revocation latency and pending infrastructure.
+
+## Apartment screen
+
+The Apartments tab renders only stored apartments and reservation counts. Cards reuse the existing details editor, save/delete confirmation and access policy; overflow apartments remain visible and read-only in BASIC. Photo areas are empty visual placeholders only: upload/storage is not implemented. Navigation hides the calendar without replacing its DOM, preserving horizontal scroll. Local business schema remains unchanged. Reinstallation/clearing local storage can restart the local trial; no secure reinstall protection is implemented.

@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ACCESS_KEY,TRIAL_DURATION,createAccessService,accessPolicy,billingAdapter,createPremiumProvider,PREMIUM_SOURCES} from '../src/access.js';
 function fixture(){let now=1000;const values=new Map();const storage={getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v)};return {storage,values,clock:()=>now,time:v=>now=v};}
-test('trial requires explicit activation, survives reopening and expires exactly at 15 days',()=>{
+test('trial initialization is idempotent, survives reopening and expires exactly at 15 days',()=>{
  const f=fixture(),service=createAccessService(f.storage,f.clock);assert.equal(service.snapshot().state,'BASIC');assert.equal(service.snapshot().trialAvailable,true);assert.equal(f.values.size,0);
- assert.equal(service.startTrial(),true);f.time(1000+TRIAL_DURATION-1);assert.equal(createAccessService(f.storage,f.clock).snapshot().state,'TRIAL');
+ assert.equal(service.startTrial(),true);assert.equal(service.startTrial(),false);assert.equal(JSON.parse(f.values.get(ACCESS_KEY)).startedAt,1000);f.time(1000+TRIAL_DURATION-1);assert.equal(createAccessService(f.storage,f.clock).snapshot().state,'TRIAL');
  f.time(1000+TRIAL_DURATION);assert.equal(service.snapshot().state,'BASIC');assert.equal(service.startTrial(),false);
  f.time(1000);assert.equal(createAccessService(f.storage,f.clock).snapshot().state,'BASIC');
 });
@@ -49,4 +49,12 @@ test('stale verification results cannot restore revoked or previous-account acce
  let resolve,account='test-owner';const provider=createPremiumProvider({clock:()=>1000,getAuthenticatedSubject:()=>account,verifyAccess:()=>new Promise(r=>{resolve=r;})});
  const pending=provider.refresh();provider.clear();resolve({subject:account,source:PREMIUM_SOURCES.OWNER,permanent:true,verifiedUntil:5000});assert.equal(await pending,null);assert.equal(provider.getVerifiedEntitlement(),null);
  const switched=provider.refresh();account='test-other';resolve({subject:'test-owner',source:PREMIUM_SOURCES.OWNER,permanent:true,verifiedUntil:5000});assert.equal(await switched,null);assert.equal(provider.getVerifiedEntitlement(),null);
+});
+
+test('eligible initialization never resets ongoing or expired trials or writes over permanent rights',()=>{
+ for(const elapsed of [100,TRIAL_DURATION+100]){
+  const f=fixture();const service=createAccessService(f.storage,f.clock);service.startTrial();f.time(1000+elapsed);
+  const reopened=createAccessService(f.storage,f.clock);assert.equal(reopened.startTrial(),false);assert.equal(JSON.parse(f.values.get(ACCESS_KEY)).startedAt,1000);
+ }
+ const f=fixture();const premium=createAccessService(f.storage,f.clock,{getVerifiedEntitlement:()=>({subject:'test',source:PREMIUM_SOURCES.OWNER,permanent:true,verifiedUntil:5000})});assert.equal(premium.startTrial(),false);assert.equal(f.values.size,0);assert.equal(premium.snapshot().state,'PREMIUM');
 });

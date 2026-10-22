@@ -48,7 +48,7 @@ for(const width of [360,390,430]){
 
 test('BASIC three-apartment limit preserves existing data and editing',async({page})=>{
  const fixtures={version:1,apartments:Array.from({length:2},(_,i)=>({...state.apartments[0],id:'limit-'+i,name:'Apartment '+i})),bookings:[]};
- await page.goto('/');await page.evaluate(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),fixtures);await page.reload();
+ await page.goto('/');await page.evaluate(s=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s));localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:0,lastSeen:0}));},fixtures);await page.reload();
  await page.locator('#add-apartment').click();await page.getByLabel('Nume / identificare',{exact:true}).fill('Apartment 3');await page.getByLabel('Adresă',{exact:true}).fill('Test address');await page.getByLabel('Localitate',{exact:true}).fill('Test city');await page.getByRole('button',{name:'Salvează',exact:true}).click();
  await expect(page.locator('.timeline-row')).toHaveCount(3);await expect(page.locator('#add-apartment')).toBeDisabled();
  await page.locator('.timeline-row .apartment-label').first().click();await page.getByLabel('Nume / identificare',{exact:true}).fill('Edited apartment');await page.getByRole('button',{name:'Salvează',exact:true}).click();await expect(page.locator('.timeline-row').first()).toContainText('Edited apartment');
