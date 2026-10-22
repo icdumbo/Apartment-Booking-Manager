@@ -27,6 +27,8 @@ export function createSecureAccess({bridge,plugin,endpoint=null,fetchImpl=global
   const token=await bridge.getIdToken({uid:account});
   if(revision!==generation||subject()!==account)throw Error('authenticationRequired');
   const response=await fetchImpl(url.href,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action,nonce,...(action==='startTrial'?{terms:'trial-15d-v1'}:{})}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
+  if(revision!==generation||subject()!==account)throw Error('authenticationRequired');
+  if(response.status===401||response.status===403){await plugin.clear();clearMemory();throw Error('authenticationRequired');}
   if(!response.ok)throw Error('verificationUnavailable');
   const data=await response.json();
   if(revision!==generation||subject()!==account)throw Error('authenticationRequired');

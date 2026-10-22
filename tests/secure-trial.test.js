@@ -79,3 +79,11 @@ test('Android requires verified evidence even for legacy local trial records; re
  assert.equal(service.snapshot().state,'BASIC');assert.equal(service.snapshot().legacyTrialPending,true);assert.equal(service.startTrial(),false);
  assert.equal(values.get(ACCESS_KEY),record);assert.equal(values.get('apartment-booking-manager:v1'),'unchanged');
 });
+
+test('a definitive authenticated denial clears cached rights, while a network failure does not',async()=>{
+ let native={subject:'test',state:'PREMIUM',premiumSource:'OWNER_GRANT'},cleared=0;
+ const bridge={getCurrentUser:()=>({uid:'test'}),getIdToken:async()=> 'firebase-token'};
+ const plugin={getAccess:async()=>native,beginVerification:async()=>({nonce}),clear:async()=>{cleared++;native={state:'BASIC'};}};
+ const secure=createSecureAccess({bridge,plugin,endpoint:'https://licenses.example.test',fetchImpl:async()=>({ok:false,status:401})});
+ await secure.read();assert.equal(secure.provider.getVerifiedAccess().state,'PREMIUM');await assert.rejects(secure.refresh(),/authenticationRequired/);assert.equal(cleared,1);assert.equal(secure.provider.getVerifiedAccess(),null);
+});
