@@ -9,6 +9,12 @@ export function parseMoney(value){
  if(!Number.isSafeInteger(cents))throw new Error('invalidAmount');return cents;
 }
 export function moneyInput(cents){return cents===undefined?'':`${Math.floor(cents/100)}.${String(cents%100).padStart(2,'0')}`;}
+// Display RON consistently in both UI languages; input parsing remains locale-neutral.
+export function formatRON(cents){
+ if(cents===undefined)return '—';
+ const [whole,fraction]=moneyInput(cents).split('.');
+ return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g,'.')},${fraction} RON`;
+}
 export function bookingBalance(booking){return booking.totalAmountCents===undefined?undefined:booking.totalAmountCents-(booking.paidAmountCents??0);}
 export function validateBookingExtras(booking){
  for(const key of ['totalAmountCents','paidAmountCents'])if(booking[key]!==undefined&&(!Number.isSafeInteger(booking[key])||booking[key]<0))throw new Error('invalidAmount');

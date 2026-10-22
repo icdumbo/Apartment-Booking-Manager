@@ -33,3 +33,16 @@ for(const width of [360,390,1024])test(`booking detail responsive preview ${widt
 test('standalone interactive preview creates a booking using only bundled assets',async({page})=>{
  await page.goto('/ui-preview/Apartment-Booking-Manager-UI.html');await page.locator('#add-apartment').click();await field(page,'name').fill('Apartament Test Preview');await field(page,'address').fill('Adresă fictivă');await field(page,'city').fill('Oraș Test');await save(page);await page.locator('#add-booking').click();await field(page,'guest').fill('Client Test Preview');await field(page,'phone').fill('0700000000');await field(page,'totalAmountCents').fill('100');await field(page,'paidAmountCents').fill('25');await expect(page.locator('#booking-balance')).toContainText('75,00');await save(page);await expect(page.locator('.booking')).toHaveCount(1);
 });
+
+test('RON display stays Romanian in RO and EN; zero and blank values remain distinct',async({page})=>{
+ await load(page);await expect(page.locator('#days')).toHaveCount(0);await page.locator('.booking').first().click();
+ for(const language of ['ro','en']){
+  await page.locator(`#editor [data-language=${language}]`).click();
+  await field(page,'totalAmountCents').fill('');await field(page,'paidAmountCents').fill('');await expect(page.locator('#booking-balance')).toHaveText('—');
+  await field(page,'totalAmountCents').fill('0');await field(page,'paidAmountCents').fill('0');await expect(page.locator('#booking-balance')).toHaveText('0,00 RON');
+  await field(page,'totalAmountCents').fill('1500.25');await field(page,'paidAmountCents').fill('0,25');await expect(page.locator('#booking-balance')).toHaveText('1.500,00 RON');
+ }
+ await save(page);const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)).bookings[0],key);expect(saved.totalAmountCents).toBe(150025);expect(saved.paidAmountCents).toBe(25);
+ await page.reload();await page.locator('.booking').first().click();await expect(field(page,'totalAmountCents')).toHaveValue('1500.25');await expect(page.locator('#booking-balance')).toHaveText('1.500,00 RON');
+ await field(page,'totalAmountCents').fill('0');await field(page,'paidAmountCents').fill('0');await save(page);await page.reload();await page.locator('.booking').first().click();await expect(page.locator('#booking-balance')).toHaveText('0,00 RON');
+});

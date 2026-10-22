@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseMoney,moneyInput,bookingBalance,readBookingExtras,validateBookingExtras} from '../src/booking-values.js';
+import {parseMoney,moneyInput,formatRON,bookingBalance,readBookingExtras,validateBookingExtras} from '../src/booking-values.js';
 import {createLocalRepository} from '../src/storage.js';
 const legacy={version:1,apartments:[{id:'a',name:'Test',address:'Test address',city:'Test city'}],bookings:[{id:'b',apartmentId:'a',guest:'Test guest',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15'}]};
 test('money conversion accepts decimal comma/dot and keeps exact integer bani',()=>{
@@ -33,4 +33,9 @@ test('legacy and extended bookings round-trip without migrations or retroactive 
 test('repository rejects invalid booking metadata without overwriting existing local data',()=>{
  let raw=JSON.stringify(legacy);const before=raw,repository=createLocalRepository({getItem:()=>raw,setItem:(_,value)=>raw=value});
  assert.throws(()=>repository.save({...legacy,bookings:[{...legacy.bookings[0],totalAmountCents:-1}]}),/invalidAmount/);assert.equal(raw,before);
+});
+
+test('RON display distinguishes zero from unspecified and always uses Romanian separators',()=>{
+ assert.equal(formatRON(undefined),'—');assert.equal(formatRON(0),'0,00 RON');assert.equal(formatRON(150000),'1.500,00 RON');assert.equal(formatRON(150025),'1.500,25 RON');assert.equal(formatRON(Number.MAX_SAFE_INTEGER),'90.071.992.547.409,91 RON');
+ assert.equal(formatRON(bookingBalance({totalAmountCents:0,paidAmountCents:0})),'0,00 RON');
 });

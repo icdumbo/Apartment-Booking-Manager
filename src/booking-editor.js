@@ -1,7 +1,7 @@
 import {dayNumber,today,isoDay} from './domain.js?v=0.2.1';
 import {parseDate} from './date-format.js?v=0.2.5';
-import {t,getLanguage} from './i18n.js?v=0.3.1';
-import {BOOKING_SOURCES,moneyInput,parseMoney,bookingBalance} from './booking-values.js';
+import {t} from './i18n.js?v=0.3.1';
+import {BOOKING_SOURCES,moneyInput,parseMoney,bookingBalance,formatRON} from './booking-values.js';
 export function renderBookingFields({container,state,item,defaults,field,textLabel}){
  function section(title){const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.dataset.i18n=title;legend.textContent=t(title);group.append(legend);container.append(group);return group;}
  function input(group,key,name,value,type='text',optional=false){const control=field(key,name,value,type);control.required=!optional;group.append(control.parentElement);return control;}
@@ -28,5 +28,5 @@ export function updateBookingSummary(container){
  const get=name=>container.querySelector(`[name="${name}"]`)?.value??'';
  const nights=container.querySelector('#booking-nights'),balance=container.querySelector('#booking-balance');if(!nights)return;
  try{const count=dayNumber(parseDate(get('checkOut')))-dayNumber(parseDate(get('checkIn')));nights.textContent=count>0?t('nightCount',{count}):'—';}catch{nights.textContent='—';}
- try{const totalAmountCents=parseMoney(get('totalAmountCents')),paidAmountCents=parseMoney(get('paidAmountCents'));const amount=bookingBalance({totalAmountCents,paidAmountCents});balance.textContent=amount===undefined||amount<0?'—':new Intl.NumberFormat(getLanguage()==='ro'?'ro-RO':'en-GB',{style:'currency',currency:'RON'}).format(amount/100);}catch{balance.textContent='—';}
+ try{const totalAmountCents=parseMoney(get('totalAmountCents')),paidAmountCents=parseMoney(get('paidAmountCents'));const amount=bookingBalance({totalAmountCents,paidAmountCents});balance.textContent=amount===undefined||amount<0?'—':formatRON(amount);}catch{balance.textContent='—';}
 }

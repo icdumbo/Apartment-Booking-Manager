@@ -145,7 +145,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();}
 $('close').onclick=$('cancel').onclick=()=>$('editor').close();$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
 $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next').onclick=()=>{selectorYear++;renderMonthSelector();};
 $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$('next').onclick=()=>{start+=days;selectorYear=calendarYear(start);render();};
-$('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};$('days').onchange=e=>{days=Number(e.target.value);render();};refreshLanguage();
+$('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
 
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){
