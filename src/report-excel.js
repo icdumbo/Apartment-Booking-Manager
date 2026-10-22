@@ -4,7 +4,7 @@ import {dayNumber} from './domain.js?v=0.2.1';
 import {displayDate} from './date-format.js?v=0.2.5';
 import {t} from './i18n.js?v=0.3.1';
 import {formatMoney} from './booking-values.js';
-import {cell,createXlsx,xml} from './xlsx.js';
+import {cell,formulaCell,createXlsx,xml} from './xlsx.js';
 export const XLSX_MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 // Always reselect using current filters and entitlement, including at the instant of export.
 export function reservationsExcel(state,filters,entitlement){
@@ -23,9 +23,15 @@ export function reservationsExcel(state,filters,entitlement){
  const apartment=filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments');
  const metadata=`${t('apartment')}: ${apartment} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency}`;
  wide(3,metadata,0,Math.max(22,Math.ceil(metadata.length/140)*12+6));
+ const end=7+result.rows.length,total=end+1;
+ // 100-series SUBTOTAL ignores filtered/hidden rows. COUNT distinguishes numeric zero
+ // from genuinely unspecified amounts; no helper columns or financial reinterpretation.
+ const subtotal=(code,col)=>result.rows.length?`SUBTOTAL(${code},$${col}$8:$${col}$${end})`:'0';
+ const count=subtotal(103,'A'),unpriced=`${count}-${subtotal(102,'G')}`;
+ const summaryFormulas=[count,`G${total}`,`H${total}`,`I${total}`,unpriced];
  const summary=[['statisticsBookings',result.rows.length,8],['reportTotal',result.totalAmountCents/100,7],['reportReceived',result.receivedAmountCents/100,7],['remainingAmount',result.balanceCents/100,7],['reportUnspecified',result.unpricedCount,8]];
  row(4,summary.map(([label],i)=>cell(columns[i*2]+'4',t(label),2)),30);
- row(5,summary.map(([,value,style],i)=>cell(columns[i*2]+'5',value,style)),25);
+ row(5,summary.map(([,value,style],i)=>formulaCell(columns[i*2]+'5',summaryFormulas[i],value,style)),25);
  summary.forEach((_,i)=>{for(const n of [4,5])merges.push(`${columns[i*2]}${n}:${columns[i*2+1]}${n}`);});
  row(6,[],6); // Thin white separator; keep the approved widths, fonts and summary.
  const headings=['apartment','guest','checkIn','checkOut','reportPDFNights','bookingStatus','reportTotal','reportReceived','remainingAmount','notes'];
@@ -37,8 +43,7 @@ export function reservationsExcel(state,filters,entitlement){
   const lines=Math.max(...values.map((value,j)=>typeof value==='string'?Math.ceil(value.length/(widths[j]*1.15)):1));
   row(n,values.map((value,j)=>cell(columns[j]+n,value,j===2||j===3?5:j===4||j===9?9:j>=6&&j<=8?(value===undefined?6:3):0)),Math.max(22,Math.min(409,lines*12+6)));
  });
- const end=7+result.rows.length,total=end+1;
- row(total,[cell('A'+total,t('reportTotals'),2),...['B','C','D','E','F'].map(col=>cell(col+total,undefined,2)),cell('G'+total,result.totalAmountCents/100,4),cell('H'+total,result.receivedAmountCents/100,4),cell('I'+total,result.balanceCents/100,4),cell('J'+total,undefined,2)],28);merges.push(`A${total}:F${total}`);
+ row(total,[cell('A'+total,t('reportTotals'),2),...['B','C','D','E','F'].map(col=>cell(col+total,undefined,2)),formulaCell('G'+total,subtotal(109,'G'),result.totalAmountCents/100,4),formulaCell('H'+total,subtotal(109,'H'),result.receivedAmountCents/100,4),formulaCell('I'+total,subtotal(109,'I'),result.balanceCents/100,4),cell('J'+total,undefined,2)],28);merges.push(`A${total}:F${total}`);
  let next=total+1;
  if(notes.length){
   wide(next++,t('notes'),2,22);

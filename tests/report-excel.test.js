@@ -7,7 +7,7 @@ import {xlsxParts} from '../checks/helpers/xlsx.mjs';
 const filters={start:'2026-10-01',end:'2026-10-31',apartmentId:'',status:'all',currency:'RON'},trial={state:'TRIAL'};
 function exported(data=fixture,extra={}){return xlsxParts(reservationsExcel(data,{...filters,...extra},trial).bytes);}
 function filterPart(parts){return parts['xl/tables/table1.xml']||parts['xl/worksheets/sheet1.xml'];}
-function value(sheet,ref){return sheet.match(new RegExp(`<c r="${ref}"[^>]*><v>([^<]+)</v>`))?.[1];}
+function value(sheet,ref){return sheet.match(new RegExp(`<c r="${ref}"[^>]*>(?:<f>[^<]*</f>)?<v>([^<]+)</v>`))?.[1];}
 test('export uses current report rows, complete stays and matching numeric summary, without writes',()=>{
  const before=JSON.stringify(fixture),parts=exported(),sheet=parts['xl/worksheets/sheet1.xml'];
  assert.equal(value(sheet,'A5'),'3');assert.equal(value(sheet,'C5'),'1600');assert.equal(value(sheet,'E5'),'700');assert.equal(value(sheet,'G5'),'900');assert.equal(value(sheet,'I5'),'1');
@@ -26,7 +26,7 @@ test('legacy amounts stay in received once without a separate breakdown, and zer
 });
 test('RO/EN labels translate and user text is escaped as literal cells, never executable formulas',()=>{
  const data=structuredClone(fixture);data.bookings[0].guest='=HYPERLINK("https://example.invalid") & <test>\u0000';
- for(const [language,title] of [['ro','Raport rezervări'],['en','Reservations Report']]){selectLanguage(language);const parts=exported(data);const sheet=parts['xl/worksheets/sheet1.xml'];assert.match(sheet,new RegExp(title));assert.match(sheet,/=HYPERLINK\(&quot;/);assert.match(sheet,/&amp; &lt;test&gt;/);assert.doesNotMatch(sheet,/<f>|\u0000/);}
+ for(const [language,title] of [['ro','Raport rezervări'],['en','Reservations Report']]){selectLanguage(language);const parts=exported(data);const sheet=parts['xl/worksheets/sheet1.xml'];assert.match(sheet,new RegExp(title));assert.match(sheet,/=HYPERLINK\(&quot;/);assert.match(sheet,/&amp; &lt;test&gt;/);assert.doesNotMatch(sheet,/\u0000/);assert.match(sheet,/<c r="B8"[^>]*t="inlineStr"><is>/);}
 });
 test('BASIC and invalid filters cannot export; permanent PREMIUM uses the same report',()=>{
  assert.throws(()=>reservationsExcel(fixture,filters,{state:'BASIC'}),/reportPremium/);assert.throws(()=>exported(fixture,{start:'2026-11-01'}),/reportInvalidPeriod/);
@@ -118,4 +118,18 @@ test('native table exposes ten buttons without overlapping sheet filter or merge
  assert.deepEqual([...table.matchAll(/<filterColumn colId="(\d+)" hiddenButton="0" showButton="1"\/>/g)].map(m=>Number(m[1])),[0,1,2,3,4,5,6,7,8,9]);
  assert.doesNotMatch(table,/tableStyleInfo name=/);assert.doesNotMatch(sheet,/<autoFilter|sheetProtection/);
  for(const m of sheet.matchAll(/<mergeCell ref="[A-Z]+(\d+):[A-Z]+(\d+)"/g))assert.ok(Number(m[2])<7||Number(m[1])>10);
+});
+
+test('filter-aware formulas share totals, count visible numeric zero, and avoid empty-range cycles',()=>{
+ const parts=exported(),sheet=parts['xl/worksheets/sheet1.xml'];
+ function formula(ref){return sheet.match(new RegExp(`<c r="${ref}"[^>]*><f>([^<]+)</f>`))?.[1];}
+ assert.equal(formula('A5'),'SUBTOTAL(103,$A$8:$A$10)');
+ assert.equal(formula('I5'),'SUBTOTAL(103,$A$8:$A$10)-SUBTOTAL(102,$G$8:$G$10)');
+ for(const [top,bottom,col] of [['C5','G11','G'],['E5','H11','H'],['G5','I11','I']]){
+  assert.equal(formula(top),bottom);assert.equal(formula(bottom),`SUBTOTAL(109,$${col}$8:$${col}$10)`);
+ }
+ assert.match(parts['xl/workbook.xml'],/<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"\/>/);
+ const empty=exported(fixture,{status:'unconfirmed'})['xl/worksheets/sheet1.xml'];
+ for(const ref of ['G8','H8','I8'])assert.match(empty,new RegExp(`<c r="${ref}"[^>]*><f>0</f><v>0</v>`));
+ assert.doesNotMatch(empty,/SUBTOTAL/);
 });
