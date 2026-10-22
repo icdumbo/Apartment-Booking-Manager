@@ -27,16 +27,17 @@ export function reservationsExcel(state,filters,entitlement){
  row(4,summary.map(([label],i)=>cell(columns[i*2]+'4',t(label),2)),30);
  row(5,summary.map(([,value,style],i)=>cell(columns[i*2]+'5',value,style)),25);
  summary.forEach((_,i)=>{for(const n of [4,5])merges.push(`${columns[i*2]}${n}:${columns[i*2+1]}${n}`);});
+ row(6,[],6); // Thin white separator; keep the approved widths, fonts and summary.
  const headings=['apartment','guest','checkIn','checkOut','reportPDFNights','bookingStatus','reportTotal','reportReceived','remainingAmount','notes'];
- row(6,headings.map((key,i)=>cell(columns[i]+'6',t(key),2)),34);
+ row(7,headings.map((key,i)=>cell(columns[i]+'7',t(key),2)),34);
  result.rows.forEach((entry,i)=>{
   const note=notesById.get(entry.bookingId);let noteRef='';
-  if(note){notes.push({entry,note});noteRef=`[${notes.length}]`;}
-  const n=7+i,values=[entry.apartment,entry.guest,dayNumber(entry.checkIn)+25569,dayNumber(entry.checkOut)+25569,entry.nights,t(entry.status),entry.totalAmountCents===undefined?undefined:entry.totalAmountCents/100,entry.receivedAmountCents/100,entry.balanceCents===undefined?undefined:entry.balanceCents/100,noteRef];
+  if(note?.trim()){notes.push({entry,note});noteRef=`[${notes.length}]`;}
+  const n=8+i,values=[entry.apartment,entry.guest,dayNumber(entry.checkIn)+25569,dayNumber(entry.checkOut)+25569,entry.nights,t(entry.status),entry.totalAmountCents===undefined?undefined:entry.totalAmountCents/100,entry.receivedAmountCents/100,entry.balanceCents===undefined?undefined:entry.balanceCents/100,noteRef];
   const lines=Math.max(...values.map((value,j)=>typeof value==='string'?Math.ceil(value.length/(widths[j]*1.15)):1));
   row(n,values.map((value,j)=>cell(columns[j]+n,value,j===2||j===3?5:j===4||j===9?9:j>=6&&j<=8?(value===undefined?6:3):0)),Math.max(22,Math.min(409,lines*12+6)));
  });
- const end=6+result.rows.length,total=end+1;
+ const end=7+result.rows.length,total=end+1;
  row(total,[cell('A'+total,t('reportTotals'),2),cell('G'+total,result.totalAmountCents/100,4),cell('H'+total,result.receivedAmountCents/100,4),cell('I'+total,result.balanceCents/100,4)],28);merges.push(`A${total}:F${total}`);
  let next=total+1;
  if(notes.length){
@@ -55,7 +56,7 @@ export function reservationsExcel(state,filters,entitlement){
  wide(next++,t('reportExportMissing'),0,22);
  const last=next-1;if(last>1048576)throw new Error('reportExportTooLarge');
  const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
- const sheet=`<worksheet xmlns="${ns}"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:J${last}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="100"><pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.join('')}</sheetData><autoFilter ref="A6:J${end}"/><mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join('')}</mergeCells><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+ const sheet=`<worksheet xmlns="${ns}"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:J${last}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="100"><pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join('')}</cols><sheetData>${rows.join('')}</sheetData><autoFilter ref="A7:J${end}"/><mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join('')}</mergeCells><pageMargins left="0.3" right="0.3" top="0.5" bottom="0.5" header="0.2" footer="0.2"/><pageSetup orientation="landscape" paperSize="9" fitToWidth="1" fitToHeight="0"/></worksheet>`;
  const money=xml(`[$-0418]#,##0.00 "${currency}"`);
  const styles=`<styleSheet xmlns="${ns}"><numFmts count="2"><numFmt numFmtId="164" formatCode="${money}"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy"/></numFmts><fonts count="3"><font><sz val="10"/><color rgb="FF18334E"/><name val="Calibri"/></font><font><b/><sz val="15"/><color rgb="FF1268BA"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF246399"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="10">${[[0,0,0],[0,1,0],[0,2,2],[164,0,0],[164,2,2],[165,0,0],[0,0,3],[164,2,2],[0,2,2],[0,0,0]].map(([num,font,fill],index)=>`<xf numFmtId="${num}" fontId="${font}" fillId="${fill}" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"${[2,5,7,8,9].includes(index)?' horizontal="center"':num===164?' horizontal="right"':''}/></xf>`).join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
  return {bytes:createXlsx(sheet,styles,t('reportSheetName')),filename:`Reservations-${filters.start}-${filters.end}-${currency}.xlsx`};
