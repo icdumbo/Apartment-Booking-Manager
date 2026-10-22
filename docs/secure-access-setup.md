@@ -1,24 +1,77 @@
-# Secure access backend: manual setup, not performed
+# Configurare gratuită: Firebase Auth Spark + Cloudflare Workers/D1
 
-Project: `apartment-booking-manage-2d218`. Package: `ro.icdapps.apartmentbookingmanager`. Do not change the APK key or version. No deployment credential/administrator connection is available in this workspace; the checked-in code is not a live service.
+**Stare:** implementat și testat local, nepublicat. Nu s-au creat resurse cloud, nu s-a activat facturarea și nu s-a construit APK. Android rămâne 1.0.10/versionCode 11. Instrucțiunile de publicare sunt pentru o etapă ulterioară, după aprobare.
 
-1. Confirm Google Sign-In on a real device with the existing Firebase Android configuration/test certificate. Keep BASIC anonymous. For later Play distribution register the Play app-signing certificate separately.
-2. Review Cloud Billing/Blaze, Firestore location and function region (`europe-west1`), IAM and budget alerts before deployment. `maxInstances: 2` limits scaling, not total spending or per-account abuse. Authentication alone does not prevent traffic/cost abuse: configure monitoring and an appropriate gateway/App Check/rate policy before public rollout. App Check is not a substitute for Firebase ID-token validation.
-3. Create Firestore in a deliberate location. `backend/firestore.rules` denies all client access; **review/merge existing project rules before deploying**, rather than overwrite any unrelated rules. Only the function service identity may access trials, verified purchases and gifts. No booking/client data is uploaded.
-4. Using an authorized administrator, set Secret Manager values `ABM_OWNER_SUBJECT` (the sole verified owner's Firebase UID) and `ABM_ACCESS_PRIVATE_KEY` (RSA 3072+ PKCS8 PEM). Provision the license-proof signing key in a trusted administrative environment, not this repository. It is distinct from the Android signing certificate; never regenerate or replace that certificate. Use platform service credentials, not a downloaded service-account key in Git. Grant the function identity only required database/secret permissions.
-5. Reconcile legacy accounts **before** setting `ABM_NEW_TRIALS_ENABLED=true`. Trial document ID is SHA-256 of the UID (UTF-8, lowercase hex). A reviewed legacy record is either `{version:1,subject,status:'used',startedAt,expiresAt}` with `expiresAt=startedAt+1296000000`, or `{status:'blocked'}`. Do not derive authorization from client dates/flags. Unknown historical anonymous trials cannot be securely reconstructed. Keep used/blocked records indefinitely under a reviewed retention/deletion policy. Do not expose a client writer or enable TTL.
-6. With an authorized Firebase CLI, install the pinned backend dependencies and deploy only after reviewing costs/configuration:
+## Ce rămâne și ce se schimbă
+
+Rămân proiectul Firebase `apartment-booking-manage-2d218`, Google Sign-In, configurația Android/OAuth, `src/access.js`, confirmarea trialului, `src/secure-access.js`, verificatorul Android, Android Keystore și formatul RSA al dovezilor. Nu se schimbă UID-urile sau datele locale.
+
+`backend/index.js` este acum un Worker, nu o Firebase Function. Adaptorul D1 înlocuiește Firestore. Regulile din `license-handler.js`/`trial-handler.js` și semnarea din `proof.js` sunt reutilizate. Pachetele Firebase Admin/Functions și configurația de deploy Firebase au fost eliminate. Nu sunt necesare Blaze, Firestore, Secret Manager Google, R2, un domeniu cumpărat sau servicii cu facturare.
+
+## Pregătire, fără publicarea serviciului
+
+1. **Firebase:** păstrează planul Spark și Google în Authentication → Sign-in method. Nu activa Identity Platform/Blaze pentru acest backend. Verifică proiectul, package ID-ul și amprentele existente; nu resemna aplicația. Înregistrează ulterior separat certificatul Play app-signing dacă aplicația ajunge în Play.
+2. **Cloudflare:** creează/conectează un cont gratuit și verifică adresa de e-mail. În Workers & Pages selectează Workers **Free**; nu activa Workers Paid și nu introduce un card. D1 este disponibil pe Free. Nu crea un Worker public în această etapă.
+3. **Local:** instalează Node 22+ și dependențele, apoi rulează verificările fără autentificare cloud:
 
    ```sh
    npm ci --prefix backend
-   firebase deploy --project apartment-booking-manage-2d218 --only functions:access
+   npm run check --prefix backend
    ```
 
-   The Firebase codebase name and HTTPS function are both `access`. Review database rules separately; no command here deploys them blindly. CLI will require the bound secret configuration. Confirm the generated HTTPS URL and its IAM/invoker setup. CORS permits only `https://localhost`; this does not authorize requests, which must carry a verified Google/Firebase ID token. Requests are bounded to 2 KiB; errors are sanitized; bearer tokens/proofs must not enter logs.
-7. Export only the matching **public** RSA key as SPKI DER/base64 into Android `access_public_key_spki` and configure the actual HTTPS `LICENSE_ENDPOINT` in `src/native-auth.js`. Never place the private PEM or privileged UID there. Missing URL/key leaves secure activation unavailable. Plan public-key rotation/multiple-key support before rotating an already issued permanent offline proof; blindly replacing the pin can invalidate legitimate offline licenses.
-8. Keep enrolment disabled and run restricted integration tests first: wrong-project/expired/revoked tokens, cross-account responses, failed signing/database calls, concurrent activation, clear-data/reinstall, server-record retention, clock changes, sleep, process kill, phone reboot, expired trial, owner-only grant, offline restart and explicit logout. Test that no dates/payments/apartments change. Mocks are not sufficient evidence of live Firebase or real-device behavior.
-9. Enable new trial enrolment only after cutover approval and those checks. No Play Billing, purchase writer or real payment is deployed by this stage. Offline paid proof support is tested against injected trusted records only, never a simulated activation in the real app.
+   Comanda generează doar un bundle `--dry-run` și folosește un runtime Workers/D1 local cu identități fictive. Nu face deploy și nu transmite o cheie reală.
+4. **D1:** când pregătești contul Cloudflare, creează o bază numită `apartment-booking-access` din dashboard → Storage & databases → D1, sau ulterior prin `npx wrangler d1 create apartment-booking-access` din `backend/`. Crearea unei baze nu publică un endpoint. Copiază UUID-ul rezultat în `backend/wrangler.jsonc`, înlocuind UUID-ul zero. ID-ul bazei nu este un secret. Contul Cloudflare se selectează prin login-ul Wrangler, nu printr-un token pus în repository.
+5. **Cheia dovezilor:** dacă există deja o cheie legitimă pentru dovezi, reutilizeaz-o; nu o înlocui prin mutarea backendului. Altfel pregătește o cheie RSA 3072+ PKCS8 PEM într-un director privat în afara repository-ului, pe un calculator de încredere. Aceasta este cheia pentru dovezile backendului, **nu certificatul APK**. Nu trimite cheia în chat, GitHub sau APK. Păstrează backup privat. Exportă separat cheia publică SPKI DER/base64, destinată verificatorului Android. Nu roti cheia după emiterea unor drepturi permanente fără un plan de suport pentru dovezile vechi.
+6. **Configurări server necesare:**
 
-Offline limitation: temporary rights require reconnection after phone reboot. Indefinite offline purchased rights necessarily delay revocation until reconnection. Missing local signing/cache keys after reinstall require online verification. Restoring a license does not restore reservations; local data transfer/backup is a separate feature.
+   | Nume | Unde și ce reprezintă |
+   | --- | --- |
+   | `ACCESS_PRIVATE_KEY` | Worker secret, cheia privată PKCS8 PEM pentru dovezi |
+   | `OWNER_SUBJECT` | Worker secret, UID-ul Firebase al singurului proprietar, verificat administrativ; poate lipsi dacă nu se acordă încă dreptul proprietarului |
+   | `FIREBASE_WEB_API_KEY` | Worker secret/configurație protejată pentru Firebase Auth REST `accounts:lookup`; cheia API a proiectului, fără service-account JSON |
+   | `DB` | D1 binding către baza creată |
+   | `NEW_TRIALS_ENABLED` | Variabilă text `false` implicit; devine `true` numai după reconciliere și verificări |
 
-Costs: Cloud Functions, Firestore, Secret Manager, logs/build/artifacts/network can incur charges on Blaze; free allowances do not guarantee a zero bill. Budget alerts are notifications, not hard spending caps. No Firebase resources or charges were initiated here.
+   Cheia API Firebase nu este cheia privată a unei licențe și nu acordă privilegii; cererea Auth conține în plus ID tokenul autentificat. Folosește o cheie cu acces la API-ul Firebase Authentication/Identity Toolkit. O cheie limitată numai la pachetul Android sau la referrere de browser poate refuza cereri din Worker. Dacă trebuie o cheie server separată, configureaz-o în proiectul existent și limiteaz-o la API-ul necesar; nu activa billing. Nu sunt necesare credențiale administrative Google pentru verificarea implementată.
+
+## Numai după aprobare: configurarea și verificarea endpointului
+
+7. Autentifică Wrangler în propriul cont: din `backend/`, `npx wrangler login`. Nu trimite tokenuri de acces în chat. Revizuiește configurația și aplică schema D1 **doar bazei corecte**:
+
+   ```sh
+   npx wrangler d1 migrations apply apartment-booking-access --remote
+   ```
+
+   Schema are cheie unică pe cont, constrângere exactă de 15 zile și triggere care împiedică modificarea/ștergerea trialului. Nu expune D1 prin API-uri administrative. Nu șterge tombstone-urile trialurilor și nu înlocui baza cu una goală.
+8. Configurează secretele prin Cloudflare **encrypted secrets**, nu variabile text publice, fișiere comise sau argumente CLI vizibile. `npx wrangler secret put ACCESS_PRIVATE_KEY`, `... OWNER_SUBJECT` și `... FIREBASE_WEB_API_KEY` acceptă valorile prin intrarea securizată a administratorului; cheia privată rămâne între calculatorul tău și Cloudflare. Aceste operații pot crea/configura un Worker, deci nu le executa înainte de aprobarea publicării. Nu modifica certificatul Android.
+9. Reconciliază trialurile locale existente înainte de `NEW_TRIALS_ENABLED=true`. Pentru conturi deja folosite introdu, prin administrarea D1, fie o înregistrare `used` cu data inițială stabilită și `expires_at=started_at+1296000000`, fie una `blocked` fără date. UID-ul este numai parametrul administrativ, nu o identitate hardcodată în SQL-ul din Git. Nu autoriza o perioadă nouă pe baza datelor editabile trimise de client. Un trial anonim șters anterior nu poate fi reconstruit sigur. Migrarea trebuie să aibă loc înainte de prima înregistrare; triggerele interzic rescrierea celor existente.
+10. Configurația are `workers_dev:false` și `preview_urls:false`, fără rute, pentru a preveni o adresă publică accidentală. După aprobare configurează în mod deliberat adresa gratuită `workers.dev` (`workers_dev:true`), secretele și baza, apoi publică prin `npx wrangler deploy`. Nu este necesar un domeniu plătit. Endpointul este `https://<nume>.<subdomeniu>.workers.dev/access`; acțiunile `verify` și `startTrial` păstrează contractul Android existent. Nu există endpoint de acordare a licențelor sau panou admin.
+11. Rulează întâi teste restrânse cu un cont de test, fără a activa global trialurile. Verifică Auth REST `validSince`, conturi dezactivate/revocate, semnături/audiență/proiect greșite, activări concurente, repetiție după reinstalare, expirare, owner-only, erori de cote și CPU. Absența datelor necesare verificării produce refuz, nu activare. Observă CPU atât la pornire rece, cât și cu cheile cache-uite; testele locale nu demonstrează respectarea bugetului Free pe infrastructura publică.
+12. Numai după aceste verificări, configurează URL-ul real în `src/native-auth.js` și **doar cheia publică** în Android `access_public_key_spki`. Ambele sunt încă neconfigurate în această etapă. Testarea pe telefon necesită un build ulterior aprobat separat. Nu construi APK acum.
+
+## Verificare și limite reale
+
+- Tokenul este verificat RS256 folosind exclusiv certificatele publice Google din URL-ul fix documentat de Firebase. Se validează emitentul, proiectul/audiența, expirarea, `iat`, `auth_time`, subiectul și furnizorul Google. Cheile publice sunt cache-uite conform Cache-Control/Age; un `kid` necunoscut nu provoacă fetch-uri nelimitate. Nicio cheie nu este preluată dintr-un URL declarat în token.
+- Fiecare verificare online face și Firebase Auth REST `accounts:lookup`, compară UID-ul, `validSince` cu `auth_time` și starea contului, apoi politica D1 de blocare/revocare. Nu se cache-uiesc răspunsurile de revocare. Erorile de autentificare sunt 401; erorile Google/D1/cote/configurare sunt 503, astfel încât să nu fie confundate cu o revocare confirmată.
+- CORS acceptă doar `https://localhost`, dar **nu este autentificare**. Lipsa headerului Origin nu ocolește verificarea Firebase. Nu se loghează tokenuri, dovezi, chei sau datele rezervărilor. Corpul este limitat efectiv la 2 KiB; redirecturile către alte servicii nu sunt urmate.
+- Timpul trialului este server-side; D1 batch este atomic și `ON CONFLICT DO NOTHING` păstrează primul termen. Contul Firebase stabil regăsește aceeași evidență după reinstalare. Un alt cont/UID nou sau ștergerea administrativă a întregii baze necesită politici suplimentare; nu promitem identificarea unei persoane între toate conturile sale.
+- Android Keystore și politica offline sunt neschimbate: trialul temporar necesită reconectare după repornirea telefonului; aceeași pornire folosește elapsedRealtime, independent de data telefonului. Drepturile permanente verificate pot rămâne offline fără termen; revocarea nu poate fi aflată offline. Schimbarea telefonului/restaurarea licenței nu restaurează rezervările locale.
+- Licențele cumpărate sunt doar citite din evidențe server de încredere. Nu introduce manual achiziții fictive în mediul real. Google Play Billing, verificarea tokenurilor de achiziție, restaurarea și actualizările de rambursare rămân etape separate.
+
+## Gratuit, cu cote
+
+Verificat în documentația oficială la 22.10.2026: contul gratuit Cloudflare pentru Workers nu cere card; Workers/D1 sunt disponibile pe Free. Workers Free: 100.000 cereri/zi și 10 ms CPU/cerere. D1 Free: 5 milioane rânduri citite/zi, 100.000 scrise/zi, 5 GB total, maximum 500 MB/bază. Cotele sunt comune contului/produsului. La depășire, cererile pot eșua; **nu se trece automat la un plan plătit prin codul aplicației**. Nu șterge trialuri pentru a elibera spațiu. Verificările periodice consumă cote chiar fără activări noi. Runtime-ul local nu reproduce limita CPU Free.
+
+Firebase Google Sign-In rămâne pe Spark; se aplică limitele Firebase Auth existente. Identity Platform are cote diferite, inclusiv limita Spark de 3.000 utilizatori activi/zi dacă este activat; nu îl activa pentru această adaptare. Nu folosim autentificare telefonică, Functions, Firestore sau Cloud Storage.
+
+Înainte de publicare, stabilește protecții anti-abuz și urmărește cotele. Endpointurile autentificate pot fi totuși abuzate de conturi valide. Nu este implementat un serviciu cu SLA sau trafic nelimitat. Nu este necesar să plătești pentru a păstra siguranța: la indisponibilitate se refuză activări noi, BASIC continuă offline și dovezile locale valide sunt păstrate conform politicii.
+
+Referințe oficiale:
+- https://developers.cloudflare.com/labs/workers
+- https://developers.cloudflare.com/workers/platform/limits/
+- https://developers.cloudflare.com/d1/platform/pricing/
+- https://developers.cloudflare.com/d1/platform/limits/
+- https://developers.cloudflare.com/d1/reference/faq/
+- https://firebase.google.com/docs/projects/billing/firebase-pricing-plans
+- https://firebase.google.com/docs/auth/admin/verify-id-tokens
+- https://firebase.google.com/docs/reference/rest/auth

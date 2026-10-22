@@ -20,3 +20,10 @@ test-results/
 playwright-report/
 
 ui-preview/
+
+# Local Worker emulation/configuration; never commit server secrets.
+backend/.wrangler/
+backend/.worker-build/
+backend/.dev.vars*
+backend/*.pem
+backend/*.key

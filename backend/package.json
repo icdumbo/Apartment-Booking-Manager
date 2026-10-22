@@ -4,10 +4,17 @@
   "type": "module",
   "main": "index.js",
   "engines": {
-    "node": "22"
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "npm run bundle:check && node --test checks/worker-access.check.mjs ../tests/secure-trial.test.js ../tests/firebase-access.test.js",
+    "bundle:check": "wrangler deploy --dry-run --outdir .worker-build"
   },
   "dependencies": {
-    "firebase-admin": "14.5.0",
-    "firebase-functions": "7.4.0"
+    "jose": "6.2.13"
+  },
+  "devDependencies": {
+    "wrangler": "4.152.0",
+    "miniflare": "5.20261019.2-beta"
   }
 }
