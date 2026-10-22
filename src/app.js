@@ -1,3 +1,4 @@
+import {canEditPayments,assertPaymentHistoryAccess} from './payments.js';
 import {BOOKING_EXTRA_FIELDS,readBookingExtras} from './booking-values.js';
 import {renderBookingFields,updateBookingSummary} from './booking-editor.js';
 import {calendarYear,monthStart} from './month-navigation.js?v=0.2.4';
@@ -38,7 +39,7 @@ function renderMonthSelector(){
 }
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
 function render(){
- renderAccessStatus();renderApartments();
+ renderAccessStatus();renderApartments();if(editing?.payments)editing.payments.refresh();
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>open('booking',b),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
  $('summary').textContent=t('summary',{apartments:state.apartments.length,bookings:state.bookings.length});
@@ -86,7 +87,7 @@ function formError(error){const source=error?.message??error;$('form-error').dat
 function open(kind,item=null,defaults={}){
  if(blocked)return;if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
  if(kind==='apartment'){field('apartmentName','name',item?.name);field('address','address',item?.address);field('city','city',item?.city);}
- else renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel});
+ else editing.payments=renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel,canManagePayments:()=>!blocked&&canEditPayments(access.snapshot())&&policy().canManageApartment($('fields').querySelector('[name=apartmentId]').value)});
  $('editor').classList.toggle('booking-editor',kind==='booking');
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
  const readOnly=apartmentId&&!policy().canManageApartment(apartmentId);
@@ -100,11 +101,12 @@ function open(kind,item=null,defaults={}){
 $('fields').addEventListener('input',()=>{if(editing?.kind==='booking')updateBookingSummary($('fields'));});
 function persist(next){try{
  const permissions=policy();
+ for(const booking of next.bookings)assertPaymentHistoryAccess(state.bookings.find(old=>old.id===booking.id),booking,access.snapshot());
  for(const kind of ['apartments','bookings']){
   for(const old of state[kind]){const changed=next[kind].find(v=>v.id===old.id);if(JSON.stringify(changed)!==JSON.stringify(old)&&!permissions.canManageApartment(kind==='apartments'?old.id:old.apartmentId))throw new Error('basicReadOnly');}
   for(const item of next[kind]){if(kind==='apartments'&&!state.apartments.some(a=>a.id===item.id)&&!permissions.canAddApartment)throw new Error('apartmentLimit');if(kind==='bookings'&&JSON.stringify(state.bookings.find(b=>b.id===item.id))!==JSON.stringify(item)&&!permissions.canManageApartment(item.apartmentId))throw new Error('basicReadOnly');}
  }
-repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit'].includes(error.message)?error.message:'storageSave');return false;}}
+repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments'].includes(error.message)?error.message:'storageSave');return false;}}
 $('editor-form').onsubmit=e=>{
  e.preventDefault();const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
  // Browser-native messages follow OS language, so show centralized translated validation instead.
@@ -113,7 +115,7 @@ $('editor-form').onsubmit=e=>{
  const item={...state[key].find(v=>v.id===editing.id),...values,id:editing.id||crypto.randomUUID()};
  try{
   if(editing.kind==='apartment'&&!editing.id&&!policy().canAddApartment)throw new Error('apartmentLimit');
-  if(editing.kind==='booking'){item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra);}
+  if(editing.kind==='booking'){if(editing.payments.hasPendingEntry())throw new Error('pendingPayment');item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra,editing.payments.getLedger());}
   editing.kind==='apartment'?validateApartment(item):validateBooking(item,state);
   const next={...state,[key]:editing.id?state[key].map(v=>v.id===editing.id?item:v):[...state[key],item]};
   if(persist(next))$('editor').close();
@@ -129,7 +131,7 @@ $('confirmation').addEventListener('close',()=>{
  const next=editing.kind==='apartment'?{...state,apartments:state.apartments.filter(a=>a.id!==editing.id),bookings:state.bookings.filter(b=>b.apartmentId!==editing.id)}:{...state,bookings:state.bookings.filter(b=>b.id!==editing.id)};
  if(persist(next))$('editor').close();
 });
-function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());if(editing.kind==='booking')updateBookingSummary($('fields'));}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){

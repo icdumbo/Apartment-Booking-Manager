@@ -1,3 +1,4 @@
+import {totalReceived,validatePaymentHistory} from './payments.js';
 // Optional booking metadata. Money uses integer bani (RON / 100), never floating-point totals.
 export const BOOKING_SOURCES=Object.freeze(['booking','airbnb','direct','other']);
 export const BOOKING_EXTRA_FIELDS=Object.freeze(['persons','totalAmountCents','paidAmountCents','source','notes']);
@@ -15,8 +16,9 @@ export function formatRON(cents){
  const [whole,fraction]=moneyInput(cents).split('.');
  return `${whole.replace(/\B(?=(\d{3})+(?!\d))/g,'.')},${fraction} RON`;
 }
-export function bookingBalance(booking){return booking.totalAmountCents===undefined?undefined:booking.totalAmountCents-(booking.paidAmountCents??0);}
+export function bookingBalance(booking){return booking.totalAmountCents===undefined?undefined:booking.totalAmountCents-totalReceived(booking);}
 export function validateBookingExtras(booking){
+ validatePaymentHistory(booking);
  for(const key of ['totalAmountCents','paidAmountCents'])if(booking[key]!==undefined&&(!Number.isSafeInteger(booking[key])||booking[key]<0))throw new Error('invalidAmount');
  if((booking.paidAmountCents??0)>(booking.totalAmountCents??0))throw new Error('paidExceedsTotal');
  if(booking.persons!==undefined&&(!Number.isSafeInteger(booking.persons)||booking.persons<1))throw new Error('invalidPersons');

@@ -1,8 +1,9 @@
+import {renderPaymentHistory} from './payment-editor.js';
 import {dayNumber,today,isoDay} from './domain.js?v=0.2.1';
 import {parseDate} from './date-format.js?v=0.2.5';
 import {t} from './i18n.js?v=0.3.1';
 import {BOOKING_SOURCES,moneyInput,parseMoney,bookingBalance,formatRON} from './booking-values.js';
-export function renderBookingFields({container,state,item,defaults,field,textLabel}){
+export function renderBookingFields({container,state,item,defaults,field,textLabel,canManagePayments}){
  function section(title){const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.dataset.i18n=title;legend.textContent=t(title);group.append(legend);container.append(group);return group;}
  function input(group,key,name,value,type='text',optional=false){const control=field(key,name,value,type);control.required=!optional;group.append(control.parentElement);return control;}
  function select(group,key,name,options,value,optional=false){const label=textLabel(key),control=document.createElement('select');control.name=name;control.required=!optional;
@@ -19,10 +20,15 @@ export function renderBookingFields({container,state,item,defaults,field,textLab
  const payment=section('paymentSection');
  for(const [key,name] of [['totalAmount','totalAmountCents'],['paidAmount','paidAmountCents']]){const control=input(payment,key,name,moneyInput(item?.[name]),'text',true);control.inputMode='decimal';control.placeholder='0,00';control.maxLength=18;}
  output(payment,'remainingAmount','booking-balance');
+ const paid=container.querySelector('[name=paidAmountCents]');
+ const history=renderPaymentHistory(container,{booking:item,canManage:canManagePayments,getTotal:()=>parseMoney(container.querySelector('[name=totalAmountCents]').value),getPaid:()=>parseMoney(paid.value),onChange:ledger=>{paid.value=moneyInput(ledger.paidAmountCents);paid.readOnly=true;updateBookingSummary(container);}});
+ paid.readOnly=item?.payments!==undefined;
+ paid.addEventListener('input',()=>{try{history.refresh();}catch{}});
  const additional=section('additionalSection');select(additional,'bookingSource','source',[['','notSpecified'],...BOOKING_SOURCES.map(source=>[source,'source_'+source])],item?.source??'',true);
  const label=textLabel('notes'),notes=document.createElement('textarea');notes.name='notes';notes.rows=3;notes.maxLength=4000;notes.value=item?.notes??'';label.className='booking-notes';label.append(notes);additional.append(label);
  const hint=document.createElement('p');hint.className='booking-optional-hint';hint.dataset.i18n='bookingOptional';hint.textContent=t('bookingOptional');container.append(hint);
  updateBookingSummary(container);
+ return history;
 }
 export function updateBookingSummary(container){
  const get=name=>container.querySelector(`[name="${name}"]`)?.value??'';
