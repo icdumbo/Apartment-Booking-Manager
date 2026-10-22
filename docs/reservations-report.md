@@ -24,7 +24,7 @@ in the bottom navigation and main menu. BASIC hides the report and retains data.
 - Date/status/apartment/currency filters are transient UI state. Existing local
   business data and trial timestamps are never reset by this screen.
 
-No PDF exports or other report types are implemented. Availability still
+Other report types are not implemented. Availability still
 uses the existing entitlement service; this screen adds no licensing backend.
 
 ## Excel export
@@ -56,3 +56,39 @@ Actual Android Chrome/Files behavior and the installed Capacitor WebView must
 still be tested on-device. If a WebView blocks Blob downloads it will need a
 native file-saving adapter in a separate stage; no Android configuration or
 plugins are changed here. Cancelling a system download does not change data.
+
+## PDF export
+
+Export PDF uses the same read-only selector and a fresh entitlement snapshot as
+the on-screen report. Only TRIAL/PREMIUM with valid filters can generate it.
+The Excel exporter and the report calculation module are unchanged.
+
+The PDF is A4 landscape, with Apartment Booking Manager branding, localized
+title, active date/apartment/status/currency filters, the four summary values,
+full reservation rows, total amounts and the existing calculation explanations.
+Unspecified values remain —, distinct from numeric zero. Undated legacy amounts
+are explicitly identified as already included, with per-booking notes where
+applicable. Full stays and current amounts are exported; nothing is prorated.
+
+Rows wrap and paginate without truncation; subsequent table pages repeat the
+brand, title and column headers. Every page has a localized page/total footer.
+Money uses the existing Romanian formatter, independently of PDF viewer locale.
+DejaVu Sans subsets are embedded for RO/EN diacritics and Latin/Greek/Cyrillic
+text. Scripts outside the bundled font's coverage are not guaranteed.
+
+jsPDF 4.2.1 and the font subsets are bundled under src/vendor with their license
+notices. No CDN, remote font, external PDF service or extra Android permission is
+used. The UMD library has only a trailing ES-module export added; its unused
+source-map link is removed. Font subsets were generated with fontTools from
+DejaVu Sans and DejaVu Sans Bold, preserving U+0020–052F, U+2000–206F, U+20AC
+and U+FFFD. No npm runtime dependency is required for these vendored assets.
+
+Validation covers RO/EN, missing/zero values, filtered currencies and statuses,
+empty reports, long names, multi-page reports, repeated headers, all row names,
+diacritics, and safe BASIC/expiry behavior. Independent PDF extraction and raster
+inspection are performed in addition to browser downloads. Browser downloads
+use a Blob, as Excel does, and work in the tested offline Chromium touch
+viewports and standalone local HTML. Real Android Chrome/Files and the installed
+Capacitor WebView remain unverified. A WebView that blocks Blob downloads needs
+a native save/share adapter in a later stage; no APK or Android configuration
+is changed in this stage. Cancelling a download does not modify business data.

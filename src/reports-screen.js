@@ -1,3 +1,4 @@
+import {downloadReservationsPDF} from './report-pdf.js';
 import {downloadReservationsExcel} from './report-excel.js';
 import {selectReservationsReport} from './reservations-report.js';
 import {canEditPayments} from './payments.js';
@@ -16,8 +17,11 @@ export function createReportsScreen({root,getState,getEntitlement}){
  const inputs={};for(const [name,key,type] of [['start','reportStart','date'],['end','reportEnd','date'],['apartmentId','apartment','select'],['status','bookingStatus','select'],['currency','collectionCurrency','select']]){
   const label=document.createElement('label');text('span',key,label);const el=document.createElement(type==='select'?'select':'input');if(type==='date')el.type='date';el.id='report-'+name;label.append(el);controls.append(label);inputs[name]=el;el.onchange=()=>{filters[name]=el.value;render();};
  }
- const exportButton=text('button','reportExportExcel',content);exportButton.type='button';exportButton.id='report-export-excel';exportButton.className='primary';
+ const exportActions=document.createElement('div');exportActions.className='report-export-actions';content.append(exportActions);
+ const exportButton=text('button','reportExportExcel',exportActions);exportButton.type='button';exportButton.id='report-export-excel';exportButton.className='primary';
  exportButton.onclick=()=>{try{downloadReservationsExcel(getState(),{...filters},getEntitlement());}catch(reason){if(!canEditPayments(getEntitlement()))render();else{error.textContent=t(reason.message==='reportExportTooLarge'?'reportExportTooLarge':'reportExportFailed');error.hidden=false;}}};
+ const pdfButton=text('button','reportExportPDF',exportActions);pdfButton.type='button';pdfButton.id='report-export-pdf';pdfButton.className='primary';
+ pdfButton.onclick=()=>{try{downloadReservationsPDF(getState(),{...filters},getEntitlement());}catch{if(!canEditPayments(getEntitlement()))render();else{error.textContent=t('reportPDFFailed');error.hidden=false;}}};
  const error=document.createElement('p');error.id='report-error';error.setAttribute('role','alert');content.append(error);
  const summary=document.createElement('div');summary.id='report-summary';summary.className='collections-summary';summary.setAttribute('aria-live','polite');content.append(summary);
  const count=document.createElement('p');count.id='report-count';count.setAttribute('aria-live','polite');content.append(count);
@@ -26,14 +30,14 @@ export function createReportsScreen({root,getState,getEntitlement}){
  const list=document.createElement('div');list.id='report-list';list.className='report-list';content.append(list);
  function option(select,value,label){const el=document.createElement('option');el.value=value;el.textContent=label;select.append(el);}
  function render(){
-  const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';error.hidden=true;if(!allowed)return;
+  const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';error.hidden=true;if(!allowed)return;
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of state.apartments)option(inputs.apartmentId,a.id,a.name);
   for(const status of ['all','confirmed','unconfirmed'])option(inputs.status,status,t(status==='all'?'reportAllStatus':status));for(const code of ['RON','EUR'])option(inputs.currency,code,code);
   for(const [name,input] of Object.entries(inputs))input.value=filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
-  exportButton.disabled=false;
+  exportButton.disabled=false;pdfButton.disabled=false;
   for(const [key,value,id] of [['reportTotal',result.totalAmountCents,'total'],['reportReceived',result.receivedAmountCents,'received'],['remainingAmount',result.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id;amount.textContent=formatMoney(value,filters.currency);card.append(amount);summary.append(card);}
   count.textContent=t('reportCount',{count:result.rows.length});
   notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:formatMoney(result.legacyAmountCents,filters.currency)});
