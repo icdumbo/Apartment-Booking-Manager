@@ -28,7 +28,7 @@ Rămân proiectul Firebase `apartment-booking-manage-2d218`, Google Sign-In, con
    | --- | --- |
    | `ACCESS_PRIVATE_KEY` | Worker secret, cheia privată PKCS8 PEM pentru dovezi |
    | `OWNER_SUBJECT` | Worker secret, UID-ul Firebase al singurului proprietar, verificat administrativ; poate lipsi dacă nu se acordă încă dreptul proprietarului |
-   | `FIREBASE_WEB_API_KEY` | Worker secret/configurație protejată pentru Firebase Auth REST `accounts:lookup`; cheia API a proiectului, fără service-account JSON |
+   | `FIREBASE_API_KEY` | Worker secret/configurație protejată pentru Firebase Auth REST `accounts:lookup`; cheia API a proiectului, fără service-account JSON |
    | `DB` | D1 binding către baza creată |
    | `NEW_TRIALS_ENABLED` | Variabilă text `false` implicit; devine `true` numai după reconciliere și verificări |
 
@@ -43,7 +43,7 @@ Rămân proiectul Firebase `apartment-booking-manage-2d218`, Google Sign-In, con
    ```
 
    Schema are cheie unică pe cont, constrângere exactă de 15 zile și triggere care împiedică modificarea/ștergerea trialului. Nu expune D1 prin API-uri administrative. Nu șterge tombstone-urile trialurilor și nu înlocui baza cu una goală.
-8. Configurează secretele prin Cloudflare **encrypted secrets**, nu variabile text publice, fișiere comise sau argumente CLI vizibile. `npx wrangler secret put ACCESS_PRIVATE_KEY`, `... OWNER_SUBJECT` și `... FIREBASE_WEB_API_KEY` acceptă valorile prin intrarea securizată a administratorului; cheia privată rămâne între calculatorul tău și Cloudflare. Aceste operații pot crea/configura un Worker, deci nu le executa înainte de aprobarea publicării. Nu modifica certificatul Android.
+8. Configurează secretele prin Cloudflare **encrypted secrets**, nu variabile text publice, fișiere comise sau argumente CLI vizibile. `npx wrangler secret put ACCESS_PRIVATE_KEY`, `... OWNER_SUBJECT` și `... FIREBASE_API_KEY` acceptă valorile prin intrarea securizată a administratorului; cheia privată rămâne între calculatorul tău și Cloudflare. Aceste operații pot crea/configura un Worker, deci nu le executa înainte de aprobarea publicării. Nu modifica certificatul Android.
 9. Reconciliază trialurile locale existente înainte de `NEW_TRIALS_ENABLED=true`. Pentru conturi deja folosite introdu, prin administrarea D1, fie o înregistrare `used` cu data inițială stabilită și `expires_at=started_at+1296000000`, fie una `blocked` fără date. UID-ul este numai parametrul administrativ, nu o identitate hardcodată în SQL-ul din Git. Nu autoriza o perioadă nouă pe baza datelor editabile trimise de client. Un trial anonim șters anterior nu poate fi reconstruit sigur. Migrarea trebuie să aibă loc înainte de prima înregistrare; triggerele interzic rescrierea celor existente.
 10. Configurația are `workers_dev:false` și `preview_urls:false`, fără rute, pentru a preveni o adresă publică accidentală. După aprobare configurează în mod deliberat adresa gratuită `workers.dev` (`workers_dev:true`), secretele și baza, apoi publică prin `npx wrangler deploy`. Nu este necesar un domeniu plătit. Endpointul este `https://<nume>.<subdomeniu>.workers.dev/access`; acțiunile `verify` și `startTrial` păstrează contractul Android existent. Nu există endpoint de acordare a licențelor sau panou admin.
 11. Rulează întâi teste restrânse cu un cont de test, fără a activa global trialurile. Verifică Auth REST `validSince`, conturi dezactivate/revocate, semnături/audiență/proiect greșite, activări concurente, repetiție după reinstalare, expirare, owner-only, erori de cote și CPU. Absența datelor necesare verificării produce refuz, nu activare. Observă CPU atât la pornire rece, cât și cu cheile cache-uite; testele locale nu demonstrează respectarea bugetului Free pe infrastructura publică.
@@ -75,3 +75,21 @@ Referințe oficiale:
 - https://firebase.google.com/docs/projects/billing/firebase-pricing-plans
 - https://firebase.google.com/docs/auth/admin/verify-id-tokens
 - https://firebase.google.com/docs/reference/rest/auth
+
+## Integrare Android: stare și condiții înainte de testarea pe telefon
+
+D1 și migrarea au fost confirmate de administrator ca finalizate. Worker-ul a fost publicat de administrator; aceste operații nu trebuie repetate pentru integrarea clientului. Starea remote a secretelor și funcționarea Firebase reală nu sunt demonstrate de testele locale.
+
+Worker-ul acceptă acum `FIREBASE_API_KEY` (numele configurat de administrator). `FIREBASE_WEB_API_KEY` rămâne alias pentru instalările anterioare. Dacă ambele au valori diferite, răspunde 503 fără emiterea dovezii. Nu este necesară redenumirea secretului existent. Corecția sursei necesită un deployment ulterior aprobat; commitul nu schimbă Worker-ul deja publicat.
+
+Nu s-au furnizat încă URL-ul HTTPS real cu `/access` și cheia publică SPKI DER/Base64 a perechii server. `LICENSE_ENDPOINT` rămâne null în `src/native-auth.js`, iar `access_public_key_spki` rămâne gol în `android/app/src/main/res/values/access_config.xml`. Sunt valori publice, însă nu trebuie inventate. Cheia privată rămâne exclusiv secret server; proprietarul se configurează numai prin `OWNER_SUBJECT`, după verificarea administrativă a contului.
+
+Ordinea obligatorie pentru o etapă ulterioară:
+1. Furnizarea URL-ului exact și a cheii publice; confirmarea adresei HTTPS accesibile.
+2. Deployment aprobat al corecției numelui secretului; `NEW_TRIALS_ENABLED=false`.
+3. Verificare live: 401 fără token, refuz token invalid, `verify` cu token Google/Firebase real al unui cont fără drepturi produce o dovadă BASIC validată cu cheia publică. Nu se transmite tokenul în chat și nu se creează licențe de test reale.
+4. Configurarea celor două valori publice în client și build de test aprobat separat, semnat compatibil; Android stabil 1.0.10 nu se înlocuiește în această etapă.
+5. Pe telefon: BASIC fără cont în mod avion, Google Sign-In, verificare BASIC online, logout/schimbare cont fără moștenirea drepturilor, păstrarea tuturor datelor. Activarea trialului se testează abia după reconcilierea eligibilității conturilor vechi și autorizarea explicită a înscrierilor.
+6. Trialul valid trebuie să expire după 15 zile fără resetare la reinstalare sau schimbarea ceasului; după reboot temporarele cer reconectare. OWNER se verifică separat exclusiv pentru contul configurat pe server. Drepturile permanente verificate sunt utilizabile offline fără termen, dar revocarea se află numai online.
+
+Achiziția unică, validarea Google Play și restaurarea cumpărăturilor nu sunt implementate. Nu se prezintă sursa `GOOGLE_PLAY_PURCHASE` ca flux comercial funcțional doar pentru că rezolvarea și verificarea dovezilor există.

@@ -25,7 +25,7 @@ const account={localId:'test-user',validSince:String(now-200)};
 function verifier(overrides={}){return createFirebaseVerifier({apiKey:'fixture-api-key',resolveKey:()=>publicCryptoKey,clock:()=>now*1000,fetchImpl:async()=>Response.json({users:[account]}),...overrides});}
 let runtime,db,lookupMode='valid';
 before(async()=>{
- runtime=new Miniflare(convertV4MiniflareOptions({name:'access',modules:true,scriptPath:new URL('../.worker-build/index.js',import.meta.url).pathname,compatibilityDate:'2026-10-22',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'local-access-test'},bindings:{FIREBASE_WEB_API_KEY:'fixture-api-key',ACCESS_PRIVATE_KEY:pem,OWNER_SUBJECT:'test-owner',NEW_TRIALS_ENABLED:'true'},outboundService:async request=>{
+ runtime=new Miniflare(convertV4MiniflareOptions({name:'access',modules:true,scriptPath:new URL('../.worker-build/index.js',import.meta.url).pathname,compatibilityDate:'2026-10-22',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'local-access-test'},bindings:{FIREBASE_API_KEY:'fixture-api-key',ACCESS_PRIVATE_KEY:pem,OWNER_SUBJECT:'test-owner',NEW_TRIALS_ENABLED:'true'},outboundService:async request=>{
   if(new URL(request.url).hostname==='www.googleapis.com')return Response.json({'test-key':certificate.stdout},{headers:{'Cache-Control':'public, max-age=3600'}});
   assert.equal(new URL(request.url).origin,'https://identitytoolkit.googleapis.com');
   if(lookupMode==='outage')return Response.json({error:{message:'QUOTA_EXCEEDED'}},{status:429});
@@ -108,4 +108,22 @@ test('auth outages preserve cached client rights via 503, invalid/revoked tokens
  const broken=createWorker({makeVerifier:()=>async()=>({...claims,uid:'test-user'}),makeSigner:()=>()=> 'unused'});
  const response=await broken.fetch(new Request('https://fixture.invalid/access',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer fixture'},body:JSON.stringify({action:'verify',nonce})}),{FIREBASE_WEB_API_KEY:'fixture',DB:{withSession(){throw Error('quota');}},ACCESS_PRIVATE_KEY:'fixture'});
  assert.equal(response.status,503);
+});
+
+// No remote services or real identities: exercise configuration before any grant.
+test('deployed Firebase secret and legacy alias verify BASIC; missing/conflicting secrets fail closed',async()=>{
+ for(const [secrets,expected] of [
+  [{FIREBASE_API_KEY:'fixture'},200],
+  [{FIREBASE_WEB_API_KEY:'fixture'},200],
+  [{FIREBASE_API_KEY:'fixture',FIREBASE_WEB_API_KEY:'fixture'},200],
+  [{},503],
+  [{FIREBASE_API_KEY:'',FIREBASE_WEB_API_KEY:'fixture'},503],
+  [{FIREBASE_API_KEY:'fixture',FIREBASE_WEB_API_KEY:'different'},503]
+ ]){
+  let verified=false;
+  const worker=createWorker({makeVerifier:({apiKey})=>{assert.equal(apiKey,'fixture');return async()=>{verified=true;return {...claims,sub:'disabled-config-test',uid:'disabled-config-test'};};},makeSigner:()=>c=>{assert.equal(c.state,'BASIC');return 'fixture-proof';}});
+  const response=await worker.fetch(new Request('https://fixture.invalid/access',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer fixture'},body:JSON.stringify({action:'startTrial',nonce,terms:'trial-15d-v1'})}),{...secrets,DB:db,ACCESS_PRIVATE_KEY:'fixture',NEW_TRIALS_ENABLED:'false'});
+  assert.equal(response.status,expected);assert.equal(verified,expected===200);
+ }
+ assert.equal(await db.prepare("SELECT COUNT(*) AS n FROM trials WHERE subject='disabled-config-test'").first('n'),0);
 });

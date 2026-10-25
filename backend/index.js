@@ -28,9 +28,13 @@ export function createWorker({makeVerifier=createFirebaseVerifier,makeSigner=pro
    body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{return reply(400,{error:'invalidRequest'});}
   try{
-   if(!env.DB||!env.FIREBASE_WEB_API_KEY)throw Error('Missing server configuration');
+   // Accept the deployed secret name and retain older installations. Ambiguous
+   // configuration fails closed; neither value is logged or sent to the client.
+   if(env.FIREBASE_API_KEY&&env.FIREBASE_WEB_API_KEY&&env.FIREBASE_API_KEY!==env.FIREBASE_WEB_API_KEY)throw Error('Conflicting server configuration');
+   const apiKey=env.FIREBASE_API_KEY??env.FIREBASE_WEB_API_KEY;
+   if(!env.DB||typeof apiKey!=='string'||!apiKey)throw Error('Missing server configuration');
    const repository=createD1Repository(env.DB,{allowNewTrials:env.NEW_TRIALS_ENABLED==='true'});
-   const handle=createTrialHandler({clock,verifyIdToken:makeVerifier({apiKey:env.FIREBASE_WEB_API_KEY,resolveKey,clock,readIdentityPolicy:repository.readIdentityPolicy}),
+   const handle=createTrialHandler({clock,verifyIdToken:makeVerifier({apiKey,resolveKey,clock,readIdentityPolicy:repository.readIdentityPolicy}),
     readOwnerSubject:async()=>env.OWNER_SUBJECT||null,
     readVerifiedPurchase:subject=>repository.readLicense(subject,'GOOGLE_PLAY_PURCHASE'),
     readGift:subject=>repository.readLicense(subject,'ADMIN_GIFT'),
