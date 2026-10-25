@@ -1,8 +1,8 @@
 import {createSecureAccess} from './secure-access.js';
 import {billingAdapter} from './access.js';
-// A deployed, authenticated backend URL can be set here in a future reviewed change.
+// Public production endpoint; all access decisions require server authentication.
 // Never read endpoint/entitlement/privileged identity from editable local storage.
-export const LICENSE_ENDPOINT=null;
+export const LICENSE_ENDPOINT='https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access';
 export function createNativeAuthBridge(plugin){
  let user=null,revision=0,handle,disposed=false;
  const listeners=new Set();

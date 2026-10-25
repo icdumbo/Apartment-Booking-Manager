@@ -8,7 +8,7 @@ const claims={uid:'test-admin',sub:'test-admin',auth_time:1,firebase:{sign_in_pr
 test('native adapter handles restored session, login, token and local logout without granting a license',async()=>{
  let listener,user=null;const plugin={addListener:async(_,fn)=>{listener=fn;return {remove:async()=>{}};},getCurrentUser:async()=>({user}),getIdToken:async()=>({token:'test-token'}),signInWithGoogle:async()=>({user:{uid:'test-user'}}),signOut:async()=>{throw Error('chooser unavailable');}};
  const bridge=createNativeAuthBridge(plugin);await bridge.initialize();assert.equal(bridge.getCurrentUser(),null);await bridge.signInWithGoogle();assert.equal(await bridge.getIdToken({uid:'test-user'}),'test-token');await assert.rejects(bridge.getIdToken({uid:'another'}));await assert.rejects(bridge.signOut());assert.equal(bridge.getCurrentUser(),null);listener({user:{uid:'next-user'}});assert.equal(bridge.getCurrentUser().uid,'next-user');await bridge.dispose();assert.equal(bridge.getCurrentUser(),null);
- assert.equal(LICENSE_ENDPOINT,null);assert.equal(createOptionalAndroidAuth({getPlatform:()=> 'web'}).available,false);
+ assert.equal(LICENSE_ENDPOINT,'https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access');assert.equal(createOptionalAndroidAuth({getPlatform:()=> 'web'}).available,false);
  const native=createOptionalAndroidAuth({getPlatform:()=> 'android',Plugins:{BookingAuth:plugin}});await native.initialize();await native.signIn();assert.equal(native.provider.getVerifiedEntitlement(),null);
 });
 test('late initial native response cannot overwrite a new account event',async()=>{

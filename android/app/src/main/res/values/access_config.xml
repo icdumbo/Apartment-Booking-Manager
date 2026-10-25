@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Public RSA SPKI (base64 DER) only, pinned after server configuration. Never a private key. -->
-    <string name="access_public_key_spki" translatable="false"></string>
+    <string name="access_public_key_spki" translatable="false">MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAzSfQoYqvhnLbYt5zqxF8KmjNRClPGE0mWSYQQvGYCpQfnCw9cwQQoJDCW0L5+htMSIqvfVD8dstZXIgm6doSaUfGiJLKyFZZlgNj8D/ezvjnuvjUJYzDHw92I6bvu9ZyrwRW8gpjrO7sSxV1g3EOeI1RUEbSUh7TqVFfkgJ4FJlIsK1VrhZHjIg65D9D7VQauxgVdh1jsLwgvKwnX54Z+dhc9DA7rBXsZTW6XeLjW0RuUR2VUaf5b0hOUFkTSoKLA2ABrg0O9Ceg3QriupzgCAu+051NWjp1F3saKEvv29PXs9X/PVX1NJHLNhaKmYeFCrVpAJ0YH21ruvhW5fi/3YhlW3gX1AYxXdKl8HbI7axIgZA4+zM9f+x8JxYDOWEDiXcUc78xvQQS+Ivg+p3K5PIjK3BvciCWl7eGEUPzf6M3uFBCFdXcmo5rAzsTOBrk10BSZW+5M2QFtr8tLsOTKxZY+TigCrCAHsRH8HuRLWngDMgSmMWIBkWhLiQV8G5TAgMBAAE=</string>
 </resources>

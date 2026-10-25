@@ -93,3 +93,9 @@ Ordinea obligatorie pentru o etapă ulterioară:
 6. Trialul valid trebuie să expire după 15 zile fără resetare la reinstalare sau schimbarea ceasului; după reboot temporarele cer reconectare. OWNER se verifică separat exclusiv pentru contul configurat pe server. Drepturile permanente verificate sunt utilizabile offline fără termen, dar revocarea se află numai online.
 
 Achiziția unică, validarea Google Play și restaurarea cumpărăturilor nu sunt implementate. Nu se prezintă sursa `GOOGLE_PLAY_PURCHASE` ca flux comercial funcțional doar pentru că rezolvarea și verificarea dovezilor există.
+
+### Configurație publică Android completată
+
+Endpointul furnizat de administrator este `https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access`. Cheia publică RSA 3072 din `access-public-spki-base64.txt` a fost configurată în resursa `access_public_key_spki`; endpointul este configurat în `src/native-auth.js`. Acestea înlocuiesc blocajul de configurare descris mai sus. Cheia privată nu a fost furnizată sau stocată în repository.
+
+Validarea formatului cheii nu demonstrează că secretul privat din Worker îi corespunde: este necesară o dovadă reală semnată, verificată cu această cheie. Nu s-au construit APK-uri, nu s-a publicat Worker-ul și nu s-au activat trialuri în această etapă. Rămân obligatorii deploymentul aprobat al corecției `FIREBASE_API_KEY`, verificarea Firebase live și buildul/testarea Android aprobate separat. Versiunea stabilă 1.0.10 rămâne intactă.
