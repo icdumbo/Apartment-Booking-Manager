@@ -1,9 +1,10 @@
+import {seedBrowserTrial} from './fixtures/browser-trial.mjs';
 import {test,expect} from '@playwright/test';
 import {readFile} from 'node:fs/promises';
 import {collectionsFixture as fixture} from './fixtures/collections.mjs';
 import {xlsxParts} from './helpers/xlsx.mjs';
 test.use({hasTouch:true});
-async function load(page,expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({data,expired})=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data));if(expired)localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:0,lastSeen:0}));},{data:fixture,expired});await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();}
+async function load(page,expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({data,expired})=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data));},{data:fixture,expired});await seedBrowserTrial(page,{expired});await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();}
 for(const width of [360,430,768,1440])test(`offline Excel download RO/EN ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await load(page);const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));await page.context().setOffline(true);
  for(const language of ['ro','en']){
@@ -17,7 +18,7 @@ for(const width of [360,430,768,1440])test(`offline Excel download RO/EN ${width
 });
 test('BASIC, expired trial and invalid filters cannot download',async({page})=>{
  await load(page,true);await expect(page.locator('#report-export-excel')).not.toBeVisible();await expect(page.locator('#report-export-excel')).toBeDisabled();
- await page.evaluate(()=>localStorage.removeItem('apartment-booking-manager:access:v1'));await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();
+ await seedBrowserTrial(page);await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();
  await page.locator('#report-start').fill('2026-11-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-excel')).toBeDisabled();
  await page.locator('#report-start').fill('2026-10-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-excel')).toBeEnabled();
  const downloads=[];page.on('download',d=>downloads.push(d));await page.clock.setSystemTime(new Date('2026-10-22T09:00:00Z'));await page.locator('#report-export-excel').tap();await expect(page.locator('#reports-locked')).toBeVisible();expect(downloads).toHaveLength(0);

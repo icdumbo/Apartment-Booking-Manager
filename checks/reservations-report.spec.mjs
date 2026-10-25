@@ -1,3 +1,4 @@
+import {seedBrowserTrial} from './fixtures/browser-trial.mjs';
 import {test,expect} from '@playwright/test';
 import {collectionsFixture as fixture} from './fixtures/collections.mjs';
 test.use({hasTouch:true});
@@ -5,7 +6,7 @@ const key='apartment-booking-manager:v1';
 async function load(page,{expired=false}={}){
  await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');
  const data=structuredClone(fixture);data.bookings[0].status='unconfirmed';
- await page.evaluate(({key,data,expired})=>{localStorage.setItem(key,JSON.stringify(data));if(expired)localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:0,lastSeen:0}));else localStorage.removeItem('apartment-booking-manager:access:v1');},{key,data,expired});await page.reload();
+ await page.evaluate(({key,data,expired})=>{localStorage.setItem(key,JSON.stringify(data));},{key,data,expired});await seedBrowserTrial(page,{expired});await page.reload();
 }
 const reports=page=>page.locator('.app-navigation [data-screen=reports]').click();
 for(const width of [360,390,430,768,1440])test(`report responsive RO/EN ${width}`,async({page})=>{

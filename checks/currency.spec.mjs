@@ -1,7 +1,8 @@
+import {seedBrowserTrial} from './fixtures/browser-trial.mjs';
 import {test,expect} from '@playwright/test';
 const key='apartment-booking-manager:v1';
 const booking={id:'b',apartmentId:'a',guest:'Client Test',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15',status:'confirmed',totalAmountCents:50000};
-async function load(page,extra={},expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({key,booking,extra,expired})=>{localStorage.setItem(key,JSON.stringify({version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'a',name:'Apartament Test',address:'Adresă Test',city:'Oraș Test'}],bookings:[{...booking,...extra}]}));if(expired)localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:0,lastSeen:0}));},{key,booking,extra,expired});await page.reload();await page.locator('.booking').click();}
+async function load(page,extra={},expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({key,booking,extra,expired})=>{localStorage.setItem(key,JSON.stringify({version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'a',name:'Apartament Test',address:'Adresă Test',city:'Oraș Test'}],bookings:[{...booking,...extra}]}));},{key,booking,extra,expired});await seedBrowserTrial(page,{expired});await page.reload();await page.locator('.booking').click();}
 const currency=page=>page.locator('[name=currency]');
 const save=page=>page.locator('#editor [type=submit]').click();
 const stored=page=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)).bookings[0],key);
