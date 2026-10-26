@@ -56,7 +56,11 @@ function render(){
 function renderAccessStatus(){
  const entitlement=access.snapshot(),expiry=entitlement.premiumExpiresAt??entitlement.expiresAt;
  const daysLeft=Math.max(0,Math.ceil((entitlement.remainingMs??((expiry??0)-Date.now()))/86400000));
- $('access-message').textContent=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
+ const accessLabel=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
+ $('access-message').textContent=accessLabel;
+ document.querySelector('.brand small').textContent=t('version',{access:entitlement.state==='PREMIUM'?t(entitlement.premiumExpiresAt?'headerPremium':'headerPermanent'):entitlement.state==='TRIAL'?'TRIAL PREMIUM':'BASIC'});
+ $('activate-secure-trial').hidden=entitlement.state!=='BASIC';
+ if($('auth-status').dataset.i18n==='authSignedIn')$('auth-status').textContent=t('authSignedIn')+' '+accessLabel+'.';
  $('access-details').textContent=t(entitlement.legacyTrialPending?'legacyTrialReview':entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
 }
 function renderApartments(){
@@ -182,7 +186,7 @@ if(androidAuth.available){
  const panel=$('account-controls'),signIn=$('google-sign-in'),signOut=$('google-sign-out'),status=$('auth-status');
  panel.hidden=false;
  function accountStatus(key){status.dataset.i18n=key;status.textContent=t(key);}
- function updateAccount(){const signedIn=Boolean(androidAuth.bridge.getCurrentUser());signIn.hidden=signedIn;signOut.hidden=!signedIn;accountStatus(signedIn?'authSignedIn':'authSignedOut');}
+ function updateAccount(){const signedIn=Boolean(androidAuth.bridge.getCurrentUser());signIn.hidden=signedIn;signOut.hidden=!signedIn;accountStatus(signedIn?'authSignedIn':'authSignedOut');renderAccessStatus();}
  androidAuth.bridge.onIdTokenChanged(updateAccount);
  async function act(operation){signIn.disabled=signOut.disabled=true;accountStatus('authPending');try{await operation();updateAccount();}catch(error){updateAccount();accountStatus(error.code==='authCancelled'?'authCancelled':'authError');}finally{signIn.disabled=signOut.disabled=false;}}
  signIn.onclick=()=>act(androidAuth.signIn);signOut.onclick=()=>act(androidAuth.signOut);
