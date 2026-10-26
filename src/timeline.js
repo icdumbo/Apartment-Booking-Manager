@@ -1,6 +1,14 @@
 import {t,monthTitle,weekdayTitle} from './i18n.js?v=0.3.1';
 import {displayDate} from './date-format.js?v=0.2.5';
 import {barGeometry,dayNumber,isoDay,today,monthSegments,handoverDays} from './domain.js?v=0.2.1';
+// Presentation only: immutable booking identity gives the same shade across
+// reloads, date/status edits and navigation, without writing user data.
+export const BOOKING_PALETTE=['#cfe5ff','#e5d9fa','#cceee7','#ffe1c2','#f6d7e4','#d9defa','#f4e8bd','#d7ebd2'];
+export function bookingColor(id){
+ let hash=2166136261;
+ for(const char of String(id)){hash=Math.imul(hash^char.codePointAt(0),16777619);}
+ return BOOKING_PALETTE[(hash>>>0)%BOOKING_PALETTE.length];
+}
 export function renderTimeline(root,state,start,days,{editApartment,editBooking,newBooking}) {
  root.replaceChildren(); root.style.setProperty('--days',days);
  const head=document.createElement('div');head.className='timeline-head';
@@ -14,7 +22,7 @@ export function renderTimeline(root,state,start,days,{editApartment,editBooking,
  const track=document.createElement('div');track.className='track';const cells=document.createElement('div');cells.className='day-grid cells';
  for(let i=0;i<days;i++){const n=start+i,weekend=[0,6].includes(new Date(n*86400000).getUTCDay());const cell=document.createElement('button');cell.className='day-cell'+(weekend?' weekend':'')+(n===current?' current':'');cell.setAttribute('aria-label',t('addBookingDay',{apartment:a.name,date:displayDate(isoDay(n))}));cell.onclick=()=>newBooking(a.id,isoDay(n));cells.append(cell);}track.append(cells);
  const bookings=state.bookings.filter(b=>b.apartmentId===a.id);
- for(const b of bookings){const g=barGeometry(b,start,days);if(!g)continue;const bar=document.createElement('button');bar.className='booking '+(b.status==='unconfirmed'?'unconfirmed':'confirmed');bar.style.left=`${g.left/days*100}%`;bar.style.width=`${g.width/days*100}%`;bar.textContent=b.guest;bar.title=t('bookingDescription',{guest:b.guest,checkIn:displayDate(b.checkIn),checkOut:displayDate(b.checkOut),status:t(b.status==='unconfirmed'?'unconfirmed':'confirmed'),phone:b.phone});bar.setAttribute('aria-label',bar.title);bar.onclick=()=>editBooking(b);track.append(bar);}
+ for(const b of bookings){const g=barGeometry(b,start,days);if(!g)continue;const bar=document.createElement('button');bar.className='booking '+(b.status==='unconfirmed'?'unconfirmed':'confirmed');bar.style.left=`${g.left/days*100}%`;bar.style.width=`${g.width/days*100}%`;bar.style.setProperty('--booking-color',bookingColor(b.id));const status=document.createElement('span');status.className='booking-status-icon';status.setAttribute('aria-hidden','true');status.textContent=b.status==='unconfirmed'?'◷':'✓';const guest=document.createElement('span');guest.className='booking-guest';guest.textContent=b.guest;bar.append(status,guest);bar.title=t('bookingDescription',{guest:b.guest,checkIn:displayDate(b.checkIn),checkOut:displayDate(b.checkOut),status:t(b.status==='unconfirmed'?'unconfirmed':'confirmed'),phone:b.phone});bar.setAttribute('aria-label',bar.title);bar.onclick=()=>editBooking(b);track.append(bar);}
  for(const date of handoverDays(bookings)){const x=dayNumber(date)-start+.5;if(x<0||x>=days)continue;const line=document.createElement('span');line.className='handover';line.style.left=`${x/days*100}%`;line.title=t('handoverDate',{date:displayDate(date)});line.setAttribute('aria-label',line.title);track.append(line);}row.append(track);root.append(row);}
  if(!state.apartments.length){const empty=document.createElement('p');empty.className='empty';empty.textContent=t('empty');root.append(empty);}
 }

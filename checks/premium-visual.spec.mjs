@@ -31,3 +31,22 @@ for(const width of [390,1440])test(`PREMIUM reference captures and navigation ${
  await page.locator('.app-navigation [data-screen=statistics]').click();await expect(page.locator('#statistics-locked')).toBeVisible();await capture('premium-presentation');
  expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(before);
 });
+
+
+test('stable multicolor bookings, independent status and RO/EN legend',async({page})=>{
+ await page.setViewportSize({width:390,height:900});await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});
+ await page.goto('/');await page.evaluate(data=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data)),fixture);await seedBrowserTrial(page);await page.reload();
+ const bar=()=>page.locator('.booking').filter({hasText:'Client Test A'});
+ const color=await bar().evaluate(el=>getComputedStyle(el).backgroundColor);
+ await expect(bar().locator('.booking-status-icon')).toHaveText('✓');
+ await bar().click();await page.locator('#fields select[name=status]').selectOption('unconfirmed');await page.locator('#editor-form button[type=submit]').click();
+ await expect(bar()).toHaveClass(/unconfirmed/);await expect(bar().locator('.booking-status-icon')).toHaveText('◷');
+ expect(await bar().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
+ expect(await bar().evaluate(el=>getComputedStyle(el).borderTopStyle)).toBe('dashed');
+ await page.reload();expect(await bar().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
+ await page.locator('.app-navigation [data-screen=apartments]').click();await page.locator('.app-navigation [data-screen=calendar]').click();
+ expect(await bar().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
+ await expect(page.locator('.legend .color-key')).toHaveText('Culori distincte pentru rezervări');
+ await page.locator('.top [data-language=en]').click();await expect(page.locator('.legend .color-key')).toHaveText('Distinct reservation colors');
+ expect(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor)).toBe('rgb(248, 250, 252)');
+});

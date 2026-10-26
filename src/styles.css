@@ -270,3 +270,25 @@ input,select,textarea{background:#f8faff;border-color:#dbe5f4;color:#203c65;font
 #menu-payments:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c28a29' stroke-width='1.8'%3E%3Cellipse cx='12' cy='6' rx='7' ry='3'/%3E%3Cpath d='M5 6v6c0 4 14 4 14 0V6M5 12v6c0 4 14 4 14 0v-6'/%3E%3C/svg%3E")}
 #menu-add-apartment:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a75f1' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='m3 10 9-7 9 7v11h-6v-7H9v7H3Z'/%3E%3C/svg%3E")}
 #menu-add-booking:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a75f1' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='4' y='5' width='16' height='16' rx='3'/%3E%3Cpath d='M8 3v4m8-4v4M4 11h16m-8 3v5m-2.5-2.5h5'/%3E%3C/svg%3E")}
+
+/* Final approved light PREMIUM surfaces; no timeline geometry changes. */
+:root{background:#F8FAFC;--available:#f0f7f1}
+body{background:#F8FAFC}
+.top,.intro,.toolbar,.month-selector,.legend{background:transparent}
+.calendar-card,.calendar-footer,dialog,#app-menu,.booking-editor,.booking-editor fieldset,.collections-filters,.collections-summary>div,.statistics-primary>div,.statistics-secondary>div,.statistics-chart,.report-card,.apartment-card,.menu-account,.future-features,.collections-locked,.statistics-definitions,#report-explanation{background:#fff}
+.access-card{background:#fff;border-color:#e5e9ef}
+input,select,textarea,.booking-editor input,.booking-editor select,.booking-editor textarea,.collections-filters select,.collections-filters input{background:#fff;border-color:#dfe5ed}
+.booking-editor .dialog-heading,.booking-editor .dialog-actions{background:#fff}
+.day-cell,.day-cell.current{background:#f0f7f1!important;border-color:#e0ebe2}
+.day-cell.weekend{background:#eaf3ec!important}.day-cell:hover{background:#e2f0e6!important}
+.months{background:#f5f7fa}.day-heading,.corner,.corner:hover{background:#fff}.day-heading.weekend{background:#f5f7fa}
+.apartment-photo{background:#f8fafc;border-color:#dce3eb}.apartment-booking-link,.payment-row,.collections-legacy{background:#f8fafc}
+.booking,.booking.unconfirmed,.booking:hover,.booking.unconfirmed:hover{background:var(--booking-color,#cfe5ff);color:#19324c;border:1px solid #49617a66;box-shadow:0 2px 5px #16324d12;display:flex;align-items:center;gap:5px;line-height:normal;text-align:left;overflow:hidden}
+.booking.unconfirmed,.booking.unconfirmed:hover{border-style:dashed;border-color:#49617ac4}
+.booking:hover,.booking.unconfirmed:hover{filter:brightness(.97);box-shadow:0 3px 8px #173d7026}
+.booking-status-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 15px;width:15px;height:15px;border:1px solid currentColor;border-radius:50%;font-size:11px;line-height:1;font-weight:700}
+.booking.unconfirmed .booking-status-icon{border:0;font-size:19px}
+.booking-guest{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:inherit}
+.legend .booked,.legend .unconfirmed{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border:1px solid #526a82;border-radius:50%;background:#fff;color:#29415d;font-style:normal;font-size:11px;line-height:1}
+.legend .unconfirmed{border:0;font-size:19px}.legend .free{background:#e2f0e6}.legend .color-key{color:#65748b}
+@media(max-width:600px){.booking{gap:3px;padding-inline:3px}.booking-status-icon{flex-basis:13px;width:13px;height:13px;font-size:10px}.booking.unconfirmed .booking-status-icon{font-size:17px}.legend .booked{width:13px;height:13px}.legend .unconfirmed{width:13px;height:13px}.legend .color-key{flex-basis:100%}}

@@ -11,7 +11,7 @@ import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain
 import {createLocalRepository} from './storage.js?v=0.2.1';
 import {removeOriginalDemo} from './demo-migration.js?v=0.2.5';
 import {displayDate,parseDate} from './date-format.js?v=0.2.5';
-import {renderTimeline} from './timeline.js?v=0.3.1';
+import {renderTimeline} from './timeline.js?v=0.4.0';
 import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './i18n.js?v=0.3.1';
 import {createAccessService,accessPolicy} from './access.js?v=1';
 import {createOptionalAndroidAuth} from './native-auth.js';
