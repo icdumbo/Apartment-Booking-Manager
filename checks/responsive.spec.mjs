@@ -13,7 +13,7 @@ for(const [name,width,height] of [['narrow portrait',320,800],['Fold folded',360
   expect(metrics.body[0]).toBeLessThanOrEqual(metrics.body[1]);for(const [index,[scroll,client]] of metrics.scroll.entries()){if(width<=600&&index===1)expect(scroll).toBeGreaterThan(client);else expect(scroll).toBeLessThanOrEqual(client);}
   for(const {cell,text} of [...metrics.days,...metrics.months]){expect(text.left).toBeGreaterThanOrEqual(cell.left-.5);expect(text.right).toBeLessThanOrEqual(cell.right+.5);}
   if(width<=600)for(const {cell,weekday} of metrics.days){expect(weekday.left).toBeGreaterThanOrEqual(cell.left-.5);expect(weekday.right).toBeLessThanOrEqual(cell.right+.5);}
-  const days=metrics.days;const oldSize=Math.min(13,(days[0].cell.width-1)*.62);if(width<=600){expect(metrics.dayFont).toBeGreaterThanOrEqual(8);expect(metrics.apartmentWidth).toBeGreaterThanOrEqual(110);expect(metrics.apartmentWidth).toBeLessThanOrEqual(130);expect(metrics.corner.text.right).toBeLessThanOrEqual(metrics.corner.cell.right+.5);expect(metrics.corner.text.bottom-metrics.corner.text.top).toBeLessThan(16);}else{expect(metrics.dayFont).toBeCloseTo(oldSize,1);const available=metrics.days[29].cell.right-metrics.days[0].cell.left+metrics.apartmentWidth;expect(metrics.apartmentWidth).toBeCloseTo(Math.min(180,Math.max(60,available*.16)),1);}expect(metrics.headers[0].left).toBeCloseTo(days[0].cell.left,1);expect(metrics.headers[0].right).toBeCloseTo(days[27].cell.right,1);expect(metrics.headers[1].right).toBeCloseTo(days[29].cell.right,1);
+  const days=metrics.days;const oldSize=Math.min(14,(days[0].cell.width-1)*.70);if(width<=600){expect(metrics.dayFont).toBeGreaterThanOrEqual(8);expect(metrics.apartmentWidth).toBeGreaterThanOrEqual(110);expect(metrics.apartmentWidth).toBeLessThanOrEqual(130);expect(metrics.corner.text.right).toBeLessThanOrEqual(metrics.corner.cell.right+.5);expect(metrics.corner.text.bottom-metrics.corner.text.top).toBeLessThan(16);}else{expect(metrics.dayFont).toBeCloseTo(oldSize,1);const available=metrics.days[29].cell.right-metrics.days[0].cell.left+metrics.apartmentWidth;expect(metrics.apartmentWidth).toBeCloseTo(Math.min(190,Math.max(140,available*.16)),1);}expect(metrics.headers[0].left).toBeCloseTo(days[0].cell.left,1);expect(metrics.headers[0].right).toBeCloseTo(days[27].cell.right,1);expect(metrics.headers[1].right).toBeCloseTo(days[29].cell.right,1);
   const center=(days[6].cell.left+days[6].cell.right)/2;expect(metrics.bookings[0].right).toBeCloseTo(center,1);expect(metrics.bookings[1].left).toBeCloseTo(center,1);expect((metrics.handover.left+metrics.handover.right)/2).toBeCloseTo(center,1);
   await expect(page.locator('.month-option.active')).toHaveText('Oct');await expect(page.locator('.month-option.upcoming')).toHaveText('Nov');
   await page.screenshot({path:`test-results/${name.replaceAll(' ','-')}.png`,fullPage:true});
@@ -22,6 +22,18 @@ for(const [name,width,height] of [['narrow portrait',320,800],['Fold folded',360
  });
 }
 test('new installation remains empty after reload',async({page})=>{await page.goto('/');await expect(page.locator('.booking')).toHaveCount(0);await expect(page.locator('.timeline-row')).toHaveCount(0);await page.reload();await expect(page.locator('.timeline-row')).toHaveCount(0);});
+test('desktop keeps thirty days visible and the calendar header sticky in its own viewport',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),{...state,apartments:Array.from({length:20},(_,i)=>({...state.apartments[0],id:i?'desktop-'+i:'fixture-a'}))});
+ await page.goto('/');
+ const viewport=page.locator('.timeline-scroll');
+ await expect(page.locator('.timeline-row')).toHaveCount(20);
+ expect(await viewport.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+ await viewport.evaluate(el=>el.scrollTop=160);
+ const metrics=await page.evaluate(()=>{const v=document.querySelector('.timeline-scroll').getBoundingClientRect(),h=document.querySelector('.timeline-head').getBoundingClientRect();return {top:v.top,head:h.top,scroll:document.querySelector('.timeline-scroll').scrollTop};});
+ expect(metrics.scroll).toBeGreaterThan(150);expect(metrics.head).toBeCloseTo(metrics.top,1);
+ await expect(page.locator('.day-heading')).toHaveCount(30);
+});
 test('layout adapts when folding and rotating without a reload',async({page})=>{await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),state);await page.goto('/');for(const width of [360,840,740,320,1440]){await page.setViewportSize({width,height:800});await expect(page.locator('.day-heading')).toHaveCount(30);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);}});
 
 for(const width of [360,390,430]){
@@ -34,7 +46,7 @@ for(const width of [360,390,430]){
    const viewport=document.querySelector('.timeline-scroll'),label=document.querySelector('.timeline-row .apartment-label');
    return {viewport:r(viewport),label:r(label),head:r(document.querySelector('.timeline-head')),corner:r(document.querySelector('.corner')),date:r(document.querySelector('.day-heading')),cell:r(document.querySelector('.day-cell')),track:r(document.querySelector('.track')),name:r(label.querySelector('strong')),font:parseFloat(getComputedStyle(document.querySelector('.day-heading strong')).fontSize),scrollLeft:viewport.scrollLeft,scrollTop:viewport.scrollTop,monthLabel:r(document.querySelector('.month-label'))};
   });
-  const before=await measure();expect((before.viewport.width-before.label.width)/before.date.width).toBeCloseTo(10,1);expect(before.font).toBeGreaterThanOrEqual(14);expect(before.label.width).toBeGreaterThanOrEqual(110);expect(before.name.height).toBeLessThanOrEqual(27);expect(before.label.top).toBeCloseTo(before.track.top,1);expect(before.date.left).toBeCloseTo(before.cell.left,1);
+  const before=await measure();expect((before.viewport.width-before.label.width)/before.date.width).toBeCloseTo(10,1);expect(before.font).toBeGreaterThanOrEqual(14);expect(before.label.width).toBeGreaterThanOrEqual(110);expect(before.name.height).toBeLessThanOrEqual(30);expect(before.label.top).toBeCloseTo(before.track.top,1);expect(before.date.left).toBeCloseTo(before.cell.left,1);
   const controls=await page.locator('#prev,#today,#next').evaluateAll(els=>els.map(e=>e.getBoundingClientRect().top));expect(Math.max(...controls)-Math.min(...controls)).toBeLessThan(1);
   await page.screenshot({path:`test-results/phone-${width}-start.png`,fullPage:true});
   await page.locator('.timeline-scroll').evaluate(el=>{el.scrollLeft=100;el.scrollTop=110});
