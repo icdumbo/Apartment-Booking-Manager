@@ -292,3 +292,71 @@ input,select,textarea,.booking-editor input,.booking-editor select,.booking-edit
 .legend .booked,.legend .unconfirmed{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border:1px solid #526a82;border-radius:50%;background:#fff;color:#29415d;font-style:normal;font-size:11px;line-height:1}
 .legend .unconfirmed{border:0;font-size:19px}.legend .free{background:#e2f0e6}.legend .color-key{color:#65748b}
 @media(max-width:600px){.booking{gap:3px;padding-inline:3px}.booking-status-icon{flex-basis:13px;width:13px;height:13px;font-size:10px}.booking.unconfirmed .booking-status-icon{font-size:17px}.legend .booked{width:13px;height:13px}.legend .unconfirmed{width:13px;height:13px}.legend .color-key{flex-basis:100%}}
+
+/* Android finishing: compact chrome, comfortable forms, readable short stays.
+   Bar edges remain the exact half-day geometry supplied by the timeline. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.booking,.booking.unconfirmed,.booking:hover,.booking.unconfirmed:hover{container-type:inline-size;container-name:reservation;overflow:visible}
+@container reservation (max-width:64px){
+ .booking-status-icon{position:absolute;right:1px;top:-8px;background:var(--booking-color);z-index:1}
+ .booking-guest{position:absolute;left:0;right:0;line-height:32px;font-weight:500}
+}
+@media(max-width:1099px){
+ .top{padding-block:8px}.intro{margin-block:10px 6px}
+ input,select,textarea,.booking-editor input,.booking-editor select,.booking-editor textarea{min-height:44px}
+ .dialog-actions button,.booking-editor .dialog-actions button,.report-export-actions>button{min-height:44px}
+ .dialog-heading>button{min-width:44px;min-height:44px}
+ .collections-filters{gap:12px}.collections-filters label{line-height:1.4}
+ .statistics-primary>div,.statistics-secondary>div{min-width:0}
+ .statistics-primary span,.statistics-secondary span,.report-card dt{line-height:1.4}
+ .app-navigation a,.app-navigation button{min-height:48px}
+ .timeline-scroll{overflow:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+}
+@media(min-width:601px) and (max-width:1099px){
+ .timeline{--apartment-width:clamp(140px,calc(16vw - 8px),190px);width:calc(200% - var(--apartment-width))}
+ .timeline-scroll{max-height:calc(100dvh - 300px)}
+ .months .month{justify-content:flex-start;overflow:clip}.month-label{position:sticky;left:var(--apartment-width);flex-shrink:0;padding-inline:6px}.months .month-short{justify-content:center}.month-short .month-label{left:auto;padding-inline:0}
+ .app-navigation{position:fixed;left:16px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 32px);margin:0;z-index:10}
+ body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+ .booking{font-size:12px}
+}
+@media(max-width:600px){
+ .top{padding-block:6px}.brand{gap:6px}.brand small{margin-top:1px}
+ .intro{gap:8px;margin:8px 0 6px}.intro h1{font-size:20px;line-height:1.2}
+ .actions{gap:6px}.actions button{position:relative;flex:0 0 44px;width:44px;height:44px;padding:0;font-size:0;border-radius:12px}
+ .actions button:before{content:'';display:block;width:24px;height:24px;margin:auto;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23126bf0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 10 8-7 8 7M5 9v11h7v-6H8v6m11-8v8m-4-4h8'/%3E%3C/svg%3E")}
+ .actions #add-booking:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='4' y='5' width='16' height='16' rx='3'/%3E%3Cpath d='M8 3v4m8-4v4M4 11h16m-4 3v5m-2.5-2.5h5'/%3E%3C/svg%3E")}
+ .access-card{margin-bottom:6px}.toolbar{padding-block:4px;min-height:50px}.year-navigation{top:6px}
+ .month-selector{padding-bottom:6px}.legend{gap:4px 8px;padding-bottom:6px;font-size:10px;line-height:1.3}
+ .legend .color-key{flex-basis:auto}
+ .timeline-scroll{max-height:calc(100dvh - 290px)}
+ .booking{font-size:11px}.booking-status-icon{flex-basis:13px}
+ .calendar-footer{padding-block:7px}.calendar-footer>span:last-child{line-height:1.4}
+ .statistics-primary>div{padding:13px;column-gap:8px;row-gap:10px;align-content:start}
+ .statistics-secondary>div{padding:13px;display:flex;flex-direction:column;gap:9px;justify-content:space-between}
+ .statistics-primary>div>span{font-size:12px}.statistics-secondary span{font-size:13px}
+ .report-card dl{gap:12px}.report-filters{gap:12px}
+ .collection-row{row-gap:10px}.collections-summary>div{min-width:0}
+ .booking-editor .dialog-actions{gap:8px;padding:10px 12px}
+ .booking-editor .dialog-actions button{min-width:80px}
+ .booking-editor .dialog-heading{gap:8px;padding:12px}.booking-editor .dialog-heading h2{font-size:19px}
+}
+/* Android tablets keep app navigation at the bottom in landscape too. */
+@media(min-width:1100px) and (max-width:1366px){
+ body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}.shell{margin-left:0;padding-inline:20px}
+ .app-navigation{position:fixed;left:16px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 32px);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#ffffffed;border-color:#dce6f5;gap:0;padding:5px}
+ .app-navigation a,.app-navigation button{min-height:48px;color:#607a9e}
+ .app-navigation a[aria-current],.app-navigation button[aria-current]{background:#eaf2ff;color:#116ef4;box-shadow:none}
+ .app-navigation a:hover,.app-navigation button:not(:disabled):hover{background:#eff5ff;color:#116ef4}
+ input,select,textarea,.dialog-actions button{min-height:44px}
+}
+
+@media(max-width:359px){.timeline{width:calc(333.333333% - 2.33333333 * var(--apartment-width))}}
+@media(max-width:600px){
+ .report-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .report-filters label:nth-child(3){grid-column:1 / -1}
+ .report-filters input,.report-filters select{min-width:0;width:100%;font-size:16px}
+}
+@media(max-width:1366px){
+ .app-navigation a:not([aria-current]):hover,.app-navigation button:not([aria-current]):hover{background:transparent;color:#607a9e}
+}
