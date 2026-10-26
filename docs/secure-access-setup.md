@@ -1,5 +1,8 @@
 # Configurare gratuită: Firebase Auth Spark + Cloudflare Workers/D1
 
+Administrarea cadourilor permanente/temporare prin D1, fără panou sau endpoint nou:
+[Procedura PREMIUM GIFT](gift-licenses.md). Nu modificați Production fără aprobare.
+
 **Stare:** implementat și testat local, nepublicat. Nu s-au creat resurse cloud, nu s-a activat facturarea și nu s-a construit APK. Android rămâne 1.0.10/versionCode 11. Instrucțiunile de publicare sunt pentru o etapă ulterioară, după aprobare.
 
 ## Ce rămâne și ce se schimbă

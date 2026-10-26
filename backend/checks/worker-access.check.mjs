@@ -11,6 +11,7 @@ import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {createFirebaseVerifier,createCertificateResolver,FIREBASE_PROJECT,CERTIFICATE_URL} from '../firebase-token.js';
 import {createD1Repository} from '../d1-repository.js';
 import {createWorker} from '../index.js';
+import {giftSql} from '../scripts/gift-sql.mjs';
 const now=Math.floor(Date.now()/1000),nonce='01234567-0123-0123-0123-012345678901';
 const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:3072});
 const pem=privateKey.export({type:'pkcs8',format:'pem'});
@@ -92,6 +93,29 @@ test('owner is exclusive, license records are server-only, expiry and revocation
  const purchased=decode((await (await post('verify',{jwt:await token({sub:'test-buyer'})})).json()).proof);assert.equal(purchased.source,'GOOGLE_PLAY_PURCHASE');assert.equal(purchased.expiresAt,null);
  await db.prepare("UPDATE licenses SET status='revoked' WHERE subject=?").bind('test-buyer').run();assert.equal(decode((await (await post('verify',{jwt:await token({sub:'test-buyer'})})).json()).proof).state,'BASIC');
  await assert.rejects(db.prepare("INSERT INTO licenses(subject,source,status,permanent) VALUES ('x','OWNER_GRANT','active',1)").run());
+});
+test('administrator gift SQL grants, expires and revokes only gifts; signed access and OWNER remain correct',async()=>{
+ const before=await db.prepare('SELECT COUNT(*) AS n FROM trials').first('n');
+ const proof=async uid=>{const r=await post('verify',{jwt:await token({sub:uid})});assert.equal(r.status,200);return decode((await r.json()).proof);};
+ const grant={action:'grant',uid:'fictional-gift',permanent:true};
+ await db.exec(giftSql(grant));await db.exec(giftSql(grant));
+ assert.equal(await db.prepare("SELECT COUNT(*) AS n FROM licenses WHERE subject='fictional-gift'").first('n'),1);
+ let access=await proof('fictional-gift');assert.equal(access.state,'PREMIUM');assert.equal(access.source,'ADMIN_GIFT');assert.equal(access.expiresAt,null);
+ assert.equal((await proof('fictional-other')).state,'BASIC');
+ await db.exec(giftSql({action:'revoke',uid:'fictional-gift'}));await db.exec(giftSql({action:'revoke',uid:'fictional-gift'}));
+ assert.equal((await proof('fictional-gift')).state,'BASIC');
+ assert.equal(await db.prepare("SELECT status FROM licenses WHERE subject='fictional-gift' AND source='ADMIN_GIFT'").first('status'),'revoked');
+ const expiresAt=new Date((now+3600)*1000).toISOString().replace('.000Z','Z');
+ await db.exec(giftSql({action:'grant',uid:'fictional-gift',expiresAt}));
+ access=await proof('fictional-gift');assert.equal(access.source,'ADMIN_GIFT');assert.equal(access.expiresAt,Date.parse(expiresAt));
+ await db.prepare("UPDATE licenses SET expires_at=1 WHERE subject='fictional-gift' AND source='ADMIN_GIFT'").run();
+ assert.equal((await proof('fictional-gift')).state,'BASIC');
+ await db.prepare("INSERT INTO licenses(subject,source,status,permanent) VALUES ('fictional-both','GOOGLE_PLAY_PURCHASE','active',1)").run();
+ await db.exec(giftSql({action:'grant',uid:'fictional-both',permanent:true}));await db.exec(giftSql({action:'revoke',uid:'fictional-both'}));
+ assert.equal((await proof('fictional-both')).source,'GOOGLE_PLAY_PURCHASE');
+ for(const action of ['grant','revoke'])await db.exec(giftSql({action,uid:'test-owner',...(action==='grant'?{permanent:true}:{})}));
+ access=await proof('test-owner');assert.equal(access.source,'OWNER_GRANT');assert.equal(access.expiresAt,null);
+ assert.equal(await db.prepare('SELECT COUNT(*) AS n FROM trials').first('n'),before);
 });
 test('HTTP interface denies forged rights, wrong origin, missing consent, oversized/invalid bodies and unknown paths',async()=>{
  assert.equal((await post('verify',{extra:{uid:'test-owner',premium:true}})).status,400);

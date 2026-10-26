@@ -27,3 +27,4 @@ backend/.worker-build/
 backend/.dev.vars*
 backend/*.pem
 backend/*.key
+backend/gift-*.sql

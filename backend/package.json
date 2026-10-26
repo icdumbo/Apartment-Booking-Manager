@@ -7,7 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "check": "npm run bundle:check && node --test checks/worker-access.check.mjs ../tests/secure-trial.test.js ../tests/firebase-access.test.js",
+    "check": "npm run bundle:check && node --test checks/worker-access.check.mjs ../tests/secure-trial.test.js ../tests/firebase-access.test.js ../tests/gift-sql.test.js",
     "bundle:check": "wrangler deploy --dry-run --outdir .worker-build"
   },
   "dependencies": {
