@@ -360,3 +360,55 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @media(max-width:1366px){
  .app-navigation a:not([aria-current]):hover,.app-navigation button:not([aria-current]):hover{background:transparent;color:#607a9e}
 }
+
+/* Approved stronger PREMIUM contrast; keep the light surfaces and geometry. */
+:root{--ink:#14243A;--muted:#435770;--ui-blue:#2478EB;color:#14243A}
+h1,h2,h3,.brand,.brand strong,.apartment-info strong,.apartment-label strong,.collection-info>strong,.report-card h3,dialog h2{color:#14243A}
+body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.apartment-label small,.apartment-info span,.apartment-info small,.apartment-photo,.collection-date,.collection-method,.collection-info>span,.report-card dt,.report-card>p,.collections-filters label,.collections-summary span,.statistics-primary span,.statistics-secondary span,.statistics-definitions,.statistics-values td,.booking-editor #fields label,.booking-editor .booking-optional-hint,.collections-locked p,.menu-account h3,.future-features p{color:#435770}
+.collections-summary strong,.statistics-primary strong,.statistics-secondary strong,.collection-amount,.report-card dd,.booking-editor input,.booking-editor select,.booking-editor textarea,input,select,textarea{color:#14243A}
+.primary,#start-trial{background:#1c67d2;border-color:#1c67d2;color:#fff;box-shadow:0 4px 10px #2478eb26}.primary:hover,#start-trial:hover{background:#1758b6;border-color:#1758b6;color:#fff}
+.secondary{color:#1856ab;background:#edf3fd;border-color:#cbdcf5}
+.month-option{color:#435770}.month-option.active,.month-option.active:hover{background:#1c67d2;color:#fff}.month-option.upcoming{color:#1856ab}
+.legend,.day-heading small,.apartment-badge,.statistics-values th,.statistics-chart summary,.statistics-definitions summary,#report-explanation summary,.statistics-chart>p,.statistics-chart>h2,.collections-legacy,.future-features,.menu-shortcuts button,.booking-editor .amount-preview{color:#435770}
+.day-heading strong,.booking,.booking.unconfirmed,.booking:hover,.booking.unconfirmed:hover{color:#14243A}
+.booking,.booking.unconfirmed{border-color:#40546f99}.booking.unconfirmed{border-color:#40546f}
+.legend .booked,.legend .unconfirmed{color:#14243A;border-color:#435770}.legend .color-key{color:#435770}
+.statistics-month,.statistics-axis{fill:#435770}.chart-current{fill:#2478EB}.chart-previous{fill:#879dbb}
+.collections-locked>strong,.statistics-chart h2{color:#14243A}.payment-row strong{color:#1856ab}
+.app-navigation a,.app-navigation button{color:#435770}.app-navigation a[aria-current],.app-navigation button[aria-current]{color:#1856ab}
+.language-selector button{color:#435770}.language-selector button[aria-pressed=true]{color:#1856ab}
+.access-card summary{color:#294c7d}.access-card details[open] p{color:#435770}
+@media(min-width:1367px){.app-navigation a,.app-navigation button{color:#c4d4e8}.app-navigation a[aria-current],.app-navigation button[aria-current]{color:#fff}}
+@media(min-width:1100px) and (max-width:1366px){.app-navigation a,.app-navigation button{color:#435770}.app-navigation a[aria-current],.app-navigation button[aria-current]{color:#1856ab}}
+@media(max-width:1366px){.app-navigation a:not([aria-current]):hover,.app-navigation button:not([aria-current]):hover{color:#435770}}
+
+/* One locally bundled promotional room image; never an apartment record photo. */
+.entry-screen{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:auto;background:#f8fafc;color:#14243A;box-shadow:none}
+.entry-screen::backdrop{background:#f8fafc;backdrop-filter:none}
+.entry-layout{position:relative;min-height:100%;display:grid;isolation:isolate}
+.entry-photo{position:absolute;inset:0;z-index:-2;background:url("./assets/welcome-seaside.jpg") center 57%/cover no-repeat}
+.entry-layout:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#ffffffc9 0%,#ffffff95 30%,transparent 56%,#14243a18 73%,#f8fafce6 100%)}
+.entry-content{display:flex;flex-direction:column;min-width:0;min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 24px calc(20px + env(safe-area-inset-bottom));max-width:520px;width:100%;margin:auto}
+.entry-toolbar{display:flex;justify-content:flex-end;align-items:center;gap:12px;min-height:40px}.entry-toolbar #entry-back{margin-right:auto;width:44px;height:44px;border:1px solid #cad6e5;background:#fffffff2;color:#14243A;font-size:22px}
+.entry-toolbar .language-selector{background:#fffffff2;border-color:#d5dfeb}.entry-toolbar .language-selector button{min-height:36px;min-width:36px;font-size:12px}
+.entry-brand{text-align:center;padding:20px 0 0}.entry-brand>svg{width:70px;height:70px;fill:none;stroke:#14243A;stroke-width:1.5;stroke-linejoin:round;margin-bottom:12px}
+.entry-brand .entry-title{font-size:32px;line-height:1.12;letter-spacing:-.9px;color:#14243A;font-weight:700;margin:0}
+.entry-brand p{font-size:16px;font-weight:550;color:#14243A;margin:14px 0 0;line-height:1.5}
+.entry-actions{margin-top:auto;padding-top:42px;display:flex;flex-direction:column;gap:12px}
+.entry-actions>button{min-height:52px;width:100%;border-radius:13px;font-size:15px;line-height:1.4;padding:12px 16px;font-weight:600}
+.entry-secondary{background:#fffffff2;border-color:#c6d3e4;color:#14243A;box-shadow:0 3px 12px #14243a0d}.entry-secondary:hover{background:#fff;color:#14243A}
+.entry-actions>p{text-align:center;font-size:12px;line-height:1.6;margin:0;color:#14243A}
+.entry-actions>p:last-child{background:#ffffffed;border-radius:10px;padding:8px 12px}
+.entry-login{padding:24px;background:#fffffff5;border:1px solid #dce4ef;border-radius:20px;box-shadow:0 12px 40px #14243a18;margin-top:auto;margin-bottom:12px}
+.entry-login h2{text-align:center;font-size:25px;color:#14243A;margin:0 0 2px;letter-spacing:-.5px}
+.entry-login>p{color:#435770;font-size:13px}.entry-login .entry-terms{font-size:12px;background:transparent;padding:4px 0 0;color:#435770}
+.google-button{display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;border:1px solid #7388a6;color:#14243A;box-shadow:0 2px 6px #14243a09}.google-button svg{width:22px;height:22px;flex-shrink:0}.google-button:hover{background:#f8fafc;color:#14243A}
+#entry-message:empty{display:none}#entry-message{font-weight:550;color:#8b293e}
+.entry-screen[data-view=login] .entry-brand{padding-top:8px;padding-bottom:24px}.entry-screen[data-view=login] .entry-brand>svg{width:48px;height:48px;margin-bottom:8px}.entry-screen[data-view=login] .entry-brand .entry-title{font-size:27px}.entry-screen[data-view=login] .entry-brand p{font-size:14px;margin-top:8px}
+@media(max-width:359px){.entry-content{padding-inline:18px}.entry-brand .entry-title{font-size:29px}.entry-login{padding:20px}.entry-brand{padding-top:12px}.entry-actions{gap:10px}}
+@media(max-height:700px){.entry-brand{padding-top:4px}.entry-brand>svg{width:48px;height:48px;margin-bottom:6px}.entry-brand .entry-title{font-size:27px}.entry-brand p{margin-top:8px}.entry-login{padding:18px}.entry-content{padding-block:12px}.entry-actions{padding-top:24px}.entry-login{padding-top:18px}.entry-screen[data-view=login] .entry-brand{padding-bottom:14px}}
+@media(min-width:700px){.entry-layout{max-width:1600px;margin:auto;min-height:100dvh}.entry-content{max-width:520px;padding-inline:32px}.entry-brand{padding-top:32px}.entry-brand .entry-title{font-size:38px}.entry-screen[data-view=login] .entry-brand .entry-title{font-size:32px}.entry-login{padding:30px}}
+/* Opaque-enough white veil guarantees dark brand copy contrast over the photo. */
+.entry-brand{background:#ffffffd9;border-radius:20px;padding:20px 12px;box-shadow:0 5px 24px #14243a05}
+.entry-screen[data-view=login] .entry-brand{padding:14px 12px;margin-bottom:22px}
+@media(max-height:700px){.entry-brand,.entry-screen[data-view=login] .entry-brand{padding:10px;margin-bottom:10px}}

@@ -1,3 +1,4 @@
+import {createEntryScreen} from './entry-screen.js';
 import {configureDateInput} from './date-input.js';
 import {createReportsScreen} from './reports-screen.js';
 import {createStatisticsScreen} from './statistics-screen.js';
@@ -181,6 +182,7 @@ $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next'
 $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$('next').onclick=()=>{start+=days;selectorYear=calendarYear(start);render();};
 $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
 
+const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){
  const panel=$('account-controls'),signIn=$('google-sign-in'),signOut=$('google-sign-out'),status=$('auth-status');
@@ -189,7 +191,7 @@ if(androidAuth.available){
  function updateAccount(){const signedIn=Boolean(androidAuth.bridge.getCurrentUser());signIn.hidden=signedIn;signOut.hidden=!signedIn;accountStatus(signedIn?'authSignedIn':'authSignedOut');renderAccessStatus();}
  androidAuth.bridge.onIdTokenChanged(updateAccount);
  async function act(operation){signIn.disabled=signOut.disabled=true;accountStatus('authPending');try{await operation();updateAccount();}catch(error){updateAccount();accountStatus(error.code==='authCancelled'?'authCancelled':'authError');}finally{signIn.disabled=signOut.disabled=false;}}
- signIn.onclick=()=>act(androidAuth.signIn);signOut.onclick=()=>act(androidAuth.signOut);
+ signIn.onclick=()=>{$('app-menu').close();entry.login();};signOut.onclick=()=>act(androidAuth.signOut);
  const trial=$('activate-secure-trial');
  trial.onclick=async()=>{
   if(!confirm(t('secureTrialTerms')))return;
@@ -206,7 +208,7 @@ if(androidAuth.available){
  document.addEventListener('visibilitychange',()=>{if(document.hidden)androidAuth.secure.suspend();else androidAuth.secure.read().then(()=>androidAuth.secure.refresh()).then(render).catch(()=>{});});
  window.addEventListener('online',()=>androidAuth.secure.refresh().then(render).catch(()=>{}));
  setInterval(()=>androidAuth.secure.read().then(()=>{renderAccessStatus();if(navigator.onLine)return androidAuth.secure.refresh();}).catch(()=>{}),60000);
- androidAuth.initialize().then(updateAccount).catch(()=>{signIn.disabled=true;accountStatus('authError');});
+ androidAuth.initialize().then(()=>{updateAccount();entry.start();}).catch(()=>{signIn.disabled=true;accountStatus('authError');entry.start();});
  updateAccount();
 }
 

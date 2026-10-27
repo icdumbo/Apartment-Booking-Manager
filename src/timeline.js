@@ -3,7 +3,7 @@ import {displayDate} from './date-format.js?v=0.2.5';
 import {barGeometry,dayNumber,isoDay,today,monthSegments,handoverDays} from './domain.js?v=0.2.1';
 // Presentation only: immutable booking identity gives the same shade across
 // reloads, date/status edits and navigation, without writing user data.
-export const BOOKING_PALETTE=['#cfe5ff','#e5d9fa','#cceee7','#ffe1c2','#f6d7e4','#d9defa','#f4e8bd','#d7ebd2'];
+export const BOOKING_PALETTE=['#b9d8ff','#d6c1f3','#abe0d6','#ffd1a1','#f1bdd2','#c5cdf6','#eddb94','#bfddb7'];
 export function bookingColor(id){
  let hash=2166136261;
  for(const char of String(id)){hash=Math.imul(hash^char.codePointAt(0),16777619);}

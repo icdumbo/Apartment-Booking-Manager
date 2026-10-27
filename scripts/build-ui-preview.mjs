@@ -10,6 +10,8 @@ async function moduleURL(path){
  const url='data:text/javascript;base64,'+Buffer.from(source).toString('base64');cache.set(path,url);return url;
 }
 let html=await readFile('index.html','utf8');
-html=html.replace(/<link rel="stylesheet" href="src\/styles.css[^\"]*">/,`<style>${await readFile('src/styles.css','utf8')}</style>`);
+const photo=await readFile('src/assets/welcome-seaside.jpg');
+const styles=(await readFile('src/styles.css','utf8')).replace('url("./assets/welcome-seaside.jpg")',`url("data:image/jpeg;base64,${photo.toString('base64')}")`);
+html=html.replace(/<link rel="stylesheet" href="src\/styles.css[^\"]*">/,`<style>${styles}</style>`);
 html=html.replace(/<script type="module" src="src\/app.js[^\"]*"><\/script>/,`<script type="module" src="${await moduleURL('src/app.js')}"></script>`);
 const output=process.argv[2]??'ui-preview/Apartment-Booking-Manager-UI.html';await mkdir(dirname(output),{recursive:true});await writeFile(output,html);console.log(output);
