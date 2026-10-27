@@ -424,3 +424,6 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 .statistics-values th,.statistics-values td{color:#32465f;font-size:14px}
 .statistics-month,.statistics-axis{fill:#32465f}
 .entry-login>p,.entry-login .entry-terms{font-size:14px;line-height:1.65;color:#32465f}
+
+/* Allow vertical scroll chaining when a short viewport needs page scrolling too. */
+.timeline-scroll{min-height:0;overscroll-behavior-y:auto}

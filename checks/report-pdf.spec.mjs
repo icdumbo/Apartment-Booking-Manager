@@ -11,6 +11,6 @@ for(const width of [360,430,768,1440])test(`PDF offline download RO/EN ${width}`
 });
 test('BASIC, invalid dates and expiry block PDF export',async({page})=>{
  await load(page,true);await expect(page.locator('#report-export-pdf')).not.toBeVisible();await expect(page.locator('#report-export-pdf')).toBeDisabled();await seedBrowserTrial(page);await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();
- await page.locator('#report-start').fill('2026-11-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-pdf')).toBeDisabled();await page.locator('#report-start').fill('2026-10-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-pdf')).toBeEnabled();
+ await page.locator('#report-start').fill('01/11/2026');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-pdf')).toBeDisabled();await page.locator('#report-start').fill('01/10/2026');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-export-pdf')).toBeEnabled();
  const downloads=[];page.on('download',d=>downloads.push(d));await page.clock.setSystemTime(new Date('2026-10-22T09:00:00Z'));await page.locator('#report-export-pdf').tap();await expect(page.locator('#reports-locked')).toBeVisible();expect(downloads).toHaveLength(0);
 });

@@ -35,8 +35,8 @@ test('filters, invalid and empty periods, and currency stay independent offline'
  await page.locator('#report-status').selectOption('unconfirmed');await expect(page.locator('.report-card')).toHaveCount(1);await expect(page.locator('#report-total')).toHaveText('1.000,00 RON');
  await page.locator('#report-apartmentId').selectOption('b');await expect(page.locator('.report-card')).toHaveCount(0);await expect(page.locator('#report-total')).toHaveText('0,00 RON');
  await page.locator('#report-status').selectOption('all');await page.locator('#report-currency').selectOption('EUR');await expect(page.locator('.report-card')).toHaveCount(1);await expect(page.locator('#report-total')).toHaveText('500,00 EUR');await expect(page.locator('#report-balance')).toHaveText('400,00 EUR');
- await page.locator('#report-start').fill('2026-11-01');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-error')).toBeVisible();await expect(page.locator('.report-card')).toHaveCount(0);
- await page.locator('#report-end').fill('2026-11-30');await page.locator('#report-end').dispatchEvent('change');await expect(page.locator('#report-error')).not.toBeVisible();await expect(page.locator('#report-list')).toContainText('Nu există');
+ await page.locator('#report-start').fill('01/11/2026');await page.locator('#report-start').dispatchEvent('change');await expect(page.locator('#report-error')).toBeVisible();await expect(page.locator('.report-card')).toHaveCount(0);
+ await page.locator('#report-end').fill('30/11/2026');await page.locator('#report-end').dispatchEvent('change');await expect(page.locator('#report-error')).not.toBeVisible();await expect(page.locator('#report-list')).toContainText('Nu există');
 });
 test('BASIC and expiry lock report without changing stored bookings',async({page})=>{
  await load(page,{expired:true});const before=await page.evaluate(k=>localStorage.getItem(k),key);await reports(page);await expect(page.locator('#reports-locked')).toBeVisible();await expect(page.locator('#reports-content')).not.toBeVisible();await expect(page.locator('.report-card')).toHaveCount(0);

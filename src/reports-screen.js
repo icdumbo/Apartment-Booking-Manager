@@ -1,3 +1,5 @@
+import {configureDateInput} from './date-input.js';
+import {parseDate} from './date-format.js?v=0.2.5';
 import {downloadReservationsPDF} from './report-pdf.js';
 import {downloadReservationsExcel} from './report-excel.js';
 import {selectReservationsReport} from './reservations-report.js';
@@ -15,7 +17,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
  const content=document.createElement('section');content.id='reports-content';root.append(content);text('h2','reportTitle',content);
  const controls=document.createElement('div');controls.className='collections-filters report-filters';content.append(controls);
  const inputs={};for(const [name,key,type] of [['start','reportStart','date'],['end','reportEnd','date'],['apartmentId','apartment','select'],['status','bookingStatus','select'],['currency','collectionCurrency','select']]){
-  const label=document.createElement('label');text('span',key,label);const el=document.createElement(type==='select'?'select':'input');if(type==='date')el.type='date';el.id='report-'+name;label.append(el);controls.append(label);inputs[name]=el;el.onchange=()=>{filters[name]=el.value;render();};
+  const label=document.createElement('label');text('span',key,label);const el=document.createElement(type==='select'?'select':'input');if(type==='date'){el.type='text';configureDateInput(el);}el.id='report-'+name;label.append(el);controls.append(label);inputs[name]=el;el.onchange=()=>{if(type==='date'){try{filters[name]=parseDate(el.value);}catch{filters[name]='';}}else filters[name]=el.value;render();};
  }
  const exportActions=document.createElement('div');exportActions.className='report-export-actions';content.append(exportActions);
  const exportButton=text('button','reportExportExcel',exportActions);exportButton.type='button';exportButton.id='report-export-excel';exportButton.className='primary';
@@ -52,7 +54,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of state.apartments)option(inputs.apartmentId,a.id,a.name);
   for(const status of ['all','confirmed','unconfirmed'])option(inputs.status,status,t(status==='all'?'reportAllStatus':status));for(const code of ['RON','EUR'])option(inputs.currency,code,code);
-  for(const [name,input] of Object.entries(inputs))input.value=filters[name];
+  for(const [name,input] of Object.entries(inputs))input.value=['start','end'].includes(name)&&filters[name]?displayDate(filters[name]):filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
   exportButton.disabled=exporting;pdfButton.disabled=exporting;
   for(const [key,value,id] of [['reportTotal',result.totalAmountCents,'total'],['reportReceived',result.receivedAmountCents,'received'],['remainingAmount',result.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id;amount.textContent=formatMoney(value,filters.currency);card.append(amount);summary.append(card);}

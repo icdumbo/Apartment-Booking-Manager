@@ -1,3 +1,4 @@
+import {fitCalendarViewport} from './calendar-viewport.js';
 import {createEntryScreen} from './entry-screen.js';
 import {configureDateInput} from './date-input.js';
 import {createReportsScreen} from './reports-screen.js';
@@ -219,3 +220,5 @@ $('open-menu').onclick=()=>{
 };
 $('close-menu').onclick=()=>$('app-menu').close();
 for(const kind of ['apartment','booking'])$('menu-add-'+kind).onclick=()=>{$('app-menu').close();$('add-'+kind).click();};
+
+fitCalendarViewport(document.querySelector('.timeline-scroll'),document.querySelector('.app-navigation'));
