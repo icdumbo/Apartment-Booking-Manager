@@ -1,3 +1,4 @@
+import {CURRENCIES} from './currency.js';
 import {configureDateInput} from './date-input.js';
 import {parseDate} from './date-format.js?v=0.2.5';
 import {downloadReservationsPDF} from './report-pdf.js';
@@ -11,7 +12,7 @@ import {t} from './i18n.js?v=0.3.1';
 export function createReportsScreen({root,getState,getEntitlement}){
  const date=today(),year=Number(date.slice(0,4)),month=Number(date.slice(5,7));
  const last=new Date(Date.UTC(year,month,0)).getUTCDate();
- const filters={start:date.slice(0,7)+'-01',end:date.slice(0,7)+'-'+last,apartmentId:'',status:'all',currency:'RON'};
+ const filters={start:date.slice(0,7)+'-01',end:date.slice(0,7)+'-'+last,apartmentId:'',status:'all',currency:'ALL'};
  function text(tag,key,parent){const el=document.createElement(tag);el.dataset.i18n=key;el.textContent=t(key);parent.append(el);return el;}
  const lock=document.createElement('div');lock.id='reports-locked';lock.className='collections-locked';root.append(lock);text('strong','reportPremium',lock);text('p','reportBenefits',lock);
  const content=document.createElement('section');content.id='reports-content';root.append(content);text('h2','reportTitle',content);
@@ -53,19 +54,19 @@ export function createReportsScreen({root,getState,getEntitlement}){
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of state.apartments)option(inputs.apartmentId,a.id,a.name);
-  for(const status of ['all','confirmed','unconfirmed'])option(inputs.status,status,t(status==='all'?'reportAllStatus':status));for(const code of ['RON','EUR'])option(inputs.currency,code,code);
+  for(const status of ['all','confirmed','unconfirmed'])option(inputs.status,status,t(status==='all'?'reportAllStatus':status));option(inputs.currency,'ALL',t('allCurrencies'));for(const code of CURRENCIES)option(inputs.currency,code,code);
   for(const [name,input] of Object.entries(inputs))input.value=['start','end'].includes(name)&&filters[name]?displayDate(filters[name]):filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
   exportButton.disabled=exporting;pdfButton.disabled=exporting;
-  for(const [key,value,id] of [['reportTotal',result.totalAmountCents,'total'],['reportReceived',result.receivedAmountCents,'received'],['remainingAmount',result.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id;amount.textContent=formatMoney(value,filters.currency);card.append(amount);summary.append(card);}
+  for(const group of Object.values(result.totalsByCurrency))for(const [key,value,id] of [['reportTotal',group.totalAmountCents,'total'],['reportReceived',group.receivedAmountCents,'received'],['remainingAmount',group.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id+(filters.currency==='ALL'?'-'+group.currency:'');amount.textContent=formatMoney(value,group.currency);card.append(amount);summary.append(card);}
   count.textContent=t('reportCount',{count:result.rows.length});
-  notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:formatMoney(result.legacyAmountCents,filters.currency)});
+  notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:Object.values(result.totalsByCurrency).map(group=>formatMoney(group.legacyAmountCents,group.currency)).join(' · ')||'—'});
   if(!result.rows.length)text('p','reportEmpty',list);
   for(const row of result.rows){
    const card=document.createElement('article');card.className='report-card';card.dataset.bookingId=row.bookingId;
    const name=document.createElement('h3');name.textContent=row.guest;card.append(name);const apartment=document.createElement('p');apartment.textContent=row.apartment;card.append(apartment);
-   const details=document.createElement('dl');for(const [key,value] of [['checkIn',displayDate(row.checkIn)],['checkOut',displayDate(row.checkOut)],['nights',String(row.nights)],['bookingStatus',t(row.status)],['reportTotal',formatMoney(row.totalAmountCents,filters.currency)],['reportReceived',formatMoney(row.receivedAmountCents,filters.currency)],['remainingAmount',formatMoney(row.balanceCents,filters.currency)]]){const pair=document.createElement('div');text('dt',key,pair);const dd=document.createElement('dd');dd.textContent=value;pair.append(dd);details.append(pair);}card.append(details);
-   if(row.legacyAmountCents){const old=document.createElement('p');old.className='report-legacy';old.textContent=t('reportLegacy',{amount:formatMoney(row.legacyAmountCents,filters.currency)});card.append(old);}list.append(card);
+   const details=document.createElement('dl');for(const [key,value] of [['checkIn',displayDate(row.checkIn)],['checkOut',displayDate(row.checkOut)],['nights',String(row.nights)],['collectionCurrency',row.currency],['bookingStatus',t(row.status)],['reportTotal',formatMoney(row.totalAmountCents,row.currency)],['reportReceived',formatMoney(row.receivedAmountCents,row.currency)],['remainingAmount',formatMoney(row.balanceCents,row.currency)]]){const pair=document.createElement('div');text('dt',key,pair);const dd=document.createElement('dd');dd.textContent=value;pair.append(dd);details.append(pair);}card.append(details);
+   if(row.legacyAmountCents){const old=document.createElement('p');old.className='report-legacy';old.textContent=t('reportLegacy',{amount:formatMoney(row.legacyAmountCents,row.currency)});card.append(old);}list.append(card);
   }
  }
  return {render};

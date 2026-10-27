@@ -22,10 +22,13 @@ export function reservationsPDF(state,filters,entitlement){
  function paragraph(value,{size=8.5,style='normal',color=muted}={}){const wrapped=lines(value,available,size,style),step=size*1.45;for(const line of wrapped){if(y+step>bottom)page();font(size,style,color);doc.text(line,margin,y);y+=step;}y+=6;}
  heading();
  paragraph(`${t('reportStart')}: ${displayDate(filters.start)} · ${t('reportEnd')}: ${displayDate(filters.end)}`,{size:9,color:ink});
- paragraph(`${t('apartment')}: ${filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments')} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency}`,{size:9,color:ink});
- const summary=[['statisticsBookings',String(result.rows.length)],['reportTotal',formatMoney(result.totalAmountCents,currency)],['reportReceived',formatMoney(result.receivedAmountCents,currency)],['remainingAmount',formatMoney(result.balanceCents,currency)]];
+ paragraph(`${t('apartment')}: ${filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments')} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency==='ALL'?t('allCurrencies'):currency}`,{size:9,color:ink});
+ for(const group of Object.values(result.totalsByCurrency)){
+ if(y+74>bottom)page();
+ const summary=[['statisticsBookings',`${group.count} · ${group.currency}`],['reportTotal',formatMoney(group.totalAmountCents,group.currency)],['reportReceived',formatMoney(group.receivedAmountCents,group.currency)],['remainingAmount',formatMoney(group.balanceCents,group.currency)]];
  const cardWidth=(available-24)/4;
  summary.forEach(([key,value],i)=>{const x=margin+i*(cardWidth+8);doc.setFillColor('#eef5fd');doc.roundedRect(x,y,cardWidth,58,5,5,'F');font(8,'normal',muted);doc.text(lines(t(key),cardWidth-16,8),x+8,y+15);font(11,'bold',blue);doc.text(value,x+8,y+44);});y+=74;
+ }
  paragraph(t('reportBasis'));
  paragraph(t('reportExportNotice',{count:result.rows.length,unknown:result.unpricedCount}));
  const widths=[116,126,65,65,46,82,92,92,available-684];
@@ -36,9 +39,9 @@ export function reservationsPDF(state,filters,entitlement){
   labels.forEach((label,i)=>{font(8,'bold','#ffffff');doc.text(label,x+6,y+14);x+=widths[i];});y+=h;return h;
  }
  if(y+80>bottom)page();tableHeader();
- function money(amount){return formatMoney(amount,currency);}
+ function money(amount,code){return formatMoney(amount,code);}
  for(const [index,row] of result.rows.entries()){
-  const values=[row.apartment,row.guest,displayDate(row.checkIn),displayDate(row.checkOut),String(row.nights),t(row.status),money(row.totalAmountCents),money(row.receivedAmountCents),money(row.balanceCents)];
+  const values=[row.apartment,row.guest,displayDate(row.checkIn),displayDate(row.checkOut),String(row.nights),t(row.status),money(row.totalAmountCents,row.currency),money(row.receivedAmountCents,row.currency),money(row.balanceCents,row.currency)];
   const wrapped=values.map((value,i)=>lines(value,widths[i]-12,8)),rowHeight=Math.max(30,Math.max(...wrapped.map(a=>a.length))*11+14);
   if(y+rowHeight>bottom){page();tableHeader();}
   doc.setFillColor(index%2?'#f2f6fb':'#ffffff');doc.rect(margin,y,available,rowHeight,'F');let x=margin;
@@ -46,12 +49,14 @@ export function reservationsPDF(state,filters,entitlement){
   doc.setDrawColor('#e0e8f2');doc.line(margin,y+rowHeight,width-margin,y+rowHeight);y+=rowHeight;
  }
  if(!result.rows.length){y+=18;paragraph(t('reportEmpty'));}
- const totalValues=[result.totalAmountCents,result.receivedAmountCents,result.balanceCents].map((amount,i)=>lines(money(amount),widths[i+6]-12,8,'bold'));
+ for(const group of Object.values(result.totalsByCurrency)){
+ const totalValues=[group.totalAmountCents,group.receivedAmountCents,group.balanceCents].map((amount,i)=>lines(money(amount,group.currency),widths[i+6]-12,8,'bold'));
  const totalHeight=Math.max(34,Math.max(...totalValues.map(a=>a.length))*11+14);
  if(y+totalHeight>bottom){page();tableHeader();}
- doc.setFillColor('#eef5fd');doc.rect(margin,y,available,totalHeight,'F');font(9,'bold',blue);doc.text(t('reportTotals'),margin+6,y+21);
+ doc.setFillColor('#eef5fd');doc.rect(margin,y,available,totalHeight,'F');font(9,'bold',blue);doc.text(t('reportTotals')+' · '+group.currency,margin+6,y+21);
  let x=margin+widths.slice(0,6).reduce((a,b)=>a+b,0);
- totalValues.forEach((value,i)=>{font(8,'bold',blue);doc.text(value,x+widths[i+6]-6,y+14,{align:'right'});x+=widths[i+6];});
+ totalValues.forEach((value,i)=>{font(8,'bold',blue);doc.text(value,x+widths[i+6]-6,y+14,{align:'right'});x+=widths[i+6];});y+=totalHeight;
+ }
  const pageCount=doc.getNumberOfPages();for(let i=1;i<=pageCount;i++){doc.setPage(i);font(8,'normal',muted);doc.text(t('reportPDFPage',{page:i,total:pageCount}),width-margin,height-18,{align:'right'});}
  return {bytes:new Uint8Array(doc.output('arraybuffer')),filename:`Reservations-${filters.start}-${filters.end}-${currency}.pdf`,pageCount};
 }

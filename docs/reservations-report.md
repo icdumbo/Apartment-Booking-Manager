@@ -16,7 +16,10 @@ in the bottom navigation and main menu. BASIC hides the report and retains data.
   Legacy aggregate receipts are included once; mixed ledgers include their
   unresolved legacy remainder once. Undated legacy amounts are identified per
   booking and in the summary, without assuming payment dates or methods.
-- Missing currency means RON. RON/EUR are filtered separately; no conversions.
+- Missing currency means RON. The default is **All currencies**: all matching
+  stays are listed once, with their original currency. Totals are grouped by
+  currency; there is no combined monetary total or conversion. The optional
+  currency selector can still restrict the report to RON or EUR (currently accepted).
 - Missing total value/balance is shown as — and excluded from value/balance
   totals, with a count of unpriced bookings. No recorded receipts means zero;
   an explicitly entered zero reservation value remains zero, not unspecified.
@@ -36,8 +39,8 @@ export; no entitlement is persisted or granted by the exporter.
 The `.xlsx` is generated offline in the browser (OOXML in a stored ZIP; no CDN,
 network request or added dependencies). A single bilingual worksheet contains
 filter context, count and current monetary totals, complete reservation rows,
-a totals row and the existing calculation/legacy explanations. Currency is
-selected once for the whole file. Undated legacy receipts are an explicitly
+a totals row and the existing calculation/legacy explanations. Each reservation retains its currency. Mixed reports have a total row per
+currency; a single-currency selection retains the existing layout. Undated legacy receipts are an explicitly
 labelled subset of collected amounts, never an additional amount to sum.
 
 Amounts and counts are numeric cells; dates are numeric Excel dates displayed
@@ -61,7 +64,7 @@ plugins are changed here. Cancelling a system download does not change data.
 
 Export PDF uses the same read-only selector and a fresh entitlement snapshot as
 the on-screen report. Only TRIAL/PREMIUM with valid filters can generate it.
-The Excel exporter and the report calculation module are unchanged.
+Both exporters share the same selection and per-currency totals.
 
 The PDF is A4 landscape, with Apartment Booking Manager branding, localized
 title, active date/apartment/status/currency filters, the four summary values,
@@ -92,3 +95,30 @@ viewports and standalone local HTML. Real Android Chrome/Files and the installed
 Capacitor WebView remain unverified. A WebView that blocks Blob downloads needs
 a native save/share adapter in a later stage; no APK or Android configuration
 is changed in this stage. Cancelling a download does not modify business data.
+
+## Mixed-currency exports
+
+The shared selector returns `rows[].currency` and `totalsByCurrency`. In ALL
+mode it deliberately exposes no top-level monetary total, preventing accidental
+addition of unrelated currencies. Existing per-booking receipts/legacy amounts
+are counted exactly once; payments continue to inherit their reservation currency.
+
+Excel keeps ten visible columns, original-currency numeric formats, the compact
+horizontal summary, white separator and header at row 7. A hidden currency column
+K belongs to the native table (`A7:K[last booking]`), so sorting moves it with the
+reservation. Per-currency totals use `SUMPRODUCT` + per-row `SUBTOTAL(109,OFFSET(...))`
+and the currency predicate, excluding filtered/hidden rows. The top financial
+summary displays each numeric currency total on a separate line using `TEXT` and
+`CHAR(10)`; source amounts and TOTAL cells remain numeric. Overall visible count
+and unspecified-value count retain their existing SUBTOTAL formulas. Total rows,
+notes and explanations are outside the filter. No combined-currency sum exists.
+
+PDF keeps one chronological table, original ISO currency suffixes, a summary and
+TOTAL row for each represented currency, A4 landscape and repeated table headers
+on following pages. Empty ALL reports show an empty-state message without
+inventing a currency. Filenames use `-ALL` for mixed reports.
+
+Read-only checks cover OOXML numeric styles, caches, formulas, filter bounds and
+PDF extracted text/rendering. Actual recalculation after filtering in Microsoft
+Excel and saving on a physical Android device require user verification; browser
+and native-adapter mocks do not establish those physical-device results.

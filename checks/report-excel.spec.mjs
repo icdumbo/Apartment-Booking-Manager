@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {collectionsFixture as fixture} from './fixtures/collections.mjs';
 import {xlsxParts} from './helpers/xlsx.mjs';
 test.use({hasTouch:true});
-async function load(page,expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({data,expired})=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data));},{data:fixture,expired});await seedBrowserTrial(page,{expired});await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();}
+async function load(page,expired=false){await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');await page.evaluate(({data,expired})=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data));},{data:fixture,expired});await seedBrowserTrial(page,{expired});await page.reload();await page.locator('.app-navigation [data-screen=reports]').click();if(await page.locator('#reports-content').isVisible())await page.locator('#report-currency').selectOption('RON');}
 for(const width of [360,430,768,1440])test(`offline Excel download RO/EN ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await load(page);const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));await page.context().setOffline(true);
  for(const language of ['ro','en']){

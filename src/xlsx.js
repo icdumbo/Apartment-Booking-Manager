@@ -22,8 +22,8 @@ export function cell(ref,value,style=0){
 }
 // Only trusted generator expressions use this path; user strings stay literal cells.
 export function formulaCell(ref,expression,cached,style=0){
- if(!Number.isFinite(cached))throw new Error('reportExportFailed');
- return `<c r="${ref}" s="${style}"><f>${xml(expression)}</f><v>${cached}</v></c>`;
+ if(typeof cached!=='string'&&!Number.isFinite(cached))throw new Error('reportExportFailed');
+ return `<c r="${ref}" s="${style}"${typeof cached==='string'?' t="str"':''}><f>${xml(expression)}</f><v>${xml(cached)}</v></c>`;
 }
 export function createXlsx(sheet,styles,name,{filterRange,filterHeaders}={}){
  const declaration='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';

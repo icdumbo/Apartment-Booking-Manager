@@ -8,7 +8,7 @@ async function load(page,{expired=false}={}){
  const data=structuredClone(fixture);data.bookings[0].status='unconfirmed';
  await page.evaluate(({key,data,expired})=>{localStorage.setItem(key,JSON.stringify(data));},{key,data,expired});await seedBrowserTrial(page,{expired});await page.reload();
 }
-const reports=page=>page.locator('.app-navigation [data-screen=reports]').click();
+const reports=async page=>{await page.locator('.app-navigation [data-screen=reports]').click();if(await page.locator('#reports-content').isVisible())await page.locator('#report-currency').selectOption('RON');};
 for(const width of [360,390,430,768,1440])test(`report responsive RO/EN ${width}`,async({page})=>{
  await page.setViewportSize({width,height:900});await load(page);const before=await page.evaluate(k=>localStorage.getItem(k),key);const trial=await page.evaluate(()=>JSON.parse(localStorage.getItem('apartment-booking-manager:access:v1')).startedAt);
  await page.context().setOffline(true);await reports(page);
