@@ -412,3 +412,15 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 .entry-brand{background:#ffffffd9;border-radius:20px;padding:20px 12px;box-shadow:0 5px 24px #14243a05}
 .entry-screen[data-view=login] .entry-brand{padding:14px 12px;margin-bottom:22px}
 @media(max-height:700px){.entry-brand,.entry-screen[data-view=login] .entry-brand{padding:10px;margin-bottom:10px}}
+
+/* Final readability adjustments only: no track/bar geometry or palette changes. */
+.booking-guest{font-size:12px;font-weight:650;color:#14243A;letter-spacing:0}
+@container reservation (max-width:64px){
+ .booking-guest{font-family:"Roboto Condensed","Arial Narrow","Nimbus Sans Narrow","sans-serif-condensed",sans-serif;font-size:11.5px;font-weight:600;letter-spacing:-.1px}
+}
+.statistics-filters label,.statistics-primary>div>span,.statistics-secondary span,.report-filters label,.report-card dt{color:#32465f;font-size:13.5px;line-height:1.45}
+.statistics-primary strong,.statistics-secondary strong,.report-card dd{color:#14243A;font-weight:650}
+.statistics-definitions,.statistics-definitions p,.statistics-chart>p,#statistics-notice,#report-explanation,#report-explanation p,.report-card>p,#report-count{color:#32465f;font-size:14px;line-height:1.6}
+.statistics-values th,.statistics-values td{color:#32465f;font-size:14px}
+.statistics-month,.statistics-axis{fill:#32465f}
+.entry-login>p,.entry-login .entry-terms{font-size:14px;line-height:1.65;color:#32465f}
