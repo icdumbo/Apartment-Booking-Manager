@@ -25,7 +25,7 @@ export function formulaCell(ref,expression,cached,style=0){
  if(typeof cached!=='string'&&!Number.isFinite(cached))throw new Error('reportExportFailed');
  return `<c r="${ref}" s="${style}"${typeof cached==='string'?' t="str"':''}><f>${xml(expression)}</f><v>${xml(cached)}</v></c>`;
 }
-export function createXlsx(sheet,styles,name,{filterRange,filterHeaders}={}){
+export function createXlsx(sheet,styles,name,{filterRange,filterHeaders,headerRow,additionalSheets=[]}={}){
  const declaration='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
  const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
  const table=filterHeaders?.length?filterRange.replace(/\$/g,''):null;
@@ -36,7 +36,7 @@ export function createXlsx(sheet,styles,name,{filterRange,filterHeaders}={}){
   sheet=sheet.replace('</worksheet>','<tableParts count="1"><tablePart r:id="rIdTable1"/></tableParts></worksheet>');
  }
  const buttons=Array.from({length:filterHeaders?.length||10},(_,i)=>`<filterColumn colId="${i}" hiddenButton="0" showButton="1"/>`).join('');
- return zipFiles({
+ const files={
   '[Content_Types].xml':declaration+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+(table?'<Override PartName="/xl/tables/table1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml"/>':'')+'</Types>',
   '_rels/.rels':declaration+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
   'xl/workbook.xml':declaration+`<workbook xmlns="${ns}" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets><sheet name="${xml(name)}" sheetId="1" r:id="rId1"/></sheets>${filterRange&&!table?`<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">${xml("'"+name.replace(/'/g,"''")+"'!"+filterRange)}</definedName></definedNames>`:''}<calcPr calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>`,
@@ -46,5 +46,20 @@ export function createXlsx(sheet,styles,name,{filterRange,filterHeaders}={}){
    'xl/tables/table1.xml':declaration+`<table xmlns="${ns}" id="1" name="ReservationsReportData" displayName="ReservationsReportData" ref="${table}" headerRowCount="1" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="${table}">${buttons}</autoFilter><tableColumns count="${filterHeaders.length}">${filterHeaders.map((header,i)=>`<tableColumn id="${i+1}" name="${xml(header)}"/>`).join('')}</tableColumns><tableStyleInfo showFirstColumn="0" showLastColumn="0" showRowStripes="0" showColumnStripes="0"/></table>`
   }:{}),
   'xl/styles.xml':declaration+styles,'xl/worksheets/sheet1.xml':declaration+sheet
+ };
+ const titles=[];
+ if(headerRow)titles.push({name,headerRow,index:0});
+ additionalSheets.forEach((extra,index)=>{
+  const number=index+2,id=index+3;
+  files['[Content_Types].xml']=files['[Content_Types].xml'].replace('</Types>',`<Override PartName="/xl/worksheets/sheet${number}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>`);
+  files['xl/workbook.xml']=files['xl/workbook.xml'].replace('</sheets>',`<sheet name="${xml(extra.name)}" sheetId="${number}" r:id="rId${id}"/></sheets>`);
+  files['xl/_rels/workbook.xml.rels']=files['xl/_rels/workbook.xml.rels'].replace('</Relationships>',`<Relationship Id="rId${id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${number}.xml"/></Relationships>`);
+  files[`xl/worksheets/sheet${number}.xml`]=declaration+extra.sheet;
+  if(extra.headerRow)titles.push({name:extra.name,headerRow:extra.headerRow,index:index+1});
  });
+ if(titles.length){
+  const names=titles.map(value=>`<definedName name="_xlnm.Print_Titles" localSheetId="${value.index}">${xml("'"+value.name.replace(/'/g,"''")+"'!$"+value.headerRow+':$'+value.headerRow)}</definedName>`).join('');
+  files['xl/workbook.xml']=files['xl/workbook.xml'].includes('</definedNames>')?files['xl/workbook.xml'].replace('</definedNames>',names+'</definedNames>'):files['xl/workbook.xml'].replace('<calcPr','<definedNames>'+names+'</definedNames><calcPr');
+ }
+ return zipFiles(files);
 }

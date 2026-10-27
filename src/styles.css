@@ -427,3 +427,17 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 
 /* Allow vertical scroll chaining when a short viewport needs page scrolling too. */
 .timeline-scroll{min-height:0;overscroll-behavior-y:auto}
+
+/* Report-only overview: general counts and a compact currency matrix. */
+.report-counters{display:flex;flex-wrap:wrap;gap:8px 24px;margin:16px 0 10px}
+#reports-panel .report-counters p{margin:0;font-size:14px;font-weight:650;color:#14243a}
+#reports-panel #report-unpriced{color:#705022}
+.report-summary{max-width:100%;overflow-x:auto;margin:0 0 16px;border:1px solid #dce5ef;border-radius:12px;background:#fff}
+.report-summary-table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.45;font-variant-numeric:tabular-nums}
+.report-summary-table caption{text-align:left;padding:10px 14px;font-weight:650;color:#14243a;background:#f8fafc}
+.report-summary-table th,.report-summary-table td{padding:10px 14px;border-top:1px solid #e3eaf2;vertical-align:middle}
+.report-summary-table thead th{background:#edf4fc;color:#174877;text-align:right}
+.report-summary-table thead th:first-child,.report-summary-table tbody th{text-align:left}
+.report-summary-table tbody th{font-weight:550;color:#32465f}
+.report-summary-table td{text-align:right;white-space:nowrap;color:#14243a}
+@media(max-width:600px){.report-summary-table{font-size:13px}.report-summary-table th,.report-summary-table td{padding:10px 7px}.report-summary-table tbody th{min-width:100px}.report-summary-table td{font-size:13px}.report-summary-table caption{padding:10px 8px}}

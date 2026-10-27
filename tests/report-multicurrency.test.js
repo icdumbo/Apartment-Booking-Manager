@@ -28,11 +28,11 @@ test('period, apartment, status and optional currency filters still combine; BAS
 });
 test('mixed Excel has numeric source cells, per-currency styles, filter-safe currency totals and summary references',()=>{
  const before=JSON.stringify(fixture),parts=xlsxParts(reservationsExcel(fixture,filters,access).bytes),sheet=parts['xl/worksheets/sheet1.xml'],styles=parts['xl/styles.xml'],table=parts['xl/tables/table1.xml'];
- assert.match(sheet,/Client Test Alpha/);assert.match(sheet,/Client Test Beta/);assert.match(sheet,/<c r="G8" s="3"><v>500<\/v>/);assert.match(sheet,/<c r="G9" s="11"><v>350<\/v>/);
- assert.match(styles,/RON/);assert.match(styles,/EUR/);assert.match(sheet,/min="11" max="11"[^>]*hidden="1"/);assert.match(table,/ref="A7:K11"/);assert.match(table,/name="Currency"|name="Monedă"/);
- assert.match(sheet,/SUMPRODUCT\(SUBTOTAL\(109,OFFSET\(\$G\$8/);assert.match(sheet,/\$K\$8:\$K\$11=&quot;RON&quot;/);assert.match(sheet,/\$K\$8:\$K\$11=&quot;EUR&quot;/);
- assert.match(sheet,/<c r="G12"[^>]*><f>[^<]+<\/f><v>500<\/v>/);assert.match(sheet,/<c r="G13"[^>]*><f>[^<]+<\/f><v>350<\/v>/);
- assert.match(sheet,/TEXT\(G12/);assert.match(sheet,/TEXT\(G13/);assert.doesNotMatch(sheet,/NaN|Infinity/);assert.equal(JSON.stringify(fixture),before);
+ assert.match(sheet,/Client Test Alpha/);assert.match(sheet,/Client Test Beta/);assert.match(sheet,/<c r="G12" s="3"><v>500<\/v>/);assert.match(sheet,/<c r="G13" s="11"><v>350<\/v>/);
+ assert.match(styles,/RON/);assert.match(styles,/EUR/);assert.match(sheet,/min="11" max="11"[^>]*hidden="1"/);assert.match(table,/ref="A11:K15"/);assert.match(table,/name="Currency"|name="Monedă"/);
+ assert.match(sheet,/SUMPRODUCT\(SUBTOTAL\(109,OFFSET\(\$G\$12/);assert.match(sheet,/\$K\$12:\$K\$15=&quot;RON&quot;/);assert.match(sheet,/\$K\$12:\$K\$15=&quot;EUR&quot;/);
+ assert.match(sheet,/<c r="G16"[^>]*><f>[^<]+<\/f><v>500<\/v>/);assert.match(sheet,/<c r="G17"[^>]*><f>[^<]+<\/f><v>350<\/v>/);
+ assert.match(sheet,/<c r="C7"[^>]*><f>G16<\/f><v>500<\/v>/);assert.match(sheet,/<c r="E7"[^>]*><f>G17<\/f><v>350<\/v>/);assert.doesNotMatch(sheet,/NaN|Infinity/);assert.equal(JSON.stringify(fixture),before);
 });
 test('mixed and empty PDF/Excel generate offline without mutating data or mixing currency totals',()=>{
  const before=JSON.stringify(fixture);for(const state of [fixture,{version:1,apartments:[],bookings:[]}]){const pdf=reservationsPDF(state,filters,access);assert.equal(pdf.filename,'Reservations-2026-10-01-2026-10-31-ALL.pdf');assert.ok(pdf.bytes.length>10000);const sheet=xlsxParts(reservationsExcel(state,filters,access).bytes)['xl/worksheets/sheet1.xml'];assert.doesNotMatch(sheet,/NaN|Infinity/);}

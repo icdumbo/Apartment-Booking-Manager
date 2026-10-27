@@ -15,7 +15,7 @@ for(const width of [360,390,430,768,1440])test(`report responsive RO/EN ${width}
  for(const language of ['ro','en']){
   await page.locator(`.top [data-language=${language}]`).click();await expect(page.locator('#reports-content h2')).toHaveText(language==='ro'?'Raport rezervări':'Reservations Report');
   const explanation=page.locator('#report-explanation');await expect(explanation).not.toHaveAttribute('open');
-  await expect(page.locator('#report-count')).toBeVisible();await expect(page.locator('#report-count')).toHaveText(language==='ro'?'3 rezervări':'3 reservations');
+  await expect(page.locator('#report-count')).toBeVisible();await expect(page.locator('#report-count')).toHaveText(language==='ro'?'Total rezervări: 3':'Total reservations: 3');
   await expect(explanation.locator('summary')).toHaveText(language==='ro'?'Cum se calculează raportul?':'How is the report calculated?');
   await expect(explanation.locator('[data-i18n=reportBasis]')).not.toBeVisible();await expect(page.locator('#report-notice')).not.toBeVisible();
   await explanation.locator('summary').tap();await expect(explanation).toHaveAttribute('open','');

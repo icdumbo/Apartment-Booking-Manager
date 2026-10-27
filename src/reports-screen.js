@@ -1,3 +1,4 @@
+import {REPORT_METRICS,reportGroups} from './report-summary.js';
 import {CURRENCIES} from './currency.js';
 import {configureDateInput} from './date-input.js';
 import {parseDate} from './date-format.js?v=0.2.5';
@@ -42,15 +43,17 @@ export function createReportsScreen({root,getState,getEntitlement}){
   }
  }
  exportButton.onclick=()=>runExport(downloadReservationsExcel);pdfButton.onclick=()=>runExport(downloadReservationsPDF);
- const summary=document.createElement('div');summary.id='report-summary';summary.className='collections-summary';summary.setAttribute('aria-live','polite');content.append(summary);
- const count=document.createElement('p');count.id='report-count';count.setAttribute('aria-live','polite');content.append(count);
+ const counters=document.createElement('div');counters.className='report-counters';content.append(counters);
+ const count=document.createElement('p');count.id='report-count';count.setAttribute('aria-live','polite');counters.append(count);
+ const unpriced=document.createElement('p');unpriced.id='report-unpriced';unpriced.setAttribute('aria-live','polite');counters.append(unpriced);
+ const summary=document.createElement('div');summary.id='report-summary';summary.className='report-summary';summary.setAttribute('aria-live','polite');content.append(summary);
  const explanation=document.createElement('details');explanation.id='report-explanation';content.append(explanation);text('summary','reportCalculation',explanation);
  text('p','reportBasis',explanation);const notice=document.createElement('p');notice.id='report-notice';explanation.append(notice);
  const list=document.createElement('div');list.id='report-list';list.className='report-list';content.append(list);
  function option(select,value,label){const el=document.createElement('option');el.value=value;el.textContent=label;select.append(el);}
  function render(){
   exportStatus.textContent=statusKey?t(statusKey,statusValues):'';
-  const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';error.hidden=true;if(!allowed)return;
+  const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';unpriced.textContent='';error.hidden=true;if(!allowed)return;
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of state.apartments)option(inputs.apartmentId,a.id,a.name);
@@ -58,8 +61,25 @@ export function createReportsScreen({root,getState,getEntitlement}){
   for(const [name,input] of Object.entries(inputs))input.value=['start','end'].includes(name)&&filters[name]?displayDate(filters[name]):filters[name];
   let result;try{result=selectReservationsReport(state,filters,getEntitlement());}catch(reason){error.textContent=t(reason.message);error.hidden=false;return;}
   exportButton.disabled=exporting;pdfButton.disabled=exporting;
-  for(const group of Object.values(result.totalsByCurrency))for(const [key,value,id] of [['reportTotal',group.totalAmountCents,'total'],['reportReceived',group.receivedAmountCents,'received'],['remainingAmount',group.balanceCents,'balance']]){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id='report-'+id+(filters.currency==='ALL'?'-'+group.currency:'');amount.textContent=formatMoney(value,group.currency);card.append(amount);summary.append(card);}
-  count.textContent=t('reportCount',{count:result.rows.length});
+  const groups=reportGroups(result);
+  count.textContent=t('reportTotalCount',{count:result.rows.length});
+  unpriced.textContent=t('reportUnpricedCount',{count:result.unpricedCount});
+  if(groups.length){
+   const table=document.createElement('table');table.className='report-summary-table';
+   const caption=document.createElement('caption');caption.textContent=t('reportCurrencySummary');table.append(caption);
+   const head=table.createTHead().insertRow();const metric=document.createElement('th');metric.scope='col';metric.textContent=t('reportMetric');head.append(metric);
+   for(const group of groups){const th=document.createElement('th');th.scope='col';th.textContent=group.currency;head.append(th);}
+   const body=table.createTBody();
+   for(const [key,field] of REPORT_METRICS){
+    const tr=body.insertRow(),label=document.createElement('th');label.scope='row';label.textContent=t(key);tr.append(label);
+    for(const group of groups){const td=tr.insertCell(),value=document.createElement('strong');
+     const id={totalAmountCents:'total',receivedAmountCents:'received',balanceCents:'balance'}[field];
+     if(id)value.id='report-'+id+(filters.currency==='ALL'?'-'+group.currency:'');
+     value.textContent=field==='count'?String(group.count):formatMoney(group[field],group.currency);td.append(value);
+    }
+   }
+   summary.append(table);
+  }
   notice.textContent=t('reportNotice',{count:result.rows.length,unknown:result.unpricedCount,legacy:Object.values(result.totalsByCurrency).map(group=>formatMoney(group.legacyAmountCents,group.currency)).join(' · ')||'—'});
   if(!result.rows.length)text('p','reportEmpty',list);
   for(const row of result.rows){

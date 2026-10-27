@@ -1,3 +1,4 @@
+import {REPORT_METRICS,reportGroups} from './report-summary.js';
 import {saveExport} from './file-export.js';
 import {jsPDF} from './vendor/jspdf.js';
 import {normal,bold} from './vendor/report-fonts.js';
@@ -23,11 +24,21 @@ export function reservationsPDF(state,filters,entitlement){
  heading();
  paragraph(`${t('reportStart')}: ${displayDate(filters.start)} · ${t('reportEnd')}: ${displayDate(filters.end)}`,{size:9,color:ink});
  paragraph(`${t('apartment')}: ${filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments')} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency==='ALL'?t('allCurrencies'):currency}`,{size:9,color:ink});
- for(const group of Object.values(result.totalsByCurrency)){
- if(y+74>bottom)page();
- const summary=[['statisticsBookings',`${group.count} · ${group.currency}`],['reportTotal',formatMoney(group.totalAmountCents,group.currency)],['reportReceived',formatMoney(group.receivedAmountCents,group.currency)],['remainingAmount',formatMoney(group.balanceCents,group.currency)]];
- const cardWidth=(available-24)/4;
- summary.forEach(([key,value],i)=>{const x=margin+i*(cardWidth+8);doc.setFillColor('#eef5fd');doc.roundedRect(x,y,cardWidth,58,5,5,'F');font(8,'normal',muted);doc.text(lines(t(key),cardWidth-16,8),x+8,y+15);font(11,'bold',blue);doc.text(value,x+8,y+44);});y+=74;
+ const groups=reportGroups(result);
+ paragraph(t('reportTotalCount',{count:result.rows.length})+' · '+t('reportUnpricedCount',{count:result.unpricedCount}),{size:10,style:'bold',color:ink});
+ if(groups.length){
+  const labelWidth=Math.min(240,available*.4),valueWidth=(available-labelWidth)/groups.length;
+  const summaryRows=[['reportMetric',null],...REPORT_METRICS];
+  for(const [index,[key,field]] of summaryRows.entries()){
+   const values=[t(key),...groups.map(group=>field===null?group.currency:field==='count'?String(group.count):formatMoney(group[field],group.currency))];
+   const sizes=[labelWidth,...groups.map(()=>valueWidth)];
+   const wrapped=values.map((value,i)=>lines(value,sizes[i]-18,9,index===0?'bold':'normal'));
+   const h=Math.max(25,Math.max(...wrapped.map(value=>value.length))*12+12);
+   if(y+h>bottom)page();
+   doc.setFillColor(index===0?blue:index%2?'#ffffff':'#f2f6fb');doc.rect(margin,y,available,h,'F');
+   let x=margin;wrapped.forEach((value,i)=>{font(9,index===0||i>0?'bold':'normal',index===0?'#ffffff':ink);doc.text(value,i?x+sizes[i]-9:x+9,y+16,{align:i?'right':'left'});x+=sizes[i];});y+=h;
+  }
+  y+=12;
  }
  paragraph(t('reportBasis'));
  paragraph(t('reportExportNotice',{count:result.rows.length,unknown:result.unpricedCount}));
@@ -44,12 +55,12 @@ export function reservationsPDF(state,filters,entitlement){
   const values=[row.apartment,row.guest,displayDate(row.checkIn),displayDate(row.checkOut),String(row.nights),t(row.status),money(row.totalAmountCents,row.currency),money(row.receivedAmountCents,row.currency),money(row.balanceCents,row.currency)];
   const wrapped=values.map((value,i)=>lines(value,widths[i]-12,8)),rowHeight=Math.max(30,Math.max(...wrapped.map(a=>a.length))*11+14);
   if(y+rowHeight>bottom){page();tableHeader();}
-  doc.setFillColor(index%2?'#f2f6fb':'#ffffff');doc.rect(margin,y,available,rowHeight,'F');let x=margin;
+  doc.setFillColor(row.totalAmountCents===undefined?'#fff8e8':index%2?'#f2f6fb':'#ffffff');doc.rect(margin,y,available,rowHeight,'F');let x=margin;
   wrapped.forEach((value,i)=>{font(8);const right=i>=6;doc.text(value,right?x+widths[i]-6:x+6,y+14,{align:right?'right':'left'});x+=widths[i];});
   doc.setDrawColor('#e0e8f2');doc.line(margin,y+rowHeight,width-margin,y+rowHeight);y+=rowHeight;
  }
  if(!result.rows.length){y+=18;paragraph(t('reportEmpty'));}
- for(const group of Object.values(result.totalsByCurrency)){
+ for(const group of groups){
  const totalValues=[group.totalAmountCents,group.receivedAmountCents,group.balanceCents].map((amount,i)=>lines(money(amount,group.currency),widths[i+6]-12,8,'bold'));
  const totalHeight=Math.max(34,Math.max(...totalValues.map(a=>a.length))*11+14);
  if(y+totalHeight>bottom){page();tableHeader();}

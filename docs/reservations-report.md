@@ -103,22 +103,51 @@ mode it deliberately exposes no top-level monetary total, preventing accidental
 addition of unrelated currencies. Existing per-booking receipts/legacy amounts
 are counted exactly once; payments continue to inherit their reservation currency.
 
-Excel keeps ten visible columns, original-currency numeric formats, the compact
-horizontal summary, white separator and header at row 7. A hidden currency column
-K belongs to the native table (`A7:K[last booking]`), so sorting moves it with the
-reservation. Per-currency totals use `SUMPRODUCT` + per-row `SUBTOTAL(109,OFFSET(...))`
-and the currency predicate, excluding filtered/hidden rows. The top financial
-summary displays each numeric currency total on a separate line using `TEXT` and
-`CHAR(10)`; source amounts and TOTAL cells remain numeric. Overall visible count
-and unspecified-value count retain their existing SUBTOTAL formulas. Total rows,
-notes and explanations are outside the filter. No combined-currency sum exists.
+The app, Excel and PDF now share the same presentation: an overall reservation
+count and unspecified-value count, separate from a compact matrix. Currency
+columns are built from the selector's represented currencies in the accepted
+currency order (currently RON/EUR); the rows are count, reservation value,
+collected amount and balance. No new currency or currency conversion is enabled.
+All metrics still come from the existing selector; it is unchanged.
 
-PDF keeps one chronological table, original ISO currency suffixes, a summary and
-TOTAL row for each represented currency, A4 landscape and repeated table headers
-on following pages. Empty ALL reports show an empty-state message without
-inventing a currency. Filenames use `-ALL` for mixed reports.
+Excel keeps ten visible reservation columns and original-currency numeric
+formats. General counts are in row 4, the matrix in rows 5–9, a thin white
+separator in row 10 and the filter header in row 11. Summary amounts are numeric
+formula cells referencing the corresponding per-currency TOTAL rows, not
+concatenated text. A hidden currency column K belongs to the mixed-currency
+native table (`A11:K[last booking]`), so sorting moves it with its reservation.
+Per-currency amounts retain `SUMPRODUCT` with per-row `SUBTOTAL(109,OFFSET(...))`
+and the currency predicate. Per-currency counts use the equivalent visible-row
+count formula; overall counts retain SUBTOTAL. TOTAL rows, notes and explanations
+remain outside the filter. Main headers freeze and repeat when printed; A4
+landscape stays one page wide. The extra sheet uses the same fonts and widths.
+
+The additional **Pe apartamente / By apartment** sheet groups the same exported
+selection by apartment identity, preserving chronological order within each
+apartment and full stay dates. Each reservation is shown once. Currency-specific
+SUMIF totals follow each apartment; missing values stay blank and explicit zero
+stays numeric. Notes `[n]` refer to the full notes on the main sheet. It has no
+filters, a fixed/repeated header at row 4 and the same A4 settings. It is an
+independent snapshot view for consultation: applying filters or sorting on the
+main sheet does not alter this grouping. This works around needing the native
+Microsoft Excel filter menu on a narrow Fold screen; the app cannot change that
+external menu's scrolling or zoom behavior.
+
+PDF uses the same compact currency matrix and separate general counts, one
+complete chronological table, original ISO currency suffixes and TOTAL rows per
+currency. Unpriced reservations have a subtle warm background; explicit zeros
+do not. A4 landscape, Unicode RO/EN fonts and repeated table headers are retained.
+The representative 70-reservation mixed-currency test remains 6 pages before and
+after this presentation change. Empty reports retain zero counts and an empty
+message without inventing financial amounts in another currency.
 
 Read-only checks cover OOXML numeric styles, caches, formulas, filter bounds and
 PDF extracted text/rendering. Actual recalculation after filtering in Microsoft
 Excel and saving on a physical Android device require user verification; browser
 and native-adapter mocks do not establish those physical-device results.
+
+The local spreadsheet renderer cannot evaluate the existing SUBTOTAL/OFFSET array
+formulas faithfully and does not reproduce Romanian locale formats. Layout-only
+previews use the actual file's independently checked cached values in a disposable
+in-memory view; exported workbooks retain every original formula and locale format.
+This does not establish live recalculation or filter-menu behavior in Microsoft Excel.

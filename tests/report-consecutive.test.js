@@ -13,7 +13,7 @@ test('consecutive stays survive offline persistence and both exports without los
  const before=JSON.stringify(state);validateState(state);let raw;
  const repo=createLocalRepository({getItem:()=>raw??null,setItem:(key,value)=>raw=value});repo.save(state);const restored=repo.load();
  const result=selectReservationsReport(restored,filters,access);assert.deepEqual(result.rows.map(b=>b.bookingId),['first','next']);assert.equal(result.unpricedCount,1);assert.equal(result.totalAmountCents,50000);assert.equal(result.receivedAmountCents,10000);
- const sheet=xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/worksheets/sheet1.xml'];assert.match(sheet,/Client Test Alpha/);assert.match(sheet,/Client Test Beta/);assert.match(xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/tables/table1.xml'],/autoFilter ref="A7:J9"/);
+ const sheet=xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/worksheets/sheet1.xml'];assert.match(sheet,/Client Test Alpha/);assert.match(sheet,/Client Test Beta/);assert.match(xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/tables/table1.xml'],/autoFilter ref="A11:J13"/);
  const pdf=reservationsPDF(restored,filters,access);assert.ok(pdf.bytes.length>0);
  assert.equal(JSON.stringify(restored),before);assert.equal(JSON.stringify(state),before);
  // Currency/status exclusions are deliberate, never repaired by silently including EUR in RON.
