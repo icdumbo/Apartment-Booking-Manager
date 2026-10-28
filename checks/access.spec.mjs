@@ -29,7 +29,7 @@ test('apartments tab reuses stored data, CRUD and BASIC overflow guards offline'
 test('new installations stay BASIC without minting a local trial and persist offline data',async({page})=>{
  await page.goto('/');await expect(page.locator('#access-message')).toContainText('BASIC');expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'))).toBeNull();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartments-empty')).toBeVisible();
  await page.locator('#add-apartment').click();await page.locator('input[name=name]').fill('New test apartment');await page.locator('input[name=address]').fill('Test address');await page.locator('input[name=city]').fill('Test city');await page.locator('#editor [type=submit]').click();
- await expect(page.locator('.apartment-card')).toContainText('New test apartment');await expect(page.locator('.apartment-photo')).toHaveText('Fără fotografie');
+ await expect(page.locator('.apartment-card')).toContainText('New test apartment');await expect(page.locator('.apartment-card .apartment-photo')).toHaveText('Fără fotografie');
  await page.reload();await page.locator('[data-screen=apartments]').click();await expect(page.locator('.apartment-card')).toHaveCount(1);await expect(page.locator('#access-message')).toContainText('BASIC');
 });
 

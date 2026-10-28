@@ -1,3 +1,4 @@
+import {apartmentPhotos,paintApartmentPhoto,createApartmentPhotoEditor} from './apartment-photo.js';
 import {fitCalendarViewport} from './calendar-viewport.js';
 import {createEntryScreen} from './entry-screen.js';
 import {configureDateInput} from './date-input.js';
@@ -65,13 +66,15 @@ function renderAccessStatus(){
  if($('auth-status').dataset.i18n==='authSignedIn')$('auth-status').textContent=t('authSignedIn')+' '+accessLabel+'.';
  $('access-details').textContent=t(entitlement.legacyTrialPending?'legacyTrialReview':entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
 }
+let apartmentPhotoViews=[];
 function renderApartments(){
+ for(const dispose of apartmentPhotoViews)dispose();apartmentPhotoViews=[];
  const list=$('apartment-list');list.replaceChildren();
  if(!state.apartments.length){const empty=document.createElement('p');empty.className='apartments-empty';empty.textContent=t('empty');list.append(empty);return;}
  const permissions=policy();
  for(const apartment of state.apartments){
   const card=document.createElement('button');card.type='button';card.className='apartment-card';card.onclick=()=>open('apartment',apartment);
-  const photo=document.createElement('span');photo.className='apartment-photo';photo.textContent=t('noPhoto');
+  const photo=document.createElement('span');photo.className='apartment-photo';apartmentPhotoViews.push(paintApartmentPhoto(photo,apartment.photoId));
   const info=document.createElement('span');info.className='apartment-info';
   const name=document.createElement('strong');name.textContent=apartment.name;
   const address=document.createElement('span');address.textContent=[apartment.address,apartment.city].filter(Boolean).join(' · ');
@@ -115,17 +118,17 @@ function openSavedBooking(id){const booking=state.bookings.find(item=>item.id===
 function titleKey(){return editing.kind==='apartment'?(editing.id?'apartmentDetails':'newApartment'):(editing.id?'bookingDetails':'newBooking');}
 function formError(error){const source=error?.message??error;$('form-error').dataset.source=source;$('form-error').textContent=source?translateError(source):'';}
 function open(kind,item=null,defaults={}){
- if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
- if(kind==='apartment'){field('apartmentName','name',item?.name);field('address','address',item?.address);field('city','city',item?.city);}
+ if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing?.photo?.dispose();editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
+ if(kind==='apartment'){field('apartmentName','name',item?.name);field('address','address',item?.address);field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
  else editing.payments=renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel,canManagePayments:()=>!blocked&&canEditPayments(access.snapshot())&&policy().canManageApartment($('fields').querySelector('[name=apartmentId]').value)});
- $('editor').classList.toggle('booking-editor',kind==='booking');
+ $('editor').classList.toggle('booking-editor',kind==='booking');$('editor').classList.toggle('apartment-editor',kind==='apartment');$('editor-form').querySelector('[type=submit]').disabled=false;
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
  const readOnly=apartmentId&&!policy().canManageApartment(apartmentId);
  if(kind==='booking'&&!item&&readOnly)return;
  for(const option of $('fields').querySelectorAll('select[name=apartmentId] option'))option.disabled=!policy().canManageApartment(option.value);
  for(const input of $('fields').querySelectorAll('input,select,textarea'))input.disabled=Boolean(readOnly)||input.dataset.currencyLocked==='true';
  $('editor-form').querySelector('[type=submit]').hidden=Boolean(readOnly);$('delete').hidden=!item||Boolean(readOnly);
- if(readOnly)formError('basicReadOnly');
+ editing.photo?.refresh();if(readOnly)formError('basicReadOnly');
  $('editor').showModal();
 }
 $('fields').addEventListener('input',()=>{if(editing?.kind==='booking')updateBookingSummary($('fields'));});
@@ -139,7 +142,8 @@ function persist(next){try{
   for(const item of next[kind]){if(kind==='apartments'&&!state.apartments.some(a=>a.id===item.id)&&!permissions.canAddApartment)throw new Error('apartmentLimit');if(kind==='bookings'&&JSON.stringify(state.bookings.find(b=>b.id===item.id))!==JSON.stringify(item)&&!permissions.canManageApartment(item.apartmentId))throw new Error('basicReadOnly');}
  }
 repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments','currencyLocked','storageChanged'].includes(error.message)?error.message:'storageSave');return false;}}
-$('editor-form').onsubmit=e=>{
+$('editor-form').onsubmit=async e=>{
+ if(editing?.saving){e.preventDefault();return;}
  e.preventDefault();const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
  // Browser-native messages follow OS language, so show centralized translated validation instead.
  if([...$('fields').querySelectorAll('[required]')].some(input=>!input.value.trim())){formError('required');return;}
@@ -152,7 +156,14 @@ $('editor-form').onsubmit=e=>{
   if(editing.kind==='booking'){if(editing.payments.hasPendingEntry())throw new Error('pendingPayment');editing.payments.validateCurrency();item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra,editing.payments.getLedger());}
   editing.kind==='apartment'?validateApartment(item):validateBooking(item,state);
   const next={...state,[key]:editing.id?state[key].map(v=>v.id===editing.id?item:v):[...state[key],item]};
-  if(persist(next))$('editor').close();
+  if(editing.kind==='apartment'){
+   const session=editing;session.saving=true;const buttons=[...$('editor-form').querySelectorAll('button')].map(button=>[button,button.disabled]);for(const [button] of buttons)button.disabled=true;let prepared;
+   try{
+    prepared=await session.photo.prepare();if(prepared.id)item.photoId=prepared.id;else delete item.photoId;
+    if(persist(next)){await session.photo.committed(prepared);$('editor').close();}else await session.photo.rollback(prepared);
+   }catch(error){await session.photo.rollback(prepared);formError(error);}
+   finally{session.saving=false;for(const [button,disabled] of buttons)button.disabled=disabled;session.photo.refresh();}
+  }else if(persist(next))$('editor').close();
  }catch(error){formError(error);}
 };
 function confirmationText(){
@@ -163,9 +174,10 @@ $('delete').onclick=()=>{confirmationText();$('confirmation').returnValue='cance
 $('confirmation').addEventListener('close',()=>{
  if($('confirmation').returnValue!=='delete')return;
  const next=editing.kind==='apartment'?{...state,apartments:state.apartments.filter(a=>a.id!==editing.id),bookings:state.bookings.filter(b=>b.apartmentId!==editing.id)}:{...state,bookings:state.bookings.filter(b=>b.id!==editing.id)};
- if(persist(next))$('editor').close();
+ const photoId=editing.kind==='apartment'?state.apartments.find(a=>a.id===editing.id)?.photoId:undefined;
+ if(persist(next)){$('editor').close();if(photoId)apartmentPhotos.remove(photoId).catch(()=>{});}
 });
-function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());editing.photo?.refresh();if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){
@@ -178,7 +190,9 @@ for(const widget of document.querySelectorAll('.language-selector')){
 let displayedAccess=access.snapshot().state;
 setInterval(()=>{const current=access.snapshot().state;if(current!==displayedAccess){displayedAccess=current;render();}else renderAccessStatus();},60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
-$('close').onclick=$('cancel').onclick=()=>$('editor').close();$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
+$('editor').addEventListener('cancel',event=>{if(editing?.saving)event.preventDefault();});
+$('editor').addEventListener('close',()=>{if(!$('editor').open)editing?.photo?.dispose();});
+$('close').onclick=$('cancel').onclick=()=>{if(!editing?.saving)$('editor').close();};$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
 $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next').onclick=()=>{selectorYear++;renderMonthSelector();};
 $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$('next').onclick=()=>{start+=days;selectorYear=calendarYear(start);render();};
 $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
