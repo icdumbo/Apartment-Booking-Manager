@@ -1,5 +1,6 @@
+import {selectAndroidPhoto,photoMime,MAX_PHOTO_INPUT} from './photo-picker.js';
 import {t} from './i18n.js?v=0.3.1';
-const MAX_INPUT=20*1024*1024,MAX_STORED=512*1024;
+const MAX_INPUT=MAX_PHOTO_INPUT,MAX_STORED=512*1024;
 let connection;
 function database(){
  if(connection)return connection;
@@ -30,8 +31,10 @@ export const apartmentPhotos={
 };
 // All saved images are local, bounded JPEG blobs. No external or temporary URL is persisted.
 export async function prepareApartmentPhoto(file){
- if(!['image/jpeg','image/png','image/webp','image/avif','image/heic','image/heif'].includes(file.type))throw Error('photoInvalid');
- if(!file.size||file.size>MAX_INPUT)throw Error('photoTooLarge');
+ if(!file?.size)throw Error('photoInvalid');if(file.size>MAX_INPUT)throw Error('photoTooLarge');
+ // Document providers may omit MIME or label JPEG/PNG as application/octet-stream.
+ // Validate bytes rather than trusting metadata or the filename; SVG stays rejected.
+ const mime=await photoMime(file);file=new Blob([file],{type:mime});
  let image,url;
  try{
   if(globalThis.createImageBitmap)image=await createImageBitmap(file,{imageOrientation:'from-image'});
@@ -78,14 +81,19 @@ export function createApartmentPhotoEditor(root,originalId,{canManage,onBusy}){
   else disposeView=paintApartmentPhoto(preview,id);
   refresh();
  }
- select.onclick=()=>{if(!busy&&canManage()){input.value='';input.click();}};
- input.onchange=async()=>{
-  const file=input.files?.[0];if(!file||busy||!canManage())return;
+ async function receive(source){
+  if(busy||!canManage())return;
   busy=true;onBusy(true);status('photoProcessing');refresh();
-  try{const next=await prepareApartmentPhoto(file);if(active){blob=next;id=undefined;status('photoPending');show();}}
-  catch(error){if(active)status(error.message,true);}
+  try{const file=await source();if(!file){if(active)status('photoCancelled');return;}const next=await prepareApartmentPhoto(file);if(active&&canManage()){blob=next;id=undefined;status('photoPending');show();}}
+  catch(error){if(active)status(['photoTooLarge','photoInvalid','photoNativeUnavailable'].includes(error.message)?error.message:'photoLoadFailed',true);}
   finally{busy=false;input.value='';if(active){onBusy(false);refresh();}}
+ }
+ select.onclick=()=>{
+  if(busy||!canManage())return;
+  if(globalThis.Capacitor?.getPlatform?.()==='android')receive(()=>selectAndroidPhoto());
+  else{input.value='';input.click();}
  };
+ input.onchange=()=>{const file=input.files?.[0];if(file)receive(()=>file);};
  remove.onclick=()=>{if(busy||!canManage())return;blob=undefined;id=undefined;status('photoPending');show();};
  show();
  return {
