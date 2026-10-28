@@ -31,3 +31,8 @@ test('offline repository persists, rejects stale writes/corruption and retains b
 test('duplicate IDs, invalid money and duplicated work links are rejected without mutation',()=>{
  for(const amountCents of [-1,1.5,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>change(emptyMaintenance(),'expenses','save',expense('e','RON',amountCents)));const d={...emptyMaintenance(),expenses:[expense(),expense()]};assert.throws(()=>validateMaintenance(d));
 });
+test('new work after manual expenses accepts actual cost above estimate',()=>{
+ const data={...emptyMaintenance(),expenses:[expense()]};
+ const work={id:'repair-after-expense',apartmentId:'a',description:'Test repair',scheduledDate:'2026-10-28',completedDate:'2026-10-28',provider:'Test provider',estimatedCents:50000,actualCents:600000,status:'completed',currency:'RON'};
+ const next=change(data,'works','save',work);assert.deepEqual(next.works,[work]);assert.deepEqual(next.expenses,data.expenses);
+});

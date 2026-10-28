@@ -239,3 +239,6 @@ $('close-menu').onclick=()=>$('app-menu').close();
 for(const kind of ['apartment','booking'])$('menu-add-'+kind).onclick=()=>{$('app-menu').close();$('add-'+kind).click();};
 
 fitCalendarViewport(document.querySelector('.timeline-scroll'),document.querySelector('.app-navigation'));
+
+// Only Maintenance drafts restore navigation; no other screen or business data is changed.
+if(maintenanceScreen.hasDraft())selectScreen('maintenance');

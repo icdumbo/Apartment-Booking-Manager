@@ -476,3 +476,8 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 #maintenance-panel .maintenance-error,.maintenance-card .maintenance-due-overdue {color:#9a293b;font-weight:600}
 .maintenance-card .maintenance-due-soon {color:#76500b;font-weight:600}
 @media(max-width:430px){.maintenance-filters,.maintenance-editor{grid-template-columns:minmax(0,1fr);padding:12px}.maintenance-tabs{gap:6px}.maintenance-tabs button{flex:1 1 90px;padding:9px;font-size:14px}.maintenance-card{padding:13px}}
+
+/* Maintenance validation stays beside the field, including long Fold forms. */
+#maintenance-panel .maintenance-field-error {color:#9a293b;font-weight:600;font-size:14px;line-height:1.4}
+#maintenance-panel [aria-invalid=true] {border:2px solid #9a293b}
+#maintenance-panel .maintenance-editor .maintenance-error {grid-column:1/-1;margin:0}

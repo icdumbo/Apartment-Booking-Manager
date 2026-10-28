@@ -36,7 +36,7 @@ export function changeMaintenance(data,command,access){
  }else if(operation==='save'){
   if(!item?.id||(id&&!old)||(!id&&next[kind].some(row=>row.id===item.id))||(id&&item.id!==id))fail();
   if(old?.workId)throw Error('maintenanceLinked');if(item.workId)throw Error('maintenanceLinked');
-  if(kind==='works'&&next.expenses.some(row=>row.workId===id)&&(old.apartmentId!==item.apartmentId||old.currency!==item.currency||old.actualCents!==item.actualCents))throw Error('maintenanceLinked');
+  if(kind==='works'&&old&&next.expenses.some(row=>row.workId===old.id)&&(old.apartmentId!==item.apartmentId||old.currency!==item.currency||old.actualCents!==item.actualCents))throw Error('maintenanceLinked');
   next[kind]=old?next[kind].map(row=>row.id===id?{...old,...item}:row):[...next[kind],item];
  }else fail();return validateMaintenance(next);
 }

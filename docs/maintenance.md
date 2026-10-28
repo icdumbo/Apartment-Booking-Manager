@@ -31,3 +31,58 @@ Inspections due before today are overdue; today through 30 days ahead are upcomi
 All records remain local/offline on access expiry. Every mutation rechecks the existing entitlement. BASIC cannot mutate or inspect the PREMIUM module, but data is not erased. No dependency, native permission, Android version, signing or backend change. Local storage is not a cloud backup; uninstalling/clearing app data removes it. A business-data-only export does not include this separate key; no new backup/import feature is implemented in this stage.
 
 Automated checks: `node --test tests/maintenance.test.js tests/i18n.test.js`; `npx playwright test checks/maintenance.spec.mjs`. Browser profiles cover 344/360/430/840/1024 px, offline bundled-file routing, CRUD, conversion, failure retention, entitlement expiry, RO/EN and reload persistence. Native Android/Fold installation and process restart remain device checks for a separately approved APK; none is built here.
+
+## Repair save and draft fixes
+
+Regression reproduced: a new work had no command `id`, and ordinary expense
+records had no `workId`. The old link predicate compared these two undefined
+values, treated an ordinary expense as linked, and dereferenced the absent old
+work. The link guard now only runs for an existing work and compares its real
+ID. Actual cost above estimated cost remains allowed. No record migration or
+financial calculation change is required.
+
+`maintenance-form.js` validates field by field before the shared domain/save
+boundary: required description/date/amount where applicable, actual calendar
+dates, ordering of completion/inspection dates, choices, text length and money.
+The error is associated via aria-describedby and aria-invalid; the first invalid
+field is scrolled into view and focused. Storage/access/conflict errors appear
+inside the open form near Save and are focused, rather than only above a long
+page. A successful save shows the stored record and scrolls it into view. If
+Maintenance filters would exclude that saved record, those local filters are
+cleared to make it visible. Existing report filters are unaffected.
+
+Ciorne / drafts use a separate localStorage key
+`apartment-booking-manager:maintenance-drafts:v1`, version 1. There is one raw-text
+draft per kind (expenses/works/reviews), with a stable intended record UUID and,
+for edits, the original record snapshot. Drafts include invalid/incomplete input;
+no date/money coercion is written back over user text. Input/change events save
+synchronously, and pagehide/background events retry capture. Tabs preserve their
+own drafts; a failed draft write blocks switching tabs rather than dropping the
+in-memory text. An existing draft is resumed instead of replaced by Add/Edit.
+
+After page/process recreation, pending Maintenance drafts restore navigation to
+Maintenance and the last active draft, subject to the unchanged entitlement
+gate. BASIC hides the editor but does not remove drafts. No draft is converted
+to a definitive record without pressing Save and passing all validation. Only a
+successful record save or explicit Cancel removes its draft; other kinds remain.
+Cancel does not close the editor if the draft cannot be removed. Draft write/read
+failures are explicit and do not reset corrupt stored data. Storage loss/fullness
+cannot provide a persistence guarantee; the user is warned to keep the app open.
+
+Restored edits compare the original record snapshot with the current saved
+record; changed/deleted records cannot be overwritten. A new draft's stable UUID
+also prevents duplicate creation if record saving succeeded but removing the
+draft failed before restart. Draft mutations compare the previous stored entry,
+so an already changed draft in another window is not silently replaced. As with
+the existing repository comparison guard, this is not a cross-process atomic
+transaction lock for truly simultaneous writes. No changes to license policy,
+Android version/signing, photos, payments, reservation storage or reports.
+
+Relevant regressions: `tests/maintenance.test.js`,
+`tests/maintenance-drafts.test.js`, `checks/maintenance.spec.mjs`, and
+`checks/maintenance-drafts.spec.mjs`. These cover a manual expense followed by a
+new work with 500 estimated / 6000 actual, both reported completion dates, status
+editing/deletion, exact field errors, all three drafts, stale edits, failed
+storage, cleanup failure without duplication, and full offline browser-process
+restart before and after Save. Browser tests are not proof of Android WebView
+lifecycle behavior on a physical Fold; that requires a separately approved APK.
