@@ -458,3 +458,21 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 .photo-message{margin:0;color:#435770;font-size:13px;line-height:1.5}
 .photo-message:empty{display:none}.photo-message.photo-error{color:#a13e30}
 @media(min-width:700px){.apartment-photo-preview{height:220px}}
+
+/* Maintenance is scoped to its panel; calendar and existing report geometry are unchanged. */
+#maintenance-panel {color:#14243a;min-width:0;padding-bottom:20px}
+.maintenance-tabs,.maintenance-actions,.maintenance-totals {display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.maintenance-tabs button,.maintenance-actions button,#maintenance-add {min-height:44px;white-space:normal}
+.maintenance-tabs [aria-pressed=true] {background:#2478eb;color:#fff;border-color:#2478eb}
+.maintenance-filters,.maintenance-editor {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#fff;border:1px solid #d9e2ee;border-radius:16px;padding:16px;margin:14px 0}
+#maintenance-panel label {display:flex;flex-direction:column;gap:7px;min-width:0;font-size:14px;font-weight:600}
+#maintenance-panel input,#maintenance-panel select,#maintenance-panel textarea {width:100%;min-width:0;min-height:44px;font:inherit;color:#14243a;border:1px solid #aebed1;border-radius:9px;padding:10px;box-sizing:border-box;background:#fff}
+#maintenance-panel textarea {min-height:80px;resize:vertical}
+.maintenance-editor h2,.maintenance-editor .maintenance-actions {grid-column:1/-1;margin:0}
+.maintenance-list {display:grid;gap:12px}
+.maintenance-card {background:#fff;border:1px solid #d9e2ee;border-radius:16px;padding:16px;overflow-wrap:anywhere;box-shadow:0 3px 12px #14243a08}
+.maintenance-card h3 {font-size:17px;margin:0 0 8px}.maintenance-card p {margin:9px 0;white-space:pre-wrap;color:#34485f;line-height:1.5}
+.maintenance-totals strong {padding:12px 18px;background:#edf4ff;border-radius:10px}
+#maintenance-panel .maintenance-error,.maintenance-card .maintenance-due-overdue {color:#9a293b;font-weight:600}
+.maintenance-card .maintenance-due-soon {color:#76500b;font-weight:600}
+@media(max-width:430px){.maintenance-filters,.maintenance-editor{grid-template-columns:minmax(0,1fr);padding:12px}.maintenance-tabs{gap:6px}.maintenance-tabs button{flex:1 1 90px;padding:9px;font-size:14px}.maintenance-card{padding:13px}}

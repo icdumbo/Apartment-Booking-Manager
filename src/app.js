@@ -1,3 +1,4 @@
+import {createMaintenanceScreen} from './maintenance-screen.js';
 import {apartmentPhotos,paintApartmentPhoto,createApartmentPhotoEditor} from './apartment-photo.js';
 import {fitCalendarViewport} from './calendar-viewport.js';
 import {createEntryScreen} from './entry-screen.js';
@@ -36,6 +37,7 @@ let selectorYear=calendarYear(start);
 const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 const statisticsScreen=createStatisticsScreen({root:$('statistics-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
 const reportsScreen=createReportsScreen({root:$('reports-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
+const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),upgrade:()=>{$('app-menu').showModal();}});
 function renderMonthSelector(){
  $('selector-year').textContent=selectorYear;const currentDate=new Date(start*86400000);
  $('month-options').replaceChildren();
@@ -50,7 +52,7 @@ function renderMonthSelector(){
 }
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
 function render(){
- renderAccessStatus();renderApartments();if(activeScreen==='reports')reportsScreen.render();if(activeScreen==='payments')collectionsScreen.render();if(activeScreen==='statistics')statisticsScreen.render();if(editing?.payments)editing.payments.refresh();
+ renderAccessStatus();renderApartments();if(activeScreen==='maintenance')maintenanceScreen.render();if(activeScreen==='reports')reportsScreen.render();if(activeScreen==='payments')collectionsScreen.render();if(activeScreen==='statistics')statisticsScreen.render();if(editing?.payments)editing.payments.refresh();
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>openSavedBooking(b.id),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
  $('summary').textContent=t('summary',{apartments:state.apartments.length,bookings:state.bookings.length});
@@ -97,14 +99,15 @@ function refreshStoredState(){
 function selectScreen(screen){
  const changed=!blocked&&!$('editor').open?refreshStoredState():false;if(changed===null)return;
  activeScreen=screen;if(changed)render();
+ $('maintenance-panel').hidden=screen!=='maintenance';if(screen==='maintenance')maintenanceScreen.render();
  $('reports-panel').hidden=screen!=='reports';if(screen==='reports')reportsScreen.render();
  $('statistics-panel').hidden=screen!=='statistics';if(screen==='statistics')statisticsScreen.render();
- $('payments-panel').hidden=screen!=='payments';$('apartment-actions').hidden=['payments','statistics','reports'].includes(screen);if(screen==='payments')collectionsScreen.render();
- if(screen==='payments')$('open-menu').setAttribute('aria-current','page');else $('open-menu').removeAttribute('aria-current');
+ $('payments-panel').hidden=screen!=='payments';$('apartment-actions').hidden=['payments','statistics','reports','maintenance'].includes(screen);if(screen==='payments')collectionsScreen.render();
+ if(['payments','maintenance'].includes(screen))$('open-menu').setAttribute('aria-current','page');else $('open-menu').removeAttribute('aria-current');
  $('calendar-panel').hidden=screen!=='calendar';$('apartments-panel').hidden=screen!=='apartments';$('add-booking').hidden=screen!=='calendar';
  const heading=document.querySelector('h1'),subtitle=$('screen-subtitle');
- heading.dataset.i18n=screen==='reports'?'navReports':screen==='calendar'?'heading':screen==='payments'?'navPayments':screen==='statistics'?'navStatistics':'navApartments';heading.textContent=t(heading.dataset.i18n);
- subtitle.dataset.i18n=screen==='reports'?'reportSubtitle':screen==='calendar'?'subtitle':screen==='payments'?'collectionsSubtitle':screen==='statistics'?'statisticsSubtitle':'apartmentsSubtitle';subtitle.textContent=t(subtitle.dataset.i18n);
+ heading.dataset.i18n=screen==='maintenance'?'navMaintenance':screen==='reports'?'navReports':screen==='calendar'?'heading':screen==='payments'?'navPayments':screen==='statistics'?'navStatistics':'navApartments';heading.textContent=t(heading.dataset.i18n);
+ subtitle.dataset.i18n=screen==='maintenance'?'maintenanceSubtitle':screen==='reports'?'reportSubtitle':screen==='calendar'?'subtitle':screen==='payments'?'collectionsSubtitle':screen==='statistics'?'statisticsSubtitle':'apartmentsSubtitle';subtitle.textContent=t(subtitle.dataset.i18n);
  for(const link of document.querySelectorAll('[data-screen]')){if(link.dataset.screen===screen)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');}
 }
 for(const link of document.querySelectorAll('[data-screen]'))link.onclick=e=>{e.preventDefault();if($('app-menu').open)$('app-menu').close();selectScreen(link.dataset.screen);};
