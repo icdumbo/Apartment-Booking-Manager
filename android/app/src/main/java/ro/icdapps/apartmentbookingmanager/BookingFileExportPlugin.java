@@ -28,7 +28,7 @@ public class BookingFileExportPlugin extends Plugin {
         String mime = call.getString("mimeType", "");
         String data = call.getString("data", "");
         if (!name.matches("[A-Za-z0-9._-]{1,180}") || data.isEmpty() || data.length() > 33554432 ||
-            !(mime.equals("application/pdf") && name.endsWith(".pdf") || mime.equals(XLSX) && name.endsWith(".xlsx"))) {
+            !(mime.equals("application/pdf") && name.endsWith(".pdf") || mime.equals(XLSX) && name.endsWith(".xlsx") || mime.equals("application/json") && name.endsWith(".abmbackup.json"))) {
             call.reject("Invalid export payload", "exportSaveFailed"); return;
         }
         if (pending) { call.reject("Another export is pending", "exportSaveFailed"); return; }

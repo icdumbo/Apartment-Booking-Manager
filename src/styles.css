@@ -481,3 +481,14 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 #maintenance-panel .maintenance-field-error {color:#9a293b;font-weight:600;font-size:14px;line-height:1.4}
 #maintenance-panel [aria-invalid=true] {border:2px solid #9a293b}
 #maintenance-panel .maintenance-editor .maintenance-error {grid-column:1/-1;margin:0}
+
+/* New rows reuse the existing classy menu layout. */
+.menu-shortcuts button[data-screen=maintenance]:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232478eb' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3a6 6 0 0 0-7 7L3 17a3 3 0 0 0 4 4l7-7a6 6 0 0 0 7-7l-4 4-4-4 4-4Z'/%3E%3C/svg%3E")}
+.menu-shortcuts #open-backup:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232478eb' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12v8h16v-8M12 16V3m-5 5 5-5 5 5M7 20h10'/%3E%3C/svg%3E")}
+#backup-dialog{width:min(560px,calc(100vw - 24px));box-sizing:border-box;color:#14243a}
+#backup-content p{font-size:14px;line-height:1.55;color:#34485f;overflow-wrap:anywhere}
+.backup-actions{display:flex;flex-wrap:wrap;gap:10px}.backup-actions button,#backup-content button{min-height:44px;white-space:normal}
+.backup-preview{background:#f8fafc;border:1px solid #d9e2ee;padding:14px;border-radius:12px;margin:14px 0}
+.backup-preview dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;margin:12px 0;font-size:14px}.backup-preview dd{margin:0;font-weight:700}
+.backup-preview .backup-confirm{display:flex;align-items:center;gap:10px;line-height:1.5;font-size:14px;margin:16px 0}.backup-confirm input{width:22px;height:22px;flex-shrink:0}
+.backup-preview button{margin:0 8px 8px 0}#backup-content .backup-status{font-weight:600;color:#14243a}

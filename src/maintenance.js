@@ -1,3 +1,4 @@
+import {assertBackupIdle} from './backup-transaction.js';
 import {dayNumber} from './domain.js?v=0.2.1';
 import {validateCurrency} from './currency.js';
 export const MAINTENANCE_KEY='apartment-booking-manager:maintenance:v1';
@@ -41,7 +42,7 @@ export function changeMaintenance(data,command,access){
  }else fail();return validateMaintenance(next);
 }
 export function createMaintenanceRepository(storage=globalThis.localStorage){
- const load=()=>{const raw=storage.getItem(MAINTENANCE_KEY);return raw===null?emptyMaintenance():validateMaintenance(JSON.parse(raw));};
+ const load=()=>{assertBackupIdle(storage);const raw=storage.getItem(MAINTENANCE_KEY);return raw===null?emptyMaintenance():validateMaintenance(JSON.parse(raw));};
  return {load,save(next,expected){validateMaintenance(next);if(JSON.stringify(load())!==JSON.stringify(expected))throw Error('maintenanceConflict');storage.setItem(MAINTENANCE_KEY,JSON.stringify(next));}};
 }
 export function selectMaintenance(data,kind,filters={}){

@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(BookingAccessPlugin.class);
         registerPlugin(BookingFileExportPlugin.class);
         registerPlugin(BookingPhotoPlugin.class);
+        registerPlugin(BookingBackupPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

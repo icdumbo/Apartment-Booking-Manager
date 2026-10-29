@@ -1,3 +1,5 @@
+import {createBackupScreen} from './backup-screen.js';
+import {recoverLocalBackup} from './backup-transaction.js';
 import {createMaintenanceScreen} from './maintenance-screen.js';
 import {apartmentPhotos,paintApartmentPhoto,createApartmentPhotoEditor} from './apartment-photo.js';
 import {fitCalendarViewport} from './calendar-viewport.js';
@@ -25,6 +27,7 @@ const $=id=>document.getElementById(id);
 initializeLanguage();
 let repository,state,blocked=false;
 try {
+ await recoverLocalBackup();
  repository=createLocalRepository();state=repository.load();
  if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}
  const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
@@ -37,6 +40,10 @@ let selectorYear=calendarYear(start);
 const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 const statisticsScreen=createStatisticsScreen({root:$('statistics-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
 const reportsScreen=createReportsScreen({root:$('reports-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
+const backupScreen=createBackupScreen({root:$('backup-content'),ready:()=>!blocked});
+$('open-backup').onclick=()=>{$('app-menu').close();backupScreen.render();$('backup-dialog').showModal();};
+$('close-backup').onclick=()=>{if(backupScreen.isBusy())return;if(backupScreen.needsReload())backupScreen.reload();else $('backup-dialog').close();};
+$('backup-dialog').addEventListener('cancel',event=>{if(backupScreen.isBusy()||backupScreen.needsReload()){event.preventDefault();if(!backupScreen.isBusy())backupScreen.reload();}});
 const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),upgrade:()=>{$('app-menu').showModal();}});
 function renderMonthSelector(){
  $('selector-year').textContent=selectorYear;const currentDate=new Date(start*86400000);
@@ -180,7 +187,7 @@ $('confirmation').addEventListener('close',()=>{
  const photoId=editing.kind==='apartment'?state.apartments.find(a=>a.id===editing.id)?.photoId:undefined;
  if(persist(next)){$('editor').close();if(photoId)apartmentPhotos.remove(photoId).catch(()=>{});}
 });
-function refreshLanguage(){translateUI();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());editing.photo?.refresh();if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();if($('backup-dialog').open)backupScreen.render();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());editing.photo?.refresh();if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){

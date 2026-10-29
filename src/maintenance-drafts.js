@@ -1,3 +1,4 @@
+import {assertBackupIdle} from './backup-transaction.js';
 // Raw form text stays separate from validated records, including incomplete/invalid input.
 export const MAINTENANCE_DRAFT_KEY='apartment-booking-manager:maintenance-drafts:v1';
 const kinds=['expenses','works','reviews'];
@@ -11,7 +12,7 @@ function validate(doc){
  return doc;
 }
 export function createMaintenanceDraftRepository(storage=globalThis.localStorage){
- const load=()=>{try{const raw=storage.getItem(MAINTENANCE_DRAFT_KEY);return raw===null?{version:1,activeKind:'expenses',drafts:{}}:validate(JSON.parse(raw));}catch{throw Error('maintenanceDraftUnreadable');}};
+ const load=()=>{try{assertBackupIdle(storage);const raw=storage.getItem(MAINTENANCE_DRAFT_KEY);return raw===null?{version:1,activeKind:'expenses',drafts:{}}:validate(JSON.parse(raw));}catch{throw Error('maintenanceDraftUnreadable');}};
  function update(kind,draft,expected){
   const doc=load();if(!same(doc.drafts[kind],expected))throw Error('maintenanceDraftConflict');
   if(draft){doc.drafts[kind]=structuredClone(draft);doc.activeKind=kind;}else{delete doc.drafts[kind];if(!doc.drafts[doc.activeKind])doc.activeKind=Object.keys(doc.drafts)[0]??kind;}

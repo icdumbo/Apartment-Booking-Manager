@@ -1,3 +1,4 @@
+import {assertBackupIdle} from './backup-transaction.js';
 import {validateApartment,validateBooking} from './domain.js?v=0.2.1';
 const KEY='apartment-booking-manager:v1';
 export function validateState(state) {
@@ -11,5 +12,5 @@ export function validateState(state) {
 // Adapter contract: load() -> state | null; save(state) -> void.
 // A remote adapter can replace this module without changing domain or timeline rules.
 export function createLocalRepository(storage=globalThis.localStorage) {
-  return {load(){const raw=storage.getItem(KEY); return raw===null?null:validateState(JSON.parse(raw));},save(state){validateState(state); storage.setItem(KEY,JSON.stringify(state));}};
+  return {load(){assertBackupIdle(storage);const raw=storage.getItem(KEY); return raw===null?null:validateState(JSON.parse(raw));},save(state){assertBackupIdle(storage);validateState(state); storage.setItem(KEY,JSON.stringify(state));}};
 }
