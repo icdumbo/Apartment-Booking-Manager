@@ -20,6 +20,6 @@ test('payments inherit booking currency; mismatched or unsupported currencies ar
  for(const currency of ['USD','',null])assert.throws(()=>validateBookingExtras({currency}),/invalidCurrency/);
 });
 test('EUR and legacy RON ledgers round-trip offline without modifying stored integers or history',()=>{
- let raw;const repo=createLocalRepository({getItem:()=>raw??null,setItem:(_,v)=>raw=v});const booking={id:'b',apartmentId:'a',guest:'Test',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15',totalAmountCents:20000,...upsertPayment({totalAmountCents:20000},payment)};
+ let raw;const repo=createLocalRepository({getItem:key=>key==='apartment-booking-manager:v1'?(raw??null):null,setItem:(_,v)=>raw=v});const booking={id:'b',apartmentId:'a',guest:'Test',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15',totalAmountCents:20000,...upsertPayment({totalAmountCents:20000},payment)};
  const state={version:1,apartments:[{id:'a',name:'Test',address:'Test',city:'Test'}],bookings:[booking,{...booking,id:'eur',currency:'EUR',checkIn:'2026-10-15',checkOut:'2026-10-17'}]};repo.save(state);const before=raw;assert.deepEqual(repo.load(),state);assert.equal(raw,before);assert.equal(bookingCurrency(repo.load().bookings[0]),'RON');assert.equal(bookingCurrency(repo.load().bookings[1]),'EUR');
 });

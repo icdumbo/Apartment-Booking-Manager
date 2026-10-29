@@ -145,7 +145,7 @@ and private keys are never included.
 ## Approved AB launcher icon
 
 `design/ab-icon.svg` and the 512-px PNG preview trace the approved attached
-“Monogramă AB” reference: white interlocked serif letterforms on uniform #112C37.
+“Monogramă AB” reference: white interlocked serif letterforms on uniform #102A35.
 No blue/turquoise accent, gradient, house, caption, variant number or white frame
 is included. The paths are embedded, not dependent on a device font. Adaptive
 foreground content is inside the safe area, with the preview/legacy assets

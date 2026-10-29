@@ -3,7 +3,7 @@ test('AB icon density resources and adaptive/monochrome XML keep package and app
  const res='android/app/src/main/res/';
  for(const [density,size]of [['mdpi',48],['hdpi',72],['xhdpi',96],['xxhdpi',144],['xxxhdpi',192]])for(const [name,side]of [['ic_launcher.png',size],['ic_launcher_round.png',size],['ic_launcher_foreground.png',size*2.25]]){const png=await readFile(res+'mipmap-'+density+'/'+name);assert.equal(png.subarray(1,4).toString(),'PNG');assert.equal(png.readUInt32BE(16),side);assert.equal(png.readUInt32BE(20),side);}
  for(const v of ['v26','v33']){const xml=await readFile(res+'mipmap-anydpi-'+v+'/ic_launcher.xml','utf8');assert.match(xml,/@color\/ic_launcher_background/);assert.match(xml,/@drawable\/ic_launcher_foreground/);if(v==='v33')assert.match(xml,/<monochrome/);}
- assert.match(await readFile(res+'values/ic_launcher_background.xml','utf8'),/#112C37/);assert.match(await readFile('android/app/build.gradle','utf8'),/applicationId "ro.icdapps.apartmentbookingmanager"/);
+ assert.match(await readFile(res+'values/ic_launcher_background.xml','utf8'),/#102A35/);assert.match(await readFile('android/app/build.gradle','utf8'),/applicationId "ro.icdapps.apartmentbookingmanager"/);
 });
 test('native backup stream copies 64 MB with bounded buffer, no size cap, and reports insufficient space',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'abm-backup-reader-'));

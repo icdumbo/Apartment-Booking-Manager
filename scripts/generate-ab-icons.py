@@ -3,7 +3,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 import re
 root=Path(__file__).resolve().parents[1]
-NAVY='#112C37'
+NAVY='#102A35'
 # Traced in reference-image coordinates, excluding its white frame, variant number and caption.
 # B is painted first, then A, preserving their interconnection. No font, gradient or accent line.
 b='M528 414H654C810 414 813 546 686 573C830 579 838 746 645 746H528V738H594V600L580 490V421H528Z M626 422V565H659C754 565 756 422 655 422Z M626 580V737H650C766 737 766 580 671 580Z'

@@ -35,7 +35,7 @@ test('BASIC cannot change history; TRIAL and PREMIUM can; normal BASIC reservati
  assert.doesNotThrow(()=>assertPaymentHistoryAccess(after,{...after,guest:'Edited guest'},{state:'BASIC'}));
 });
 test('offline repository persists ledger and legacy remainder, rejecting invalid updates without data loss',()=>{
- let raw;const storage={getItem:()=>raw??null,setItem:(_,value)=>raw=value};const repo=createLocalRepository(storage);
+ let raw;const storage={getItem:key=>key==='apartment-booking-manager:v1'?(raw??null):null,setItem:(_,value)=>raw=value};const repo=createLocalRepository(storage);
  const booking={id:'b',apartmentId:'a',guest:'Test guest',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-15',...initial,paidAmountCents:20000};
  const state={version:1,apartments:[{id:'a',name:'Test',address:'Test address',city:'Test city'}],bookings:[booking]};repo.save(state);const legacy=raw;repo.load();assert.equal(raw,legacy);
  state.bookings=[{...booking,...upsertPayment(booking,payment('detail',10000),{fromLegacy:true})}];repo.save(state);assert.deepEqual(createLocalRepository(storage).load(),state);const valid=raw;

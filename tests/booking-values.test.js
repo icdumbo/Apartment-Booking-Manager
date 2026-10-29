@@ -26,12 +26,12 @@ test('guest count, source and notes are optional and validated',()=>{
  assert.equal(readBookingExtras({persons:'4',notes:'Test note'}).persons,4);
 });
 test('legacy and extended bookings round-trip without migrations or retroactive defaults',()=>{
- let raw=JSON.stringify(legacy);const before=raw;const repository=createLocalRepository({getItem:()=>raw,setItem:(_,value)=>raw=value});
+ let raw=JSON.stringify(legacy);const before=raw;const repository=createLocalRepository({getItem:key=>key==='apartment-booking-manager:v1'?raw:null,setItem:(_,value)=>raw=value});
  assert.deepEqual(repository.load(),legacy);assert.equal(raw,before);repository.save(repository.load());assert.equal(raw,before);
  const extended={...legacy,bookings:[{...legacy.bookings[0],...readBookingExtras({persons:'3',totalAmountCents:'1500,25',paidAmountCents:'500,15',source:'direct',notes:'Test note'})}]};repository.save(extended);assert.deepEqual(repository.load(),extended);assert.equal(bookingBalance(repository.load().bookings[0]),100010);
 });
 test('repository rejects invalid booking metadata without overwriting existing local data',()=>{
- let raw=JSON.stringify(legacy);const before=raw,repository=createLocalRepository({getItem:()=>raw,setItem:(_,value)=>raw=value});
+ let raw=JSON.stringify(legacy);const before=raw,repository=createLocalRepository({getItem:key=>key==='apartment-booking-manager:v1'?raw:null,setItem:(_,value)=>raw=value});
  assert.throws(()=>repository.save({...legacy,bookings:[{...legacy.bookings[0],totalAmountCents:-1}]}),/invalidAmount/);assert.equal(raw,before);
 });
 

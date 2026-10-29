@@ -14,7 +14,7 @@ export const fixture={version:1,migrations:{originalDemoRemoved:true},apartments
 ]};
 const filters={start:'2026-10-01',end:'2026-10-31'},access={state:'PREMIUM'};
 test('ALL is default, consecutive RON/EUR stays retain original amounts and currency after offline reload',()=>{
- const before=JSON.stringify(fixture);let raw;const repo=createLocalRepository({getItem:()=>raw??null,setItem:(key,value)=>raw=value});repo.save(fixture);const data=repo.load(),r=select(data,filters,access);
+ const before=JSON.stringify(fixture);let raw;const repo=createLocalRepository({getItem:key=>key==='apartment-booking-manager:v1'?(raw??null):null,setItem:(key,value)=>raw=value});repo.save(fixture);const data=repo.load(),r=select(data,filters,access);
  assert.equal(r.currency,'ALL');assert.equal(r.rows.length,4);assert.equal(r.totalAmountCents,undefined);assert.equal(r.receivedAmountCents,undefined);
  assert.equal(r.totalsByCurrency.RON.totalAmountCents,50000);assert.equal(r.totalsByCurrency.RON.receivedAmountCents,10000);assert.equal(r.totalsByCurrency.RON.balanceCents,40000);assert.equal(r.totalsByCurrency.RON.legacyAmountCents,10000);
  assert.equal(r.totalsByCurrency.EUR.totalAmountCents,35000);assert.equal(r.totalsByCurrency.EUR.receivedAmountCents,10000);assert.equal(r.totalsByCurrency.EUR.balanceCents,25000);assert.equal(r.totalsByCurrency.EUR.unpricedCount,1);assert.equal(r.totalsByCurrency.RON.unpricedCount,0);

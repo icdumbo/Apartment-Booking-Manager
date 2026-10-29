@@ -11,7 +11,7 @@ const state={version:1,apartments:[{id:'a',name:'Apartament Test',address:'Adres
 const filters={start:'2026-10-01',end:'2026-10-31',status:'all',currency:'RON'},access={state:'PREMIUM'};
 test('consecutive stays survive offline persistence and both exports without losing unspecified values',()=>{
  const before=JSON.stringify(state);validateState(state);let raw;
- const repo=createLocalRepository({getItem:()=>raw??null,setItem:(key,value)=>raw=value});repo.save(state);const restored=repo.load();
+ const repo=createLocalRepository({getItem:key=>key==='apartment-booking-manager:v1'?(raw??null):null,setItem:(key,value)=>raw=value});repo.save(state);const restored=repo.load();
  const result=selectReservationsReport(restored,filters,access);assert.deepEqual(result.rows.map(b=>b.bookingId),['first','next']);assert.equal(result.unpricedCount,1);assert.equal(result.totalAmountCents,50000);assert.equal(result.receivedAmountCents,10000);
  const sheet=xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/worksheets/sheet1.xml'];assert.match(sheet,/Client Test Alpha/);assert.match(sheet,/Client Test Beta/);assert.match(xlsxParts(reservationsExcel(restored,filters,access).bytes)['xl/tables/table1.xml'],/autoFilter ref="A11:J13"/);
  const pdf=reservationsPDF(restored,filters,access);assert.ok(pdf.bytes.length>0);
