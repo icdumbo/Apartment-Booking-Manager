@@ -43,15 +43,21 @@ public class BookingBackupPlugin extends Plugin {
         try(RandomAccessFile input=new RandomAccessFile(file,"r")){input.seek(offset);byte[] buffer=new byte[(int)Math.min(CHUNK,file.length()-offset)];input.readFully(buffer);JSObject r=new JSObject();r.put("data",Base64.encodeToString(buffer,Base64.NO_WRAP));r.put("done",offset+buffer.length==file.length());call.resolve(r);}
     }catch(Exception e){call.reject("Cannot read backup chunk","backupReadFailed");}});}
     @PluginMethod public synchronized void closeImport(PluginCall call){File f=imports.remove(call.getString("handle",""));if(f!=null)f.delete();call.resolve();}
+    // Capacitor getLong accepts only Long; JSON byte sizes below 2 GiB arrive as Integer.
+    private static long exportSize(PluginCall call){
+        Object value=call.getData().opt("size");if(!(value instanceof Number))return 0L;
+        double size=((Number)value).doubleValue();
+        return Double.isFinite(size)&&size>0&&size<=9007199254740991d&&size==Math.rint(size)?((Number)value).longValue():0L;
+    }
     @PluginMethod public synchronized void beginExport(PluginCall call){
-        String filename=call.getString("filename","");if(call.getLong("size",0L)<=0){call.reject("Invalid backup size","backupWriteFailed");return;}if(pending||exportOutput!=null||!imports.isEmpty()){call.reject("Backup busy","backupBusy");return;}if(!filename.matches("[A-Za-z0-9._-]+\\.abmbackup\\.json")){call.reject("Invalid filename","backupWriteFailed");return;}
+        String filename=call.getString("filename","");if(exportSize(call)<=0){call.reject("Invalid backup size","backupWriteFailed");return;}if(pending||exportOutput!=null||!imports.isEmpty()){call.reject("Backup busy","backupBusy");return;}if(!filename.matches("[A-Za-z0-9._-]+\\.abmbackup\\.json")){call.reject("Invalid filename","backupWriteFailed");return;}
         pending=true;Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,filename);i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try{startActivityForResult(call,i,"exportSelected");}catch(Exception e){pending=false;call.reject("Cannot open save picker","backupWriteFailed");}
     }
     @ActivityCallback private synchronized void exportSelected(PluginCall call,ActivityResult r){
         pending=false;if(call==null)return;if(r.getResultCode()==Activity.RESULT_CANCELED){call.resolve(result("cancelled"));return;}
         Uri uri=r.getData()==null?null:r.getData().getData();if(r.getResultCode()!=Activity.RESULT_OK||uri==null||!"content".equals(uri.getScheme())){call.reject("Invalid output document","backupWriteFailed");return;}
-        try{exportUri=uri;exportFd=getContext().getContentResolver().openFileDescriptor(uri,"w");if(exportFd==null)throw new IOException();exportOutput=new android.os.ParcelFileDescriptor.AutoCloseOutputStream(exportFd);exportHandle=UUID.randomUUID().toString();exportExpected=call.getLong("size",0L);exportWritten=0;checkDestinationSpace(exportExpected);JSObject result=result("ready");result.put("handle",exportHandle);call.resolve(result);}
+        try{exportUri=uri;exportFd=getContext().getContentResolver().openFileDescriptor(uri,"w");if(exportFd==null)throw new IOException();exportOutput=new android.os.ParcelFileDescriptor.AutoCloseOutputStream(exportFd);exportHandle=UUID.randomUUID().toString();exportExpected=exportSize(call);exportWritten=0;checkDestinationSpace(exportExpected);JSObject result=result("ready");result.put("handle",exportHandle);call.resolve(result);}
         catch(Exception e){abort();call.reject("Cannot open output document",code(e).equals("backupSpace")?"backupSpace":"backupWriteFailed");}
     }
     private void checkDestinationSpace(long bytes)throws IOException{
