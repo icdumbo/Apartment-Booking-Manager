@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {createBackup,parseBackup,restoreBackup,backupCounts,BACKUP_MAX} from '../src/backup.js';
+import {createBackup,parseBackup,restoreBackup,backupCounts} from '../src/backup.js';
 import {BACKUP_KEYS,BACKUP_JOURNAL,recoverLocalBackup,assertBackupIdle} from '../src/backup-transaction.js';
 import {photo64} from './fixtures/backup-photo.mjs';
 const locks={request:async(_name,run)=>run()},verifyPhoto=async blob=>{assert.ok(blob.size>100);},options={verifyPhoto};
@@ -18,7 +18,7 @@ test('full export/import preserves records, currencies, Romanian text, legacy ag
 test('complete validation rejects incompatible schema, credentials, bad references/amounts/dates and invalid photos before mutation',async()=>{
  const invalid=[d=>d.business.bookings[0].apartmentId='missing',d=>d.business.bookings[0].totalAmountCents=-1,d=>d.business.bookings[0].checkOut='2026-02-30',d=>d.business.bookings.push(d.business.bookings[0]),d=>d.preferences.owner=true,d=>d.licenses={owner:true},d=>d.photos=[],d=>d.photos[0].data='AAAA',d=>d.maintenance.expenses[0].amountCents=1.5,d=>d.business.apartments[0].token='secret'];
  for(const alter of invalid){const d=data();alter(d);await assert.rejects(parseBackup(encoded(d),options));}
- await assert.rejects(parseBackup(new Uint8Array(BACKUP_MAX+1),options),/backupTooLarge/);await assert.rejects(parseBackup(encoded(data()),{verifyPhoto:async()=>{throw Error('decoder failed');}}),/backupInvalid/);
+ await assert.rejects(parseBackup(new Uint8Array([0,1,2]),options),/backupInvalid/);await assert.rejects(parseBackup(encoded(data()),{verifyPhoto:async()=>{throw Error('decoder failed');}}),/backupInvalid/);
  const d=JSON.parse(new TextDecoder().decode(encoded(data())));d.version=2;await assert.rejects(parseBackup(new TextEncoder().encode(JSON.stringify(d)),options));
 });
 test('photo staging failure and concurrent data edits leave old data intact',async()=>{
@@ -43,4 +43,8 @@ test('missing photos, invalid source data and absent locking produce explicit er
 test('legacy receipts remain undated aggregates and linked work costs stay single expenses',async()=>{
  const d=data();d.business.bookings[1].paidAmountCents=30000;d.maintenance.expenses.push({id:'linked',workId:'w',apartmentId:'a',date:'2026-10-28',description:'Test linked cost',category:'repairs',amountCents:600000,currency:'EUR'});
  const doc=await parseBackup(encoded(d),options),s=memory();await restoreBackup(doc,{storage:s,photos:photoStore(),locks});const b=JSON.parse(s.getItem(BACKUP_KEYS[0]));assert.equal(b.bookings[1].paidAmountCents,30000);assert.equal(b.bookings[1].payments,undefined);const m=JSON.parse(s.getItem(BACKUP_KEYS[1]));assert.equal(m.expenses.filter(e=>e.workId==='w').length,1);assert.equal(m.expenses.find(e=>e.workId==='w').amountCents,m.works[0].actualCents);
+});
+test('restore space preflight rejects before writing any user record or permanent photo',async()=>{
+ const doc=await parseBackup(encoded(data()),options),s=memory();fill(s);const old=[...s.map];let writes=0;
+ await assert.rejects(restoreBackup(doc,{storage:s,locks,estimateSpace:async()=>({quota:100,usage:99}),photos:{async write(){writes++;},async remove(){}}}),/backupSpace/);assert.equal(writes,0);assert.deepEqual([...s.map],old);
 });

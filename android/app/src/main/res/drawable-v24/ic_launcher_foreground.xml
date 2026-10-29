@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
- <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M28 73L39 35H45L56 73H48L45 63H36L33 73Z M39 54H43L41 44Z"/>
- <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M58 35H70C84 35 85 51 77 54C87 59 83 73 71 73H58Z M65 42V50H70C77 50 77 42 70 42Z M65 58V66H71C78 66 78 58 71 58Z"/>
- <path android:fillColor="#2478EB" android:pathData="M28 79h54v3H28Z"/>
+ <group android:translateX="-5.325" android:translateY="-6.9" android:scaleX="0.105" android:scaleY="0.105">
+  <path android:fillColor="#FFFFFF" android:fillType="evenOdd" android:pathData="M528 414H654C810 414 813 546 686 573C830 579 838 746 645 746H528V738H594V600L580 490V421H528Z M626 422V565H659C754 565 756 422 655 422Z M626 580V737H650C766 737 766 580 671 580Z"/>
+  <path android:fillColor="#FFFFFF" android:pathData="M336 738H376L499 414H515L641 738H675V746H528V738H592L486 474L383 738H434V746H336Z"/>
+ </group>
 </vector>
