@@ -2,14 +2,16 @@ import {dayNumber,DAY} from './domain.js?v=0.2.1';
 import {canEditPayments} from './payments.js';
 import {bookingCurrency,validateCurrency} from './currency.js';
 import {selectCollections} from './collections.js';
+import {ownerScope} from './owners.js';
 function add(total,value){const result=total+value;if(!Number.isSafeInteger(result))throw new Error('collectionOverflow');return result;}
 function roundRatio(amount,numerator,denominator){return Number((BigInt(amount)*BigInt(numerator)+BigInt(denominator)/2n)/BigInt(denominator));}
 function bounds(year,month){const start=dayNumber(`${String(year).padStart(4,'0')}-${String(month??1).padStart(2,'0')}-01`),date=new Date(start*DAY);if(month)date.setUTCMonth(date.getUTCMonth()+1);else date.setUTCFullYear(date.getUTCFullYear()+1);return {start,end:date.getTime()/DAY};}
 function unionNights(intervals){let nights=0;for(const entries of intervals.values()){entries.sort((a,b)=>a[0]-b[0]);let start,end;for(const [a,b] of entries){if(end===undefined||a>end){if(end!==undefined)nights+=end-start;start=a;end=b;}else end=Math.max(end,b);}if(end!==undefined)nights+=end-start;}return nights;}
 // Read-only metrics from current booking and payment records; no financial cache or migration.
-export function selectStatistics(state,{year,month,mode='monthly',apartmentId='',currency='RON'},entitlement){
+export function selectStatistics(state,{year,month,mode='monthly',apartmentId='',ownerId='',currency='RON'},entitlement){
  if(!canEditPayments(entitlement))throw new Error('statisticsPremium');
  if(!['monthly','annual','comparison'].includes(mode)||!Number.isInteger(year)||year<1||year>9999||!Number.isInteger(month)||month<1||month>12)throw new Error('invalidCollectionPeriod');validateCurrency(currency);
+ state=ownerScope(state,ownerId);
  const apartmentIds=new Set(state.apartments.filter(a=>!apartmentId||a.id===apartmentId).map(a=>a.id)),bookings=state.bookings.filter(b=>apartmentIds.has(b.apartmentId));
  function metrics(periodYear,periodMonth){
   const {start,end}=bounds(periodYear,periodMonth),intervals=new Map(),pricedIntervals=new Map(),seen=new Set();let bookingCount=0,pricedCount=0,unpricedCount=0,fullValue=0,allocatedValue=0,noHistoryValue=0,noHistoryCount=0;

@@ -23,6 +23,7 @@ import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './
 import {createAccessService,accessPolicy} from './access.js?v=1';
 import {createOptionalAndroidAuth} from './native-auth.js';
 import {mountCommerce} from './commerce-screen.js';
+import {owners,existingOwnerName} from './owners.js';
 const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
 const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
 const $=id=>document.getElementById(id);
@@ -132,7 +133,7 @@ function titleKey(){return editing.kind==='apartment'?(editing.id?'apartmentDeta
 function formError(error){const source=error?.message??error;$('form-error').dataset.source=source;$('form-error').textContent=source?translateError(source):'';}
 function open(kind,item=null,defaults={}){
  if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing?.photo?.dispose();editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
- if(kind==='apartment'){field('apartmentName','name',item?.name);field('address','address',item?.address);field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
+ if(kind==='apartment'){field('apartmentName','name',item?.name);const owner=field('apartmentOwner','owner',item?.owner??'');owner.required=false;owner.maxLength=200;owner.setAttribute('list','apartment-owner-options');const choices=document.createElement('datalist');choices.id='apartment-owner-options';for(const entry of owners(state.apartments)){const option=document.createElement('option');option.value=entry.name;choices.append(option);}$('fields').append(choices);field('address','address',item?.address);field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
  else editing.payments=renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel,canManagePayments:()=>!blocked&&canEditPayments(access.snapshot())&&policy().canManageApartment($('fields').querySelector('[name=apartmentId]').value)});
  $('editor').classList.toggle('booking-editor',kind==='booking');$('editor').classList.toggle('apartment-editor',kind==='apartment');$('editor-form').querySelector('[type=submit]').disabled=false;
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
@@ -165,6 +166,7 @@ $('editor-form').onsubmit=async e=>{
  if(editing.kind==='booking'){const currency=$('fields').querySelector('[name=currency]').value;if(currency!=='RON'||old?.currency!==undefined)values.currency=currency;else delete values.currency;}
  const item={...old,...values,id:editing.id||crypto.randomUUID()};
  try{
+  if(editing.kind==='apartment'){const owner=existingOwnerName(item.owner??'',state.apartments);if(owner)item.owner=owner;else delete item.owner;}
   if(editing.kind==='apartment'&&!editing.id&&!policy().canAddApartment)throw new Error('apartmentLimit');
   if(editing.kind==='booking'){if(editing.payments.hasPendingEntry())throw new Error('pendingPayment');editing.payments.validateCurrency();item.checkIn=parseDate(item.checkIn);item.checkOut=parseDate(item.checkOut);const extra=readBookingExtras(values);for(const field of BOOKING_EXTRA_FIELDS)delete item[field];Object.assign(item,extra,editing.payments.getLedger());}
   editing.kind==='apartment'?validateApartment(item):validateBooking(item,state);

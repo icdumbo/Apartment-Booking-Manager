@@ -2,15 +2,16 @@ import {selectStatistics} from './statistics.js';
 import {canEditPayments} from './payments.js';
 import {formatMoney} from './booking-values.js';
 import {t,getLanguage} from './i18n.js?v=0.3.1';
+import {ownerApartments,ownerOptions} from './owners.js';
 const svgNS='http://www.w3.org/2000/svg';
 export function createStatisticsScreen({root,getState,getEntitlement}){
- const now=new Date(),filters={mode:'monthly',year:now.getFullYear(),month:now.getMonth()+1,apartmentId:'',currency:'RON'};
+ const now=new Date(),filters={mode:'monthly',year:now.getFullYear(),month:now.getMonth()+1,ownerId:'',apartmentId:'',currency:'RON'};
  function text(tag,key,parent=root){const el=document.createElement(tag);el.dataset.i18n=key;el.textContent=t(key);parent.append(el);return el;}
  const lock=document.createElement('div');lock.id='statistics-locked';lock.className='collections-locked';root.append(lock);text('strong','statisticsPremium',lock);text('p','statisticsBenefits',lock);
  const content=document.createElement('div');content.id='statistics-content';root.append(content);
  const controls=document.createElement('div');controls.className='collections-filters statistics-filters';content.append(controls);
- function control(key,name,type='select'){const label=document.createElement('label');text('span',key,label);const el=document.createElement(type);el.id='statistics-'+name;label.append(el);controls.append(label);el.onchange=()=>{filters[name]=name==='year'||name==='month'?Number(el.value):el.value;render();};return el;}
- const mode=control('statisticsMode','mode'),month=control('collectionMonth','month'),year=control('collectionYear','year','input'),currency=control('collectionCurrency','currency'),apartment=control('apartment','apartmentId');year.type='number';year.min='1';year.max='9999';year.step='1';
+ function control(key,name,type='select'){const label=document.createElement('label');text('span',key,label);const el=document.createElement(type);el.id='statistics-'+name;label.append(el);controls.append(label);el.onchange=()=>{filters[name]=name==='year'||name==='month'?Number(el.value):el.value;if(name==='ownerId')filters.apartmentId='';render();};return el;}
+ const mode=control('statisticsMode','mode'),month=control('collectionMonth','month'),year=control('collectionYear','year','input'),currency=control('collectionCurrency','currency'),owner=control('apartmentOwner','ownerId'),apartment=control('apartment','apartmentId');year.type='number';year.min='1';year.max='9999';year.step='1';
  const error=document.createElement('p');error.id='statistics-error';error.setAttribute('role','alert');content.append(error);
  const main=document.createElement('div');main.className='statistics-primary';main.id='statistics-primary';content.append(main);
  const secondary=document.createElement('div');secondary.className='statistics-secondary';secondary.id='statistics-secondary';content.append(secondary);
@@ -49,10 +50,10 @@ export function createStatisticsScreen({root,getState,getEntitlement}){
  }
  function render(){
   const allowed=canEditPayments(getEntitlement());lock.hidden=allowed;content.hidden=!allowed;for(const el of [main,secondary,notice,comparison,charts,separate])el.replaceChildren();apartment.replaceChildren();error.hidden=true;if(!allowed)return;
-  const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
+  const state=getState(),apartments=ownerApartments(state.apartments,filters.ownerId);ownerOptions(owner,state.apartments,filters.ownerId,t);if(filters.apartmentId&&!apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   mode.replaceChildren();for(const value of ['monthly','annual','comparison'])option(mode,value,t('statistics_'+value));mode.value=filters.mode;
   month.replaceChildren();t('monthsFull').forEach((value,index)=>option(month,String(index+1),value));month.value=String(filters.month);month.disabled=filters.mode==='annual';year.value=String(filters.year);
-  option(apartment,'',t('allApartments'));for(const item of state.apartments)option(apartment,item.id,item.name);apartment.value=filters.apartmentId;
+  option(apartment,'',t('allApartments'));for(const item of apartments)option(apartment,item.id,item.name);apartment.value=filters.apartmentId;
   currency.replaceChildren();for(const code of ['RON','EUR'])option(currency,code,code);currency.value=filters.currency;
   let result;try{result=selectStatistics(state,filters,getEntitlement());}catch(reason){if(reason.message==='statisticsPremium'){lock.hidden=false;content.hidden=true;return;}error.textContent=t(reason.message);error.hidden=false;return;}
   const c=result.current;

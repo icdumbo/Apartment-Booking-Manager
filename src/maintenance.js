@@ -1,6 +1,7 @@
 import {assertBackupIdle} from './backup-transaction.js';
 import {dayNumber} from './domain.js?v=0.2.1';
 import {validateCurrency} from './currency.js';
+import {ownerApartments} from './owners.js';
 export const MAINTENANCE_KEY='apartment-booking-manager:maintenance:v1';
 export const CATEGORIES=['maintenance','water','electricity','gas','internet','cleaning','repairs','other'];
 export const WORK_STATUSES=['planned','ongoing','completed','cancelled'];
@@ -45,10 +46,11 @@ export function createMaintenanceRepository(storage=globalThis.localStorage){
  const load=()=>{assertBackupIdle(storage);const raw=storage.getItem(MAINTENANCE_KEY);return raw===null?emptyMaintenance():validateMaintenance(JSON.parse(raw));};
  return {load,save(next,expected){validateMaintenance(next);if(JSON.stringify(load())!==JSON.stringify(expected))throw Error('maintenanceConflict');storage.setItem(MAINTENANCE_KEY,JSON.stringify(next));}};
 }
-export function selectMaintenance(data,kind,filters={}){
+export function selectMaintenance(data,kind,filters={},apartments=null){
  validateMaintenance(data);if(filters.start)date(filters.start);if(filters.end)date(filters.end);if(filters.start&&filters.end&&filters.end<filters.start)fail();
  const dateKey=kind==='expenses'?'date':kind==='works'?'scheduledDate':'nextDate';
- const rows=data[kind].filter(row=>(!filters.apartmentId||row.apartmentId===filters.apartmentId)&&(!filters.category||kind!=='expenses'||row.category===filters.category)&&(!filters.start||row[dateKey]>=filters.start)&&(!filters.end||row[dateKey]<=filters.end)).sort((a,b)=>(kind==='reviews'?a[dateKey].localeCompare(b[dateKey]):b[dateKey].localeCompare(a[dateKey]))||a.id.localeCompare(b.id));
+ if(filters.ownerId&&!apartments)fail();const allowed=filters.ownerId?new Set(ownerApartments(apartments,filters.ownerId).map(a=>a.id)):null;
+ const rows=data[kind].filter(row=>(!allowed||allowed.has(row.apartmentId))&&(!filters.apartmentId||row.apartmentId===filters.apartmentId)&&(!filters.category||kind!=='expenses'||row.category===filters.category)&&(!filters.start||row[dateKey]>=filters.start)&&(!filters.end||row[dateKey]<=filters.end)).sort((a,b)=>(kind==='reviews'?a[dateKey].localeCompare(b[dateKey]):b[dateKey].localeCompare(a[dateKey]))||a.id.localeCompare(b.id));
  const totals={};if(kind==='expenses')for(const row of rows){totals[row.currency]=(totals[row.currency]??0)+row.amountCents;if(!Number.isSafeInteger(totals[row.currency]))fail();}return {rows,totals};
 }
 export function reviewDue(review,today){const days=dayNumber(review.nextDate)-dayNumber(today);return days<0?'overdue':days<=30?'soon':'later';}

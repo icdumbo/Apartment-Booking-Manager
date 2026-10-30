@@ -1,4 +1,4 @@
-import {REPORT_METRICS,reportGroups} from './report-summary.js';
+import {REPORT_METRICS,reportGroups,reportApartmentGroups} from './report-summary.js';
 import {saveExport} from './file-export.js';
 import {jsPDF} from './vendor/jspdf.js';
 import {normal,bold} from './vendor/report-fonts.js';
@@ -6,9 +6,11 @@ import {selectReservationsReport} from './reservations-report.js';
 import {formatMoney} from './booking-values.js';
 import {displayDate} from './date-format.js?v=0.2.5';
 import {t} from './i18n.js?v=0.3.1';
+import {ownerScope,ownerLabel} from './owners.js';
 export const PDF_MIME='application/pdf';
 // A read-only snapshot. Always re-check the current entitlement and filters before generating bytes.
 export function reservationsPDF(state,filters,entitlement){
+ const owner=ownerLabel(state.apartments,filters.ownerId,t);state=ownerScope(state,filters.ownerId);
  const result=selectReservationsReport(state,filters,entitlement),currency=result.currency;
  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4',compress:true});
  for(const [style,font] of [['normal',normal],['bold',bold]]){doc.addFileToVFS(style+'.ttf',font);doc.addFont(style+'.ttf','Report',style);}
@@ -23,7 +25,7 @@ export function reservationsPDF(state,filters,entitlement){
  function paragraph(value,{size=8.5,style='normal',color=muted}={}){const wrapped=lines(value,available,size,style),step=size*1.45;for(const line of wrapped){if(y+step>bottom)page();font(size,style,color);doc.text(line,margin,y);y+=step;}y+=6;}
  heading();
  paragraph(`${t('reportStart')}: ${displayDate(filters.start)} · ${t('reportEnd')}: ${displayDate(filters.end)}`,{size:9,color:ink});
- paragraph(`${t('apartment')}: ${filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments')} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency==='ALL'?t('allCurrencies'):currency}`,{size:9,color:ink});
+ paragraph(`${t('apartmentOwner')}: ${owner} · ${t('apartment')}: ${filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments')} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${currency==='ALL'?t('allCurrencies'):currency}`,{size:9,color:ink});
  const groups=reportGroups(result);
  paragraph(t('reportTotalCount',{count:result.rows.length})+' · '+t('reportUnpricedCount',{count:result.unpricedCount}),{size:10,style:'bold',color:ink});
  if(groups.length){
@@ -68,6 +70,7 @@ export function reservationsPDF(state,filters,entitlement){
  let x=margin+widths.slice(0,6).reduce((a,b)=>a+b,0);
  totalValues.forEach((value,i)=>{font(8,'bold',blue);doc.text(value,x+widths[i+6]-6,y+14,{align:'right'});x+=widths[i+6];});y+=totalHeight;
  }
+ if(filters.ownerId){paragraph(t('reportByApartment'),{size:11,style:'bold',color:ink});for(const apartment of reportApartmentGroups(state,result)){paragraph(apartment.name,{size:10,style:'bold',color:ink});for(const group of reportGroups(apartment))paragraph(group.currency+' · '+REPORT_METRICS.map(([key,field])=>t(key)+': '+(field==='count'?group.count:formatMoney(group[field],group.currency))).join(' · '),{size:9,color:ink});}}
  const pageCount=doc.getNumberOfPages();for(let i=1;i<=pageCount;i++){doc.setPage(i);font(8,'normal',muted);doc.text(t('reportPDFPage',{page:i,total:pageCount}),width-margin,height-18,{align:'right'});}
  return {bytes:new Uint8Array(doc.output('arraybuffer')),filename:`Reservations-${filters.start}-${filters.end}-${currency}.pdf`,pageCount};
 }

@@ -1,4 +1,5 @@
 import {validateBookingExtras} from './booking-values.js';
+import {normalizeOwner} from './owners.js';
 export const DAY = 86400000;
 export function dayNumber(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Data este invalidă.');
@@ -10,6 +11,7 @@ export function isoDay(n) { return new Date(n * DAY).toISOString().slice(0,10); 
 export function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 export function overlaps(a,b) { return a.apartmentId === b.apartmentId && a.checkIn < b.checkOut && b.checkIn < a.checkOut; }
 export function validateApartment(a) {
+  if(a.owner!==undefined)normalizeOwner(a.owner);
   if (!a.name.trim() || !a.address.trim() || !a.city.trim()) throw new Error('Completează numele, adresa și localitatea.');
 }
 export function validateBooking(b,state) {

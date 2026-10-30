@@ -46,7 +46,7 @@ test('stable multicolor bookings, independent status and RO/EN legend',async({pa
  await page.reload();expect(await bar().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
  await page.locator('.app-navigation [data-screen=apartments]').click();await page.locator('.app-navigation [data-screen=calendar]').click();
  expect(await bar().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe(color);
- await expect(page.locator('.legend .color-key')).toHaveText('Culori distincte pentru rezervări');
- await page.locator('.top [data-language=en]').click();await expect(page.locator('.legend .color-key')).toHaveText('Distinct reservation colors');
+ await expect(page.locator('.legend>span')).toHaveCount(4);await expect(page.locator('.legend .color-key,.legend [data-i18n=halfDays]')).toHaveCount(0);
+ await page.locator('.top [data-language=en]').click();await expect(page.locator('.legend>span')).toHaveCount(4);await expect(page.locator('.legend')).not.toContainText('Distinct reservation colors');
  expect(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor)).toBe('rgb(248, 250, 252)');
 });

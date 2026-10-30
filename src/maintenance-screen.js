@@ -7,8 +7,9 @@ import {configureDateInput} from './date-input.js';
 import {formatMoney,moneyInput,parseMoney} from './booking-values.js';
 import {today} from './domain.js?v=0.2.1';
 import {CURRENCIES} from './currency.js';
+import {ownerApartments,ownerOptions} from './owners.js';
 export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
- const repository=createMaintenanceRepository(),draftRepository=createMaintenanceDraftRepository();let initialized=false,expectedDraft=null,draftWarning='',data,kind='expenses',draft=null,filters={apartmentId:'',category:'',start:'',end:''};
+ const repository=createMaintenanceRepository(),draftRepository=createMaintenanceDraftRepository();let initialized=false,expectedDraft=null,draftWarning='',data,kind='expenses',draft=null,filters={ownerId:'',apartmentId:'',category:'',start:'',end:''};
  function node(tag,value,parent=root){const el=document.createElement(tag);if(value!==undefined)el.textContent=value;parent.append(el);return el;}
  function button(label,action,parent){const el=node('button',t(label),parent);el.type='button';el.onclick=action;return el;}
  function message(error,focus=true){const el=root.querySelector('.maintenance-error');if(!el)return;el.textContent=translateError(error);if(focus&&!root.hidden){el.tabIndex=-1;el.scrollIntoView({block:'center'});el.focus({preventScroll:true});}}
@@ -29,7 +30,7 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
   if(!maintenanceAllowed(getEntitlement()))throw Error('maintenancePremium');
   if(command.item){if(!getState().apartments.some(a=>a.id===command.item.apartmentId))throw Error('maintenanceApartmentMissing');assertDraftTarget(draft,repository.load(),kind);}
   const next=changeMaintenance(data,command,getEntitlement());repository.save(next,data);data=next;
-  if(command.operation==='save'&&!selectMaintenance(data,kind,filters).rows.some(row=>row.id===command.item.id))filters={apartmentId:'',category:'',start:'',end:''};
+  if(command.operation==='save'&&!selectMaintenance(data,kind,filters,getState().apartments).rows.some(row=>row.id===command.item.id))filters={ownerId:'',apartmentId:'',category:'',start:'',end:''};
   if(command.operation==='save'){
    try{draftRepository.remove(kind,expectedDraft);draftWarning='';}catch(error){draftWarning=error.message;}
    draft=null;expectedDraft=null;
@@ -63,14 +64,16 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
   try{if(!draft||!data)data=repository.load();}catch{error.textContent=t('maintenanceStorage');return;}
   const tabs=node('nav',undefined,root);tabs.className='maintenance-tabs';for(const name of ['expenses','works','reviews']){const b=button('maintenance_'+name,()=>{if(!capture(true))return;restore(name);data=undefined;render();},tabs);b.setAttribute('aria-pressed',String(kind===name));}
   const controls=node('div',undefined,root);controls.className='maintenance-filters';
-  for(const [name,key,options] of [['apartmentId','apartment',[['',t('allApartments')],...getState().apartments.map(a=>[a.id,a.name])]],...(kind==='expenses'?[['category','maintenanceCategory',[['',t('maintenanceAllCategories')],...CATEGORIES.map(c=>[c,t('maintenanceCategory_'+c)])]]]:[]),['start','reportStart'],['end','reportEnd']]){
+  const apartments=ownerApartments(getState().apartments,filters.ownerId);if(filters.apartmentId&&!apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
+  const owner=label(controls,'apartmentOwner','ownerId',filters.ownerId,[]);ownerOptions(owner,getState().apartments,filters.ownerId,t);owner.onchange=()=>{filters.ownerId=owner.value;filters.apartmentId='';render();};
+  for(const [name,key,options] of [['apartmentId','apartment',[['',t('allApartments')],...apartments.map(a=>[a.id,a.name])]],...(kind==='expenses'?[['category','maintenanceCategory',[['',t('maintenanceAllCategories')],...CATEGORIES.map(c=>[c,t('maintenanceCategory_'+c)])]]]:[]),['start','reportStart'],['end','reportEnd']]){
    const input=label(controls,key,name,filters[name],options);if(name==='start'||name==='end'){configureDateInput(input);input.value=filters[name]?displayDate(filters[name]):'';}
    input.onchange=()=>{try{filters[name]=name==='start'||name==='end'?input.value?parseDate(input.value):'':input.value;render();}catch{error.textContent=t('maintenanceInvalid');}};
   }
   node('p',t(kind==='expenses'?'maintenanceExpenseBasis':kind==='works'?'maintenanceWorkBasis':'maintenanceReviewBasis'),root);
   const add=button('maintenanceAdd',()=>begin(),root);add.id='maintenance-add';add.className='primary';add.disabled=Boolean(draft)||!getState().apartments.length;
   if(draft)editor();else if(draftWarning)message({message:draftWarning},false);
-  let result;try{result=selectMaintenance(data,kind,filters);}catch{error.textContent=t('maintenanceInvalid');return;}
+  let result;try{result=selectMaintenance(data,kind,filters,getState().apartments);}catch{error.textContent=t('maintenanceInvalid');return;}
   const totals=node('div',undefined,root);totals.className='maintenance-totals';for(const [currency,sum] of Object.entries(result.totals))node('strong',formatMoney(sum,currency),totals);
   const list=node('div',undefined,root);list.className='maintenance-list';if(!result.rows.length)node('p',t('maintenanceEmpty'),list);
   for(const row of result.rows){

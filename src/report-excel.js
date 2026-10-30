@@ -6,9 +6,11 @@ import {displayDate} from './date-format.js?v=0.2.5';
 import {t} from './i18n.js?v=0.3.1';
 import {formatMoney} from './booking-values.js';
 import {cell,formulaCell,createXlsx,xml} from './xlsx.js';
+import {ownerScope,ownerLabel} from './owners.js';
 export const XLSX_MIME='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 // Always reselect using current filters and entitlement, including at the instant of export.
 export function reservationsExcel(state,filters,entitlement){
+ const owner=ownerLabel(state.apartments,filters.ownerId,t);state=ownerScope(state,filters.ownerId);
  const result=selectReservationsReport(state,filters,entitlement);
  if(result.rows.length>1048550)throw new Error('reportExportTooLarge');
  const currency=result.currency,multi=currency==='ALL',groups=reportGroups(result),rows=[],merges=[],columns=multi?'ABCDEFGHIJK':'ABCDEFGHIJ';
@@ -24,7 +26,7 @@ export function reservationsExcel(state,filters,entitlement){
  wide(1,`${t('reportTitle')} · Apartment Booking Manager`,1,28);
  wide(2,`${t('reportStart')}: ${displayDate(filters.start)} · ${t('reportEnd')}: ${displayDate(filters.end)}`,0,20);
  const apartment=filters.apartmentId?(state.apartments.find(a=>a.id===filters.apartmentId)?.name??''):t('allApartments');
- const metadata=`${t('apartment')}: ${apartment} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${multi?t('allCurrencies'):currency}`;
+ const metadata=`${t('apartmentOwner')}: ${owner} · ${t('apartment')}: ${apartment} · ${t('bookingStatus')}: ${t(filters.status==='all'||!filters.status?'reportAllStatus':filters.status)} · ${t('collectionCurrency')}: ${multi?t('allCurrencies'):currency}`;
  wide(3,metadata,0,Math.max(22,Math.ceil(metadata.length/140)*12+6));
  const end=11+result.rows.length,total=end+1,lastTotal=total+Math.max(1,groups.length)-1;
  // 100-series SUBTOTAL ignores filtered/hidden rows. COUNT distinguishes numeric zero
@@ -92,7 +94,8 @@ export function reservationsExcel(state,filters,entitlement){
  const addGrouped=(cells,height=24)=>{const n=groupedRow++;byApartmentRows.push(`<row r="${n}" ht="${height}" customHeight="1">${cells.join('')}</row>`);return n;};
  const groupedWide=(value,style=0,height=24)=>{const n=groupedRow;addGrouped([cell('A'+n,value,style)],height);byApartmentMerges.push(`A${n}:J${n}`);};
  groupedWide(t('reportByApartment')+' · Apartment Booking Manager',1,28);
- groupedWide(`${displayDate(filters.start)} – ${displayDate(filters.end)} · ${metadata}`,0,34);
+ const groupedMetadata=`${displayDate(filters.start)} – ${displayDate(filters.end)} · ${metadata}`;
+ groupedWide(groupedMetadata,0,Math.max(34,Math.ceil(groupedMetadata.length/140)*12+6));
  groupedWide(t('reportGroupedNote'),0,34);
  addGrouped(headings.slice(0,10).map((key,i)=>cell(columns[i]+'4',t(key),2)),34);
  const originals=new Map(state.bookings.map(booking=>[booking.id,booking]));

@@ -2,12 +2,14 @@ import {dayNumber} from './domain.js?v=0.2.1';
 import {bookingCurrency,validateCurrency} from './currency.js';
 import {canEditPayments,totalReceived} from './payments.js';
 import {bookingBalance} from './booking-values.js';
+import {ownerScope} from './owners.js';
 // Read-only projection: inclusive filter dates, check-out excluded; full current amounts.
-export function selectReservationsReport(state,{start,end,apartmentId='',status='all',currency='ALL'},entitlement){
+export function selectReservationsReport(state,{start,end,apartmentId='',ownerId='',status='all',currency='ALL'},entitlement){
  if(!canEditPayments(entitlement))throw new Error('reportPremium');
  if(currency!=='ALL')validateCurrency(currency);
  let first,last;try{first=dayNumber(start);last=dayNumber(end);}catch{throw new Error('reportInvalidPeriod');}
  if(first>last||!['all','confirmed','unconfirmed'].includes(status))throw new Error('reportInvalidPeriod');
+ state=ownerScope(state,ownerId);
  const apartments=new Map(state.apartments.map(a=>[a.id,a.name]));
  const totalsByCurrency={};
  const result={rows:[],unpricedCount:0,currency,totalsByCurrency};

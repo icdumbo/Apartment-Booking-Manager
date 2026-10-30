@@ -6,7 +6,7 @@ import {createMaintenanceDraftRepository} from './maintenance-drafts.js';
 import {apartmentPhotos} from './apartment-photo.js';
 import {BACKUP_KEYS,BACKUP_JOURNAL,captureBackupKeys,assertBackupIdle,recoverBackupUnlocked,backupLock} from './backup-transaction.js';
 const prepared=new WeakMap();
-const APARTMENT=['id','name','address','city','photoId'];
+const APARTMENT=['id','name','owner','address','city','photoId'];
 const BOOKING=['id','apartmentId','guest','phone','checkIn','checkOut','status','persons','totalAmountCents','paidAmountCents','legacyPaidAmountCents','source','notes','currency','payments'];
 const PAYMENT=['id','date','amountCents','method','notes','currency'];
 const MAINT=['id','apartmentId','date','category','description','amountCents','currency','notes','workId','scheduledDate','completedDate','provider','estimatedCents','actualCents','status','equipment','lastDate','nextDate'];
