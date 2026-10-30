@@ -41,6 +41,8 @@ for(const width of [360,390,430]){
   await page.setViewportSize({width,height:600});await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});
   const fixtures={...state,apartments:Array.from({length:10},(_,i)=>({...state.apartments[0],id:i?'fixture-'+i:'fixture-a',name:'Apartamentul cu un nume foarte lung pentru verificarea trunchierii '+i}))};
   await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),fixtures);await page.goto('/');
+  // App startup awaits local recovery; measure sticky geometry only after its actual rows exist.
+  await expect(page.locator('.timeline-row')).toHaveCount(10);await expect(page.locator('.day-heading')).toHaveCount(30);
   const measure=()=>page.evaluate(()=>{
    const r=e=>{const b=e.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,width:b.width,height:b.height}};
    const viewport=document.querySelector('.timeline-scroll'),label=document.querySelector('.timeline-row .apartment-label');
