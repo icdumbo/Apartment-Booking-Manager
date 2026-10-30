@@ -81,5 +81,6 @@ public class BookingBillingPlugin extends Plugin implements PurchasesUpdatedList
             JSArray values=new JSArray();for(Purchase purchase:purchases){JSObject value=receipt(purchase);if(value!=null)values.put(value);}call.resolve(new JSObject().put("purchases",values));
         }));
     }
+    @Override protected void handleOnResume(){if(client!=null&&client.isReady()&&subject()!=null)notifyListeners("purchasesChanged",new JSObject());}
     @Override protected void handleOnDestroy(){if(pendingPurchase!=null)fail(pendingPurchase,"billingUnavailable");pendingPurchase=null;purchaseSubject=null;if(client!=null)client.endConnection();client=null;}
 }

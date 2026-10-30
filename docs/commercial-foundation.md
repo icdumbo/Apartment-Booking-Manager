@@ -38,6 +38,9 @@ Google sign-in, OWNER, trial enrolment or production purchase verification works
   AES-256-GCM and a separate server-only key; no plaintext tokens are stored.
 - Only a signed, nonce-bound proof accepted by BookingAccess grants PREMIUM.
   Native purchase results, local flags and backup files cannot grant rights.
+- Restore is available explicitly and queried again for authenticated accounts
+  on account refresh/resume/purchase changes, so delayed payments can be verified
+  without another charge. Repeated verification/acknowledgement is idempotent.
 - Online access checks revalidate retained receipts with Google. Cancellation or
   a definitive missing receipt removes the purchased entitlement on the next
   successful check. Dependency outages preserve existing signed offline evidence.
@@ -84,7 +87,9 @@ No production product ID has been invented.
    Billing flag for a separately approved test build. Use an approved internal
    Play track and license testers with the same Firebase/Google account used to
    buy. `PLAY_TEST_PURCHASES_ENABLED=true` is only for controlled license-tester
-   verification; production must omit it or set it to false.
+   verification in a separate test backend/database/proof-key environment;
+   production must omit it or set it to false. Never carry tester proofs or
+   test purchase rows into the production entitlement environment.
 7. In Play testing, exercise success, cancellation, delayed payment, acknowledgement,
    already-owned restore, reinstall/sign-in, wrong Firebase account, refund and
    offline use. Test purchases and publication require separate approval.
