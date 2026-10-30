@@ -7,7 +7,15 @@ if (signingPropertiesFile.exists()) {
     signingPropertiesFile.withInputStream { signingProperties.load(it) }
 }
 
+def commercialAdsEnabled = (project.findProperty('abmAdsEnabled') ?: 'false') == 'true'
+def commercialAdsAppId = project.findProperty('abmAdMobAppId') ?: ''
+def commercialAdsBannerId = project.findProperty('abmAdMobBannerId') ?: ''
+if (commercialAdsEnabled && (!(commercialAdsAppId ==~ /ca-app-pub-[0-9]{16}~[0-9]{10}/) || !(commercialAdsBannerId ==~ /ca-app-pub-[0-9]{16}\/[0-9]{10}/))) {
+    throw new GradleException('Configure public AdMob app/banner IDs before enabling ads')
+}
 android {
+    buildFeatures { buildConfig true }
+    if (!commercialAdsEnabled) { sourceSets.main.java.exclude '**/BookingAdsPlugin.java' }
     namespace = "ro.icdapps.apartmentbookingmanager"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -16,6 +24,9 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 21
         versionName "1.0.20"
+        buildConfigField 'boolean', 'COMMERCIAL_ADS_ENABLED', commercialAdsEnabled.toString()
+        resValue 'string', 'admob_banner_id', commercialAdsBannerId
+        manifestPlaceholders = [abmAdMobAppId: commercialAdsAppId]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -52,6 +63,11 @@ repositories {
 }
 
 dependencies {
+    if (commercialAdsEnabled) {
+        implementation 'com.google.android.gms:play-services-ads:25.5.0'
+        implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
+    }
+    implementation 'com.android.billingclient:billing:8.3.0'
     implementation platform('com.google.firebase:firebase-bom:35.0.2')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'androidx.credentials:credentials:1.3.0'

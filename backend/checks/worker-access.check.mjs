@@ -90,7 +90,7 @@ test('owner is exclusive, license records are server-only, expiry and revocation
  const owner=decode((await (await post('verify',{jwt:await token({sub:'test-owner'})})).json()).proof);assert.equal(owner.source,'OWNER_GRANT');assert.equal(owner.expiresAt,null);
  const family=decode((await (await post('verify',{jwt:await token({sub:'test-family'})})).json()).proof);assert.equal(family.state,'BASIC');
  await db.prepare("INSERT INTO licenses(subject,source,status,permanent) VALUES (?,'GOOGLE_PLAY_PURCHASE','active',1)").bind('test-buyer').run();
- const purchased=decode((await (await post('verify',{jwt:await token({sub:'test-buyer'})})).json()).proof);assert.equal(purchased.source,'GOOGLE_PLAY_PURCHASE');assert.equal(purchased.expiresAt,null);
+ const purchased=decode((await (await post('verify',{jwt:await token({sub:'test-buyer'})})).json()).proof);assert.equal(purchased.state,'BASIC');assert.equal(purchased.source,null);
  await db.prepare("UPDATE licenses SET status='revoked' WHERE subject=?").bind('test-buyer').run();assert.equal(decode((await (await post('verify',{jwt:await token({sub:'test-buyer'})})).json()).proof).state,'BASIC');
  await assert.rejects(db.prepare("INSERT INTO licenses(subject,source,status,permanent) VALUES ('x','OWNER_GRANT','active',1)").run());
 });
@@ -112,7 +112,7 @@ test('administrator gift SQL grants, expires and revokes only gifts; signed acce
  assert.equal((await proof('fictional-gift')).state,'BASIC');
  await db.prepare("INSERT INTO licenses(subject,source,status,permanent) VALUES ('fictional-both','GOOGLE_PLAY_PURCHASE','active',1)").run();
  await db.exec(giftSql({action:'grant',uid:'fictional-both',permanent:true}));await db.exec(giftSql({action:'revoke',uid:'fictional-both'}));
- assert.equal((await proof('fictional-both')).source,'GOOGLE_PLAY_PURCHASE');
+ assert.equal((await proof('fictional-both')).state,'BASIC');
  for(const action of ['grant','revoke'])await db.exec(giftSql({action,uid:'test-owner',...(action==='grant'?{permanent:true}:{})}));
  access=await proof('test-owner');assert.equal(access.source,'OWNER_GRANT');assert.equal(access.expiresAt,null);
  assert.equal(await db.prepare('SELECT COUNT(*) AS n FROM trials').first('n'),before);

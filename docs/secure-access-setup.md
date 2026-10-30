@@ -1,3 +1,7 @@
+# Current commercial setup
+
+See [commercial-foundation.md](commercial-foundation.md) for the current audit and exact Play, AdMob, trial and Firebase setup. The endpoint/public key are already configured. Sections below are historical setup notes; their old version numbers and statements that Billing is unimplemented are superseded by the current commercial guide. No production deployment is performed in this stage.
+
 # Configurare gratuită: Firebase Auth Spark + Cloudflare Workers/D1
 
 Administrarea cadourilor permanente/temporare prin D1, fără panou sau endpoint nou:

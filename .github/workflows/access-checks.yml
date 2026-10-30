@@ -2,7 +2,7 @@ name: Cloudflare access checks (no APK)
 on:
   push:
     branches: [codex/basic-premium-foundation]
-    paths: ['backend/**', 'tests/secure-trial.test.js', 'tests/firebase-access.test.js', '.github/workflows/access-checks.yml']
+    paths: ['backend/**', 'android/**', 'src/access.js', 'src/secure-access.js', 'src/play-billing.js', 'src/commerce-screen.js', 'tests/*access*', 'tests/play-purchases.test.js', 'tests/secure-trial.test.js', '.github/workflows/access-checks.yml']
 permissions:
   contents: read
 jobs:
@@ -20,3 +20,28 @@ jobs:
       - run: npm ci --prefix backend --ignore-scripts
       - run: node --input-type=module -e "import('./backend/index.js')"
       - run: npm run check --prefix backend
+      - run: node --test tests/access.test.js tests/native-auth.test.js tests/play-purchases.test.js tests/i18n.test.js
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test checks/access.spec.mjs checks/native-auth.spec.mjs checks/commerce.spec.mjs
+  android-commerce-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm run android:sync
+      # Compile Java only. Never assemble/package an APK in this workflow.
+      - working-directory: android
+        run: chmod +x gradlew && ./gradlew compileDebugJavaWithJavac testDebugUnitTest
+      # Official Google sample IDs, compile-only test configuration; not production IDs.
+      - working-directory: android
+        run: ./gradlew compileDebugJavaWithJavac -PabmAdsEnabled=true -PabmAdMobAppId=ca-app-pub-3940256099942544~3347511713 -PabmAdMobBannerId=ca-app-pub-3940256099942544/6300978111
+      - working-directory: android
+        run: test -z "$(find app/build -name '*.apk' -print -quit)"

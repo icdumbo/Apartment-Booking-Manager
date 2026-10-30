@@ -22,9 +22,11 @@ import {renderTimeline} from './timeline.js?v=0.4.0';
 import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './i18n.js?v=0.3.1';
 import {createAccessService,accessPolicy} from './access.js?v=1';
 import {createOptionalAndroidAuth} from './native-auth.js';
+import {mountCommerce} from './commerce-screen.js';
 const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
 const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
 const $=id=>document.getElementById(id);
+let commerce=null;
 initializeLanguage();
 let repository,state,blocked=false;
 try {
@@ -188,7 +190,7 @@ $('confirmation').addEventListener('close',()=>{
  const photoId=editing.kind==='apartment'?state.apartments.find(a=>a.id===editing.id)?.photoId:undefined;
  if(persist(next)){$('editor').close();if(photoId)apartmentPhotos.remove(photoId).catch(()=>{});}
 });
-function refreshLanguage(){translateUI();if($('backup-dialog').open)backupScreen.render();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());editing.photo?.refresh();if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
+function refreshLanguage(){translateUI();commerce?.render();if($('backup-dialog').open)backupScreen.render();render();selectScreen(activeScreen);if(editing){$('editor-title').textContent=t(titleKey());editing.photo?.refresh();if(editing.kind==='booking'){updateBookingSummary($('fields'));editing.payments?.refresh();}}if($('form-error').dataset.source)formError($('form-error').dataset.source);if($('confirmation').open)confirmationText();}
 // Reusable language controls also stay accessible inside modal forms/confirmations.
 for(const widget of document.querySelectorAll('.language-selector')){
  for(const [index,code,name] of [[0,'ro','Română'],[1,'en','English']]){
@@ -209,6 +211,8 @@ $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$
 $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
 
 const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
+commerce=mountCommerce({root:document.querySelector('.menu-account'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});
+const upgradeAction=document.createElement('button');upgradeAction.type='button';upgradeAction.dataset.i18n='upgradePremium';upgradeAction.textContent=t('upgradePremium');upgradeAction.onclick=()=>{$('app-menu').showModal();commerce.refresh();};document.querySelector('.access-card details').append(upgradeAction);
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){
  const panel=$('account-controls'),signIn=$('google-sign-in'),signOut=$('google-sign-out'),status=$('auth-status');
@@ -242,6 +246,7 @@ if(androidAuth.available){
 $('open-menu').onclick=()=>{
  for(const kind of ['apartment','booking'])$('menu-add-'+kind).disabled=$('add-'+kind).disabled;
  $('app-menu').showModal();
+ commerce.refresh();
 };
 $('close-menu').onclick=()=>$('app-menu').close();
 for(const kind of ['apartment','booking'])$('menu-add-'+kind).onclick=()=>{$('app-menu').close();$('add-'+kind).click();};

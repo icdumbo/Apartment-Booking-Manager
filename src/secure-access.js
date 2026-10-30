@@ -19,17 +19,18 @@ export function createSecureAccess({bridge,plugin,endpoint=null,fetchImpl=global
   if(revision!==generation||account!==subject())return null;
   value=result.subject===account?result:null;anchor=requestedAt;changed();return getVerifiedAccess();
  }
- async function verify(action='verify'){
+ async function verify(action='verify',purchaseToken){
   if(!url||!plugin)throw Error('licenseBackendUnavailable');
   const account=subject();if(!account)throw Error('authenticationRequired');
   const revision=generation;
   const {nonce}=await plugin.beginVerification();
   const token=await bridge.getIdToken({uid:account});
   if(revision!==generation||subject()!==account)throw Error('authenticationRequired');
-  const response=await fetchImpl(url.href,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action,nonce,...(action==='startTrial'?{terms:'trial-15d-v1'}:{})}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
+  const target=action==='verifyPurchase'?new URL('purchase',url).href:url.href;
+  const response=await fetchImpl(target,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({action,nonce,...(action==='startTrial'?{terms:'trial-15d-v1'}:{}),...(action==='verifyPurchase'?{purchaseToken}:{})}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
   if(revision!==generation||subject()!==account)throw Error('authenticationRequired');
   if(response.status===401||response.status===403){await plugin.clear();clearMemory();throw Error('authenticationRequired');}
-  if(!response.ok)throw Error('verificationUnavailable');
+  if(!response.ok)throw Error(response.status===409?'purchaseRejected':'verificationUnavailable');
   const data=await response.json();
   if(revision!==generation||subject()!==account)throw Error('authenticationRequired');
   if(data.version!==1||typeof data.proof!=='string')throw Error('invalidLicenseProof');
@@ -40,6 +41,7 @@ export function createSecureAccess({bridge,plugin,endpoint=null,fetchImpl=global
   async sessionChanged(){clearMemory();await read();},
   async refresh(){if(pending)return pending;pending=verify().finally(()=>{pending=null;});return pending;},
   async activateTrial(){return verify('startTrial');},
+  async verifyPurchase(purchaseToken){if(typeof purchaseToken!=='string'||!purchaseToken||purchaseToken.length>4096)throw Error('purchaseRejected');return verify('verifyPurchase',purchaseToken);},
   suspend:clearMemory,read,
   async signOut(){clearMemory();await plugin?.clear();}
  };

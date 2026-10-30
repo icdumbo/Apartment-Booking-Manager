@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Public configuration only. Enable after Play Console product/account setup and backend deployment. -->
+    <bool name="play_billing_enabled">false</bool>
+    <string name="play_premium_product_id" translatable="false"></string>
+</resources>
