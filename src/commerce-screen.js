@@ -17,6 +17,8 @@ export function mountCommerce({root,auth,capacitor=globalThis.Capacitor,t,getEnt
  async function recover(){if(busy||recovering||!product||!auth.bridge?.getCurrentUser())return;recovering=true;render();try{const result=await billing.restore();if(result.status==='verified'){status='purchaseVerified';changed();}}catch{/* A network failure never removes the last valid signed offline evidence. */}finally{recovering=false;render();}}
  async function refresh(){product=await billing.product();render();await recover();}
  auth.bridge?.onIdTokenChanged(()=>{refresh().catch(()=>{});});
- native?.BookingBilling?.addListener?.('purchasesChanged',()=>{recover().catch(()=>{});}).catch(()=>{});
+ // The injected Android bridge returns a listener handle synchronously; the
+ // web wrapper may return a Promise. Optional Billing must never abort auth/menu startup.
+ try{Promise.resolve(native?.BookingBilling?.addListener?.('purchasesChanged',()=>{recover().catch(()=>{});})).catch(()=>{});}catch{/* Unavailable optional listener; explicit purchase/restore remain unchanged. */}
  render();return {render,refresh};
 }

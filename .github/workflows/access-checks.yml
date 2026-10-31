@@ -20,7 +20,7 @@ jobs:
       - run: npm ci --prefix backend --ignore-scripts
       - run: node --input-type=module -e "import('./backend/index.js')"
       - run: npm run check --prefix backend
-      - run: node --test tests/access.test.js tests/native-auth.test.js tests/play-purchases.test.js tests/i18n.test.js
+      - run: node --test tests/commerce-initialization.test.js tests/access.test.js tests/native-auth.test.js tests/play-purchases.test.js tests/i18n.test.js
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test checks/access.spec.mjs checks/native-auth.spec.mjs checks/commerce.spec.mjs
   android-commerce-compile:

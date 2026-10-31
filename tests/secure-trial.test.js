@@ -45,6 +45,18 @@ test('disabled enrolment never creates a trial; repository outages fail closed',
  assert.equal(await repo.resolve('test',{activate:true,now:1}),null);assert.equal(records.size,0);
  const f=fixture();f.records.set('test-user',{version:1,subject:'test-user',status:'used',startedAt:1,expiresAt:2});assert.equal((await f.handle(request())).status,503);
 });
+
+test('verified OWNER bypasses blocked legacy trial history, without granting relatives access or altering trial records',async()=>{
+ const f=fixture();f.owner('test-user');
+ f.records.set('test-user',{status:'blocked'});f.records.set('test-family',{status:'blocked'});
+ const before=structuredClone([...f.records]);
+ const owner=decode(await f.handle(request('verify')));
+ assert.equal(owner.state,'PREMIUM');assert.equal(owner.source,'OWNER_GRANT');assert.equal(owner.expiresAt,null);
+ f.account('test-family');const ordinary=decode(await f.handle(request('verify')));
+ assert.equal(ordinary.state,'BASIC');assert.equal(ordinary.source,null);
+ assert.deepEqual([...f.records],before);
+ assert.equal((await f.handle({...request(),body:{...request().body,owner:true,subject:'test-user'}})).status,400);
+});
 test('signed proof authenticates all claims, rejects tampering, and includes fixed app/project binding',async()=>{
  const f=fixture();const p=(await f.handle(request('startTrial'))).body.proof;const [body,sig]=p.split('.');const c=JSON.parse(Buffer.from(body,'base64url'));
  assert.equal(c.audience,'ro.icdapps.apartmentbookingmanager');assert.equal(c.issuer,'apartment-booking-manage-2d218');assert.equal(c.nonce,nonce);

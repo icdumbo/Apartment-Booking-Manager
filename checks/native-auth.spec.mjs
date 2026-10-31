@@ -1,6 +1,50 @@
 import {test,expect} from '@playwright/test';
+import {ownerFixture} from '../tests/fixtures/owners.mjs';
 // These account tests represent an existing installation; onboarding has its own tests.
 test.beforeEach(async({page})=>{await page.addInitScript(()=>localStorage.setItem('apartment-booking-manager:welcome:v1','dismissed'));});
+for(const session of ['anonymous','ordinary','owner'])test(`Android synchronous Billing listener: menu and secure auth initialize for ${session}, preserving legacy trial and business data`,async({page})=>{
+ await page.setViewportSize({width:430,height:932});
+ const errors=[],actions=[];page.on('pageerror',error=>errors.push(error.message));
+ await page.addInitScript(({session,fixture})=>{
+  localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(fixture.business));
+  localStorage.setItem('apartment-booking-manager:maintenance:v1',JSON.stringify(fixture.maintenance));
+  localStorage.setItem('apartment-booking-manager:maintenance-drafts:v1',JSON.stringify(fixture.drafts));
+  localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:1000,lastSeen:1000}));
+  let user=session==='anonymous'?null:{uid:'fixture-'+session},state='BASIC';
+  window.Capacitor={getPlatform:()=> 'android',Plugins:{
+   BookingAuth:{addListener:()=>({remove:async()=>{}}),getCurrentUser:async()=>({user}),getIdToken:async()=>({token:'fictional-ui-token'})},
+   BookingAccess:{beginVerification:async()=>({nonce:'01234567-0123-0123-0123-012345678901'}),getAccess:async()=>({subject:user?.uid,state,premiumSource:state==='PREMIUM'?'OWNER_GRANT':null}),acceptProof:async({proof})=>{state=session==='owner'&&proof==='fictional-owner-proof'?'PREMIUM':'BASIC';}},
+   // Exact return contract of assets/native-bridge.js from the delivered APK.
+   BookingBilling:{addListener:()=>({remove:async()=>{}}),getProduct:async()=>{throw Error('billingUnavailable');}}
+  }};
+ },{session,fixture:ownerFixture()});
+ await page.route('https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access',route=>{
+  actions.push(route.request().postDataJSON().action);
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:1,proof:session==='owner'?'fictional-owner-proof':'fictional-basic-proof'})});
+ });
+ await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(4);
+ await expect(page.locator('#access-message')).toContainText(session==='owner'?'PREMIUM':'BASIC');
+ const before=await page.evaluate(()=>Object.fromEntries(['apartment-booking-manager:v1','apartment-booking-manager:maintenance:v1','apartment-booking-manager:maintenance-drafts:v1'].map(key=>[key,localStorage.getItem(key)])));
+ for(const screen of ['apartments','calendar','statistics','reports']){
+  await page.locator('.app-navigation [data-screen='+screen+']').click();
+  await page.locator('#open-menu').click();await expect(page.locator('#app-menu')).toBeVisible();
+  await expect(page.locator('#account-controls')).toBeVisible();
+  await page.locator('#close-menu').click();await expect(page.locator('#app-menu')).not.toBeVisible();
+ }
+ await page.locator('#open-menu').click();await page.locator('#app-menu [data-language=en]').click();await page.locator('#app-menu [data-language=ro]').click();
+ if(session==='anonymous'){
+  await expect(page.locator('#google-sign-in')).toBeVisible();await page.locator('#google-sign-in').click();await expect(page.locator('#entry-login')).toBeVisible();await page.locator('#entry-basic').click();await page.locator('#open-menu').click();
+ }else{await expect(page.locator('#auth-status')).toContainText('Cont Google conectat.');expect(actions.length).toBeGreaterThan(0);}
+ await page.locator('#open-backup').click();await expect(page.locator('#backup-dialog')).toBeVisible();await page.locator('#close-backup').click();
+ if(session==='owner'){
+  await expect(page.locator('.brand small')).toContainText('PREMIUM permanent');await expect(page.locator('#access-details')).not.toContainText('istoric de trial');
+  await page.locator('.app-navigation [data-screen=statistics]').click();await expect(page.locator('#statistics-panel select').first()).toBeVisible();
+  await page.locator('.app-navigation [data-screen=reports]').click();await expect(page.locator('#reports-panel select').first()).toBeVisible();
+ }
+ expect(actions.every(action=>action==='verify')).toBe(true);
+ const after=await page.evaluate(()=>Object.fromEntries(['apartment-booking-manager:v1','apartment-booking-manager:maintenance:v1','apartment-booking-manager:maintenance-drafts:v1'].map(key=>[key,localStorage.getItem(key)])));
+ expect(after).toEqual(before);expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('apartment-booking-manager:access:v1')).startedAt)).toBe(1000);expect(errors).toEqual([]);
+});
 for(const state of ['BASIC','TRIAL','PREMIUM'])test(`account and header reflect native ${state} in RO/EN without changing data`,async({page,context})=>{
  // UI boundary only: a native verifier snapshot is mocked; no server grants are issued.
  await page.addInitScript(state=>{
