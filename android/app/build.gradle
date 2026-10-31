@@ -22,8 +22,8 @@ android {
         applicationId "ro.icdapps.apartmentbookingmanager"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 21
-        versionName "1.0.20"
+        versionCode 22
+        versionName "1.0.21"
         buildConfigField 'boolean', 'COMMERCIAL_ADS_ENABLED', commercialAdsEnabled.toString()
         resValue 'string', 'admob_banner_id', commercialAdsBannerId
         manifestPlaceholders = [abmAdMobAppId: commercialAdsAppId]
