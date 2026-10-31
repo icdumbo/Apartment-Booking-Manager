@@ -28,18 +28,18 @@ for(const [name,width,height] of profiles)test(`Android welcome/login ${name}`,a
  expect(await page.evaluate(()=>globalThis.__uiAuthCalls.signIn)).toBe(0);
  expect(await page.evaluate(k=>localStorage.getItem(k),dataKey)).toBe(before);
  expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'))).toBeNull();
- await page.reload();await expect(page.locator('#entry-screen')).not.toBeVisible();await page.locator('#open-menu').click();await expect(page.locator('#auth-status')).toContainText('without an account');
+ await page.reload();await expect(page.locator('#entry-screen')).not.toBeVisible();await page.locator('#open-menu').click();await page.locator('#menu-account>summary').click();await expect(page.locator('#auth-status')).toContainText('without an account');
 });
 test('login reuses native Google sign-in, keeps BASIC and never calls trial endpoints',async({page})=>{
  await native(page);let requests=0;await page.route('https://*.workers.dev/**',route=>{requests++;return route.abort();});
  await page.goto('/');await page.locator('#entry-to-login').click();const before=await page.evaluate(k=>localStorage.getItem(k),dataKey);
  await page.locator('#entry-google').click();await expect(page.locator('#entry-screen')).not.toBeVisible();await expect(page.locator('#access-message')).toContainText('BASIC');
  expect(await page.evaluate(()=>globalThis.__uiAuthCalls.signIn)).toBe(1);expect(requests).toBe(0);
- await page.locator('#open-menu').click();await expect(page.locator('#auth-status')).toContainText('Cont Google conectat. BASIC');
+ await page.locator('#open-menu').click();await page.locator('#menu-account>summary').click();await expect(page.locator('#auth-status')).toContainText('Cont Google conectat. BASIC');
  expect(await page.evaluate(k=>localStorage.getItem(k),dataKey)).toBe(before);expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'))).toBeNull();
 });
 test('restored Google session and existing apartments bypass introduction without resetting data',async({page})=>{
- await native(page,{signedIn:true});await page.goto('/');await expect(page.locator('#entry-screen')).not.toBeVisible();await page.locator('#open-menu').click();await expect(page.locator('#auth-status')).toContainText('Cont Google conectat.');
+ await native(page,{signedIn:true});await page.goto('/');await expect(page.locator('#entry-screen')).not.toBeVisible();await page.locator('#open-menu').click();await page.locator('#menu-account>summary').click();await expect(page.locator('#auth-status')).toContainText('Cont Google conectat.');
  await page.evaluate(({entryKey,dataKey})=>{localStorage.removeItem(entryKey);localStorage.setItem(dataKey,JSON.stringify({version:1,apartments:[{id:'a',name:'Test existent',address:'Adresă fictivă',city:'Oraș Test'}],bookings:[]}));},{entryKey,dataKey});
  await page.reload();await expect(page.locator('#entry-screen')).not.toBeVisible();await expect(page.locator('.timeline-row')).toHaveCount(1);
 });

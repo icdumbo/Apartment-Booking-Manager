@@ -48,7 +48,7 @@ const backupScreen=createBackupScreen({root:$('backup-content'),ready:()=>!block
 $('open-backup').onclick=()=>{$('app-menu').close();backupScreen.render();$('backup-dialog').showModal();};
 $('close-backup').onclick=()=>{if(backupScreen.isBusy())return;if(backupScreen.needsReload())backupScreen.reload();else $('backup-dialog').close();};
 $('backup-dialog').addEventListener('cancel',event=>{if(backupScreen.isBusy()||backupScreen.needsReload()){event.preventDefault();if(!backupScreen.isBusy())backupScreen.reload();}});
-const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),upgrade:()=>{$('app-menu').showModal();}});
+const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),upgrade:()=>{showMenu(true);}});
 function renderMonthSelector(){
  $('selector-year').textContent=selectorYear;const currentDate=new Date(start*86400000);
  $('month-options').replaceChildren();
@@ -74,10 +74,12 @@ function renderAccessStatus(){
  const daysLeft=Math.max(0,Math.ceil((entitlement.remainingMs??((expiry??0)-Date.now()))/86400000));
  const accessLabel=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
  $('access-message').textContent=accessLabel;
+ $('menu-access-status').textContent=accessLabel;
  document.querySelector('.brand small').textContent=t('version',{access:entitlement.state==='PREMIUM'?t(entitlement.premiumExpiresAt?'headerPremium':'headerPermanent'):entitlement.state==='TRIAL'?'TRIAL PREMIUM':'BASIC'});
  $('activate-secure-trial').hidden=entitlement.state!=='BASIC';
  if($('auth-status').dataset.i18n==='authSignedIn')$('auth-status').textContent=t('authSignedIn')+' '+accessLabel+'.';
  $('access-details').textContent=t(entitlement.legacyTrialPending?'legacyTrialReview':entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
+ $('menu-access-details').textContent=$('access-details').textContent;
 }
 let apartmentPhotoViews=[];
 function renderApartments(){
@@ -213,8 +215,8 @@ $('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$
 $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
 
 const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
-commerce=mountCommerce({root:document.querySelector('.menu-account'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});
-const upgradeAction=document.createElement('button');upgradeAction.type='button';upgradeAction.dataset.i18n='upgradePremium';upgradeAction.textContent=t('upgradePremium');upgradeAction.onclick=()=>{$('app-menu').showModal();commerce.refresh();};document.querySelector('.access-card details').append(upgradeAction);
+commerce=mountCommerce({root:$('menu-account-content'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});
+const upgradeAction=document.createElement('button');upgradeAction.type='button';upgradeAction.dataset.i18n='upgradePremium';upgradeAction.textContent=t('upgradePremium');upgradeAction.onclick=()=>{showMenu(true);commerce.refresh();};document.querySelector('.access-card details').append(upgradeAction);
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){
  const panel=$('account-controls'),signIn=$('google-sign-in'),signOut=$('google-sign-out'),status=$('auth-status');
@@ -245,9 +247,14 @@ if(androidAuth.available){
 }
 
 // Navigation shortcuts reuse the existing editor, permissions and storage paths.
-$('open-menu').onclick=()=>{
+function showMenu(expandAccount=false){
  for(const kind of ['apartment','booking'])$('menu-add-'+kind).disabled=$('add-'+kind).disabled;
+ $('menu-account').open=expandAccount;
  $('app-menu').showModal();
+ $('app-menu').scrollTop=0;
+}
+$('open-menu').onclick=()=>{
+ showMenu();
  commerce.refresh();
 };
 $('close-menu').onclick=()=>$('app-menu').close();

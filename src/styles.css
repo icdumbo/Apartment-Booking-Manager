@@ -219,7 +219,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .calendar-footer{padding:10px 16px;background:#fafbfd;border-color:#e1e8ee;font-size:10px;color:#758797}.storage-note{font-size:11px;color:#80909d;margin:10px 0}
 .app-navigation{background:#ffffffee;border-color:#d8e2ea;box-shadow:0 6px 24px #263f5310;backdrop-filter:blur(12px);padding:8px;border-radius:16px}.app-navigation a,.app-navigation button{font-size:11px;color:#708496;font-weight:550;padding:8px 3px;gap:5px}.app-navigation a[aria-current],.app-navigation button[aria-current]{background:#eaf0f5;color:#365d79}.app-navigation a:hover,.app-navigation button:not(:disabled):hover{background:#eff3f6}.app-navigation svg{stroke-width:1.6}
 dialog{padding:24px;border-radius:16px;border-color:#d5dfe7;color:var(--ink);max-height:calc(100dvh - 28px);overflow:auto;background:#fff;box-shadow:0 24px 90px #1c354940}dialog::backdrop{background:#1b2e405c;backdrop-filter:blur(3px)}dialog h2{font-size:20px;color:var(--ink);letter-spacing:-.4px}.dialog-heading{gap:12px}.dialog-heading>button{min-width:32px;min-height:32px;background:#f1f5f8}
-#app-menu{width:min(540px,calc(100% - 24px))}.menu-account{border:1px solid #dce5ed;background:#f7f9fb;border-radius:12px;padding:14px;margin-bottom:18px}.menu-account h3{font-size:12px;color:#728696;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px}#account-controls{padding:0;border:0;background:transparent;margin:0}#account-controls button{font-size:12px;min-height:40px;margin:0 5px 5px 0}#account-controls p{color:#60788c;line-height:1.6}.menu-account:has(#account-controls[hidden]){display:none}
+#app-menu{width:min(540px,calc(100% - 24px))}.menu-account{border:1px solid #dce5ed;background:#f7f9fb;border-radius:12px;padding:14px;margin-bottom:18px}.menu-account h3{font-size:12px;color:#728696;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px}#account-controls{padding:0;border:0;background:transparent;margin:0}#account-controls button{font-size:12px;min-height:40px;margin:0 5px 5px 0}#account-controls p{color:#60788c;line-height:1.6}
 .menu-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:9px}.menu-shortcuts button{text-align:left;min-height:44px}.future-features{background:#f1f5f8;color:#647c8f;border:1px dashed #cfdae3}.future-features p{color:#738697}
 input,select,textarea{border-color:#d5e0e8;color:#304b60;background:#fbfcfd;border-radius:8px;min-height:40px}#fields label{font-size:12px;color:#647b8d}.danger{color:#a44f56;border-color:#e4c4c8}.booking-editor{background:#f4f7f9;padding:0}.booking-editor .dialog-heading,.booking-editor .dialog-actions{border-color:#dce5ec;background:#fff}.booking-editor fieldset{border-color:#dce5ec;border-radius:12px;box-shadow:0 2px 5px #263f5303}.booking-editor legend{color:#4d7089}.booking-editor input,.booking-editor select,.booking-editor textarea{background:#fbfcfd;border-color:#d5e0e8;color:#304b60}.booking-editor output,.booking-editor input[readonly]{background:#edf3f7;color:#365d79}.booking-editor .amount-preview{color:#597b95}
 .apartment-list{gap:16px}.apartment-card{padding:20px;border-color:#dce5ec;border-radius:13px;box-shadow:0 3px 10px #263f5304}.apartment-card:hover{background:#fff;border-color:#99b1c3;box-shadow:0 5px 16px #263f530a}.apartment-photo{background:#f0f4f7;border-color:#c6d4df;color:#8b9ca9;border-radius:10px}.apartment-info strong{color:#304b60;font-size:16px}.apartment-info span,.apartment-info small{color:#708596}.apartment-reservations{border-color:#dce5ec;background:#fafcfd}.apartment-badge{color:#7a8d9b;background:#edf2f6;border-radius:5px;padding:5px}
@@ -492,3 +492,23 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 .backup-preview dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;margin:12px 0;font-size:14px}.backup-preview dd{margin:0;font-weight:700}
 .backup-preview .backup-confirm{display:flex;align-items:center;gap:10px;line-height:1.5;font-size:14px;margin:16px 0}.backup-confirm input{width:22px;height:22px;flex-shrink:0}
 .backup-preview button{margin:0 8px 8px 0}#backup-content .backup-status{font-weight:600;color:#14243a}
+
+/* Menu presentation only: functions first, optional account controls below. */
+#app-menu{padding:18px}
+#app-menu .dialog-heading{margin-bottom:8px;min-height:40px}
+#app-menu .menu-functions-heading{font-size:13px;line-height:1.4;margin:0 0 10px}
+#app-menu .menu-shortcuts button{min-height:44px;padding:9px 12px;gap:10px;line-height:1.3}
+#app-menu .menu-shortcuts button:before{width:22px;height:22px;background-size:21px}
+#app-menu .menu-shortcuts button:after{line-height:1}
+#app-menu .menu-account{display:block;padding:0;margin:12px 0 0;min-width:0}
+#app-menu .menu-account>summary{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 12px;cursor:pointer;list-style:none}
+#app-menu .menu-account>summary::-webkit-details-marker{display:none}
+#app-menu .menu-account>summary:focus-visible{outline:3px solid #d08e38;outline-offset:2px;border-radius:12px}
+#app-menu .menu-account-label{display:grid;gap:3px;min-width:0}
+#app-menu .menu-account-label strong{font-size:13px;font-weight:600;color:#214578}
+#menu-access-status{font-size:12px;line-height:1.4;color:#45678f;overflow-wrap:anywhere}
+#app-menu .menu-account-indicator{margin-left:auto;flex-shrink:0;font-size:22px;line-height:1;color:#5478a9;transition:transform .15s}
+#app-menu .menu-account[open] .menu-account-indicator{transform:rotate(180deg)}
+#menu-account-content{padding:0 12px 12px;min-width:0}
+#menu-access-details{margin:8px 0;font-size:12px;line-height:1.5}
+@media(max-width:600px){#app-menu{padding:14px}#app-menu .dialog-heading{gap:8px}#app-menu .menu-shortcuts button{font-size:13px}}

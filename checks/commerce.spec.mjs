@@ -16,7 +16,7 @@ test('UI-only Play fixture: pending/cancelled cannot unlock access; verified rec
   }};
  });
  await page.route('https://apartment-booking-access.ionutliviucraciun1982.workers.dev/**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({version:1,proof:route.request().url().endsWith('/purchase')?'fixture-purchase-proof':'fixture-basic-proof'})}));
- await page.goto('/');await page.locator('#open-menu').click();const buy=page.locator('#commerce-controls button').first();await expect(buy).toContainText('49,99 TEST');await buy.click();await expect(page.locator('#commerce-controls [role=status]')).toContainText('așteptare');await expect(page.locator('#access-message')).toContainText('BASIC');
+ await page.goto('/');await page.locator('#open-menu').click();await page.locator('#menu-account>summary').click();const buy=page.locator('#commerce-controls button').first();await expect(buy).toContainText('49,99 TEST');await buy.click();await expect(page.locator('#commerce-controls [role=status]')).toContainText('așteptare');await expect(page.locator('#access-message')).toContainText('BASIC');
  await page.evaluate(()=>window.fixturePurchase='cancelled');await buy.click();await expect(page.locator('#commerce-controls [role=status]')).toContainText('anulată');await expect(page.locator('#access-message')).toContainText('BASIC');
  await page.evaluate(()=>window.fixtureOwned=true);await page.locator('#commerce-controls button').nth(1).click();await expect(page.locator('#access-message')).toContainText('PREMIUM');await expect(buy).toBeDisabled();expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'))).toBeNull();
 });
