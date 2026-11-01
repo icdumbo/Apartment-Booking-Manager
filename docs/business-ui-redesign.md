@@ -22,6 +22,10 @@ coordonatele, sticky, numărul de zile, jumătățile de zi, derularea, handover
 paleta stabilă a rezervărilor. Gridul rămâne foarte deschis pentru zilele libere;
 data curentă păstrează evidențierea funcțională existentă.
 
+Etapa ulterioară aprobată de stabilizare permite doar tipografia numelor de
+rezervări pe telefon, verificată separat de geometria protejată; detalii în
+`business-ui-stabilization.md`. Restul geometriei calendarului rămâne identic.
+
 Tematizarea acoperă calendarul, apartamentele/fotografiile, formularele, statistici,
 rapoarte, încasări, întreținere, backup/restaurare, meniul compact, contul și
 ecranele de intrare/autentificare. RO/EN și toate controalele rămân disponibile.

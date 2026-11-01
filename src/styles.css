@@ -519,7 +519,7 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 :root{
  --business-bg:#1d2327;--business-surface:#282f34;--business-raised:#343d44;
  --business-input:#22292e;--business-hover:#3c464e;--business-line:#59656e;
- --business-ink:#f2f4f5;--business-muted:#c3ccd2;--business-silver:#dce2e5;
+ --business-ink:#f2f4f5;--business-muted:#ccd4d9;--business-silver:#dce2e5;
  --business-gold:#efd092;--business-error:#ffbdc6;--business-success:#b4ddc2;
  --business-shadow:0 7px 22px #10161b40;
  --ink:var(--business-ink);--muted:var(--business-muted);--ui-border:var(--business-line);
@@ -638,3 +638,17 @@ body .entry-actions>p:last-child{background:var(--business-surface);color:var(--
 body .google-button,body .google-button:hover{background:var(--business-silver);color:#20292f;border-color:var(--business-silver)}
 /* Non-calendar filters need room for complete owner/apartment selections. */
 @media(min-width:601px) and (max-width:1099px){body .statistics-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Approved BUSINESS stabilization: label legibility, not bar/day geometry. */
+@media(max-width:600px){
+ body .booking-guest{font-size:12.5px;font-weight:700;color:#101f2b;letter-spacing:-.1px}
+ @container reservation (max-width:64px){body .booking-guest{font-size:12px;font-weight:650}}
+}
+/* Reserve the existing fixed bottom navigation's footprint plus breathing room.
+   Scroll margins apply only to document panels, never to timeline day cells. */
+@media(max-width:1099px){
+ :root{--business-bottom-clearance:calc(96px + env(safe-area-inset-bottom))}
+ html{scroll-padding-bottom:var(--business-bottom-clearance)}
+ body{padding-bottom:var(--business-bottom-clearance)}
+ :is(#apartments-panel,#statistics-panel,#reports-panel,#payments-panel,#maintenance-panel) :is(button,input,select,textarea,summary,article){scroll-margin-bottom:var(--business-bottom-clearance)}
+}

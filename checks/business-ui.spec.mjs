@@ -5,6 +5,8 @@ import {seedBrowserTrial} from './fixtures/browser-trial.mjs';
 
 // Real application, fictional isolated records. The baseline is the stable CSS,
 // obtained by CI from commit 84317b2, never an approximation of its dimensions.
+// Guest label typography is the sole newly approved exception; protected bar/day
+// boxes and fonts remain exact, with label readability asserted separately.
 const key='apartment-booking-manager:v1';
 const fixture=maintenanceExportFixture();
 fixture.state.bookings.push({id:'business-handover',apartmentId:'a',guest:'Client Test Schimb',phone:'0700000000',checkIn:'2026-10-12',checkOut:'2026-10-16',status:'unconfirmed',totalAmountCents:42000});
@@ -25,7 +27,7 @@ async function contrast(page,selectors){
  expect(values.length).toBeGreaterThan(0);for(const value of values)expect(value.ratio,JSON.stringify(value)).toBeGreaterThanOrEqual(4.5);
 }
 async function geometry(page){return page.evaluate(()=>{
- const selectors=['.top','.intro','.actions','.toolbar','.navigation','.month-selector','.year-navigation','.month-options','.legend','.timeline-scroll','.timeline','.timeline-head','.calendar-head','.month','.day-heading','.apartment-label','.timeline-row','.track','.day-cell','.booking','.booking-status-icon','.booking-guest','.handover','.calendar-footer','.app-navigation'];
+ const selectors=['.top','.intro','.actions','.toolbar','.navigation','.month-selector','.year-navigation','.month-options','.legend','.timeline-scroll','.timeline','.timeline-head','.calendar-head','.month','.day-heading','.apartment-label','.timeline-row','.track','.day-cell','.booking','.booking-status-icon','.handover','.calendar-footer','.app-navigation'];
  return Object.fromEntries(selectors.map(selector=>[selector,[...document.querySelectorAll(selector)].map(el=>{const box=el.getBoundingClientRect(),style=getComputedStyle(el);return [box.x,box.y,box.width,box.height].map(v=>Math.round(v*100)/100).concat([style.position,style.left,style.top,style.fontSize,style.fontFamily,style.fontWeight]);})]));
 });}
 
