@@ -10,7 +10,7 @@ for(const width of [344,360,430,840,800])test(`report currency matrix, general c
  const before=await page.evaluate(k=>localStorage.getItem(k),key);await page.locator('.app-navigation [data-screen=reports]').click();await page.context().setOffline(true);
  for(const language of ['ro','en']){
   await page.locator(`.top [data-language=${language}]`).click();
-  await expect(page.locator('#report-count')).toHaveText(language==='ro'?'Total rezervări: 4':'Total reservations: 4');
+  await expect(page.locator('#report-count')).toHaveText(language==='ro'?'Total: 4 rezervări':'Total: 4 reservations');
   await expect(page.locator('#report-unpriced')).toHaveText(language==='ro'?'Fără valoare completată: 1':'Unspecified value: 1');
   await expect(page.locator('.report-summary-table thead th')).toHaveText(language==='ro'?['Indicator','RON','EUR']:['Metric','RON','EUR']);
   await expect(page.locator('.report-summary-table tbody tr')).toHaveCount(4);

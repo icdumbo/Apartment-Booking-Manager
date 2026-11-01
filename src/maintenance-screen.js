@@ -8,8 +8,21 @@ import {formatMoney,moneyInput,parseMoney} from './booking-values.js';
 import {today} from './domain.js?v=0.2.1';
 import {CURRENCIES} from './currency.js';
 import {ownerApartments,ownerOptions} from './owners.js';
+import {downloadMaintenanceExcel} from './maintenance-excel.js';
+import {downloadMaintenancePDF} from './maintenance-pdf.js';
 export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
  const repository=createMaintenanceRepository(),draftRepository=createMaintenanceDraftRepository();let initialized=false,expectedDraft=null,draftWarning='',data,kind='expenses',draft=null,filters={ownerId:'',apartmentId:'',category:'',start:'',end:''};
+ let exporting=false,exportStatus='',exportStatusValues={};
+ function status(key,values={}){exportStatus=key;exportStatusValues=values;const el=root.querySelector('#maintenance-export-status');if(el)el.textContent=key?t(key,values):'';}
+ async function runExport(download){
+  if(exporting)return;exporting=true;status('exportPreparing');
+  for(const button of root.querySelectorAll('[data-maintenance-export]'))button.disabled=true;
+  try{
+   const result=await download(getState(),repository.load(),{...filters,category:kind==='expenses'?filters.category:''},getEntitlement());
+   status(result.status==='saved'?'exportSaved':result.status==='cancelled'?'exportCancelled':'exportBrowserStarted',{filename:result.filename});
+  }catch(error){status('');if(!maintenanceAllowed(getEntitlement()))render();else message({message:['maintenancePremium','maintenanceInvalid','collectionOverflow','exportNativeUnavailable','exportFileTooLarge'].includes(error.message)?error.message:'exportSaveFailed'});}
+  finally{exporting=false;for(const button of root.querySelectorAll('[data-maintenance-export]'))button.disabled=!maintenanceAllowed(getEntitlement());}
+ }
  function node(tag,value,parent=root){const el=document.createElement(tag);if(value!==undefined)el.textContent=value;parent.append(el);return el;}
  function button(label,action,parent){const el=node('button',t(label),parent);el.type='button';el.onclick=action;return el;}
  function message(error,focus=true){const el=root.querySelector('.maintenance-error');if(!el)return;el.textContent=translateError(error);if(focus&&!root.hidden){el.tabIndex=-1;el.scrollIntoView({block:'center'});el.focus({preventScroll:true});}}
@@ -71,6 +84,10 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
    input.onchange=()=>{try{filters[name]=name==='start'||name==='end'?input.value?parseDate(input.value):'':input.value;render();}catch{error.textContent=t('maintenanceInvalid');}};
   }
   node('p',t(kind==='expenses'?'maintenanceExpenseBasis':kind==='works'?'maintenanceWorkBasis':'maintenanceReviewBasis'),root);
+  const exports=node('div',undefined,root);exports.className='report-export-actions';
+  for(const [format,key,download] of [['excel','reportExportExcel',downloadMaintenanceExcel],['pdf','reportExportPDF',downloadMaintenancePDF]]){const action=button(key,()=>runExport(download),exports);action.id='maintenance-export-'+format;action.dataset.maintenanceExport=format;action.disabled=exporting;}
+  const exportMessage=node('p',exportStatus?t(exportStatus,exportStatusValues):'',root);exportMessage.id='maintenance-export-status';exportMessage.setAttribute('role','status');
+  node('p',t('maintenanceExportBasis'),root).className='maintenance-export-basis';
   const add=button('maintenanceAdd',()=>begin(),root);add.id='maintenance-add';add.className='primary';add.disabled=Boolean(draft)||!getState().apartments.length;
   if(draft)editor();else if(draftWarning)message({message:draftWarning},false);
   let result;try{result=selectMaintenance(data,kind,filters,getState().apartments);}catch{error.textContent=t('maintenanceInvalid');return;}
