@@ -42,6 +42,10 @@ nu se propagă în fișierele exportate.
   (minimum 4,5:1 pentru textele testate), focusul, erorile, cele trei stări de
   acces, RO/EN, overflow și navigarea offline. Singura aserțiune vizuală existentă
   actualizată este culoarea fundalului: alb → antracit, conform noului obiectiv.
+- Pregătirea testului existent de backup fixează timpul și folosește un istoric
+  expirat cu `lastSeen` egal cu timpul testului. Astfel actualizarea normală
+  anti-rollback nu concurează cu verificarea izolării restaurării. Comparația
+  exactă a întregului istoric și toate aserțiunile originale sunt păstrate.
 - Capturile `BUSINESS-*` sunt ale aplicației reale cu date fictive, într-un browser
   izolat. Nu sunt randări AI sau imagini înlocuind controalele aplicației.
 - Sunt rulate testele existente pentru proprietari/filtre, CRUD, rapoarte/exporturi,

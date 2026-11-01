@@ -40,6 +40,7 @@ for(const [name,width,height] of [['folded',344,882],['s24-ultra',430,932],['unf
  // Wait for its final color, preserving exact equality with the stable palette.
  await expect.poll(()=>page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle]))).toEqual(palette);
  await baseline.evaluate(el=>el.remove());await page.locator('link[rel=stylesheet]').evaluateAll(els=>els.forEach(el=>el.disabled=false));
+ await expect.poll(()=>page.locator('#add-booking').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(220, 226, 229)');
  await contrast(page,['h1','.brand strong','.brand small','.legend','.day-heading strong','.day-heading small','.booking-guest','#add-booking']);
 });
 
@@ -67,5 +68,5 @@ for(const state of ['BASIC','TRIAL','PREMIUM'])test(`BUSINESS verified-native UI
 });
 
 test('BUSINESS form errors and keyboard focus remain readable without saving invalid data',async({page})=>{
- await setup(page);const before=await page.evaluate(key=>localStorage.getItem(key),key);await page.locator('#add-apartment').click();await page.locator('#editor [type=submit]').click();await expect(page.locator('#form-error')).not.toBeEmpty();await contrast(page,['#form-error','#editor-title','#fields label>span','#fields input','#editor .primary']);await page.locator('#fields input').first().focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await expect(page.locator('#fields input').first()).toBeFocused();expect(await page.locator('#fields input').first().evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('solid');expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBe(before);
+ await setup(page);const before=await page.evaluate(key=>localStorage.getItem(key),key);await page.locator('#add-apartment').click();await page.locator('#editor [type=submit]').click();await expect(page.locator('#form-error')).not.toBeEmpty();await contrast(page,['#form-error','#editor-title','#fields label>span','#fields input','#editor .primary']);const name=page.locator('#fields input[name=name]');await name.focus();await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await expect(name).toBeFocused();expect(await name.evaluate(el=>getComputedStyle(el).outlineStyle)).toBe('solid');expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBe(before);
 });
