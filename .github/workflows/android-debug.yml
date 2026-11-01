@@ -2,7 +2,7 @@ name: Android debug APK
 on:
   workflow_dispatch:
   push:
-    branches: [main, codex/basic-premium-foundation]
+    branches: [main, codex/basic-premium-foundation, codex/business-ui-redesign]
     paths:
       - 'android/**'
       - 'src/**'
@@ -17,7 +17,7 @@ permissions:
   contents: read
 jobs:
   debug-apk:
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || (github.ref == 'refs/heads/codex/basic-premium-foundation' && contains(github.event.head_commit.message, '[android-test]'))
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || ((github.ref == 'refs/heads/codex/basic-premium-foundation' || github.ref == 'refs/heads/codex/business-ui-redesign') && contains(github.event.head_commit.message, '[android-test]'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
