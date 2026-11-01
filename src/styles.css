@@ -514,8 +514,8 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 @media(max-width:600px){#app-menu{padding:14px}#app-menu .dialog-heading{gap:8px}#app-menu .menu-shortcuts button{font-size:13px}}
 
 /* BUSINESS visual layer. Base/rollback: 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425.
-   Color, surface and shadow only. No timeline dimensions, positions, spacing,
-   font metrics, handlers or booking/status palette are changed by this layer. */
+   Visual styling only. No timeline dimensions, positions, spacing, font metrics,
+   handlers or booking/status palette are changed by this layer. */
 :root{
  --business-bg:#1d2327;--business-surface:#282f34;--business-raised:#343d44;
  --business-input:#22292e;--business-hover:#3c464e;--business-line:#59656e;
@@ -538,7 +538,7 @@ body button:hover{background:var(--business-hover);border-color:var(--business-m
 body :is(.primary,#start-trial,.entry-primary){background:var(--business-silver);background-image:linear-gradient(160deg,#eff2f3,#cbd3d8);border-color:var(--business-silver);color:#20292f;box-shadow:0 3px 9px #10161b25}
 body :is(.primary:hover,#start-trial:hover,.entry-primary:hover){background:#f2f4f5;color:#20292f;border-color:#f2f4f5}
 body .secondary{background:var(--business-raised);border-color:var(--business-line);color:var(--business-ink)}
-body :is(button,input,select,textarea,a,summary):focus-visible{outline-color:var(--business-gold)}
+body :is(button,input,select,textarea,a,summary):focus-visible{outline:3px solid var(--business-gold);outline-offset:3px}
 body :is(input,select,textarea),body .booking-editor :is(input,select,textarea),body .collections-filters :is(input,select),#maintenance-panel :is(input,select,textarea){background:var(--business-input);color:var(--business-ink);border-color:var(--business-line);accent-color:var(--business-gold)}
 body :is(input,select,textarea):hover{border-color:var(--business-muted)}
 body :is(input,select,textarea):focus{background:var(--business-input);color:var(--business-ink)}
@@ -558,6 +558,7 @@ body :is(.day-heading,.corner,.corner:hover,.apartment-label){background:#edf1ee
 body .day-heading.weekend{background:#dfe6e1}
 body :is(.day-heading strong,.day-heading small,.apartment-label strong,.apartment-label small){color:#24352d}
 body .apartment-label:hover{background:#e0e9e3}
+body .timeline-row{background:#f0f7f1}
 /* Current day, free/weekend cells, bars, dashed status and handover are inherited. */
 body .app-navigation{background:var(--business-surface);border-color:var(--business-line);box-shadow:0 6px 20px #10161b50}
 body .app-navigation :is(a,button){background:transparent;color:var(--business-muted)}
@@ -581,6 +582,7 @@ body #notice{background:#392b31}
 body :is(.apartment-info strong,.apartment-photo-editor>strong,.report-card h3,.collection-info>strong){color:var(--business-ink)}
 body :is(.apartment-info span,.apartment-info small,.photo-message,.collection-info>span,.collection-date,.collection-method){color:var(--business-muted)}
 body .apartment-photo{background:var(--business-input);border-color:var(--business-line);color:var(--business-muted)}
+body .apartment-photo:before{filter:grayscale(1) brightness(2.2)}
 body .apartment-badge{background:var(--business-raised);color:var(--business-ink)}
 body :is(.apartment-reservations,.apartment-booking-link,.payment-row,.collections-legacy,.backup-preview){background:var(--business-input);color:var(--business-ink);border-color:var(--business-line)}
 body .apartment-reservations summary{color:var(--business-muted)}
@@ -616,6 +618,7 @@ body #backup-content p{color:var(--business-muted)}
 body #app-menu .menu-shortcuts{background:var(--business-surface);border-color:var(--business-line)}
 body #app-menu .menu-shortcuts button{background:var(--business-surface);color:var(--business-ink);border-color:#465159}
 body #app-menu .menu-shortcuts button:hover{background:var(--business-raised)}
+body #app-menu .menu-shortcuts button:focus-visible{outline-offset:-3px}
 body #app-menu .menu-shortcuts button:before{filter:grayscale(1) brightness(2.6)}
 body #app-menu .menu-shortcuts button:after{color:var(--business-muted)}
 body #app-menu :is(.menu-account-label strong,.menu-account-indicator){color:var(--business-ink)}
@@ -633,3 +636,5 @@ body .entry-login h2{color:var(--business-ink)}
 body :is(.entry-login>p,.entry-login .entry-terms,.entry-actions>p){color:var(--business-muted)}
 body .entry-actions>p:last-child{background:var(--business-surface);color:var(--business-ink)}
 body .google-button,body .google-button:hover{background:var(--business-silver);color:#20292f;border-color:var(--business-silver)}
+/* Non-calendar filters need room for complete owner/apartment selections. */
+@media(min-width:601px) and (max-width:1099px){body .statistics-filters{grid-template-columns:repeat(3,minmax(0,1fr))}}

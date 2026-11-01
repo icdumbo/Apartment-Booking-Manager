@@ -25,6 +25,8 @@ data curentă păstrează evidențierea funcțională existentă.
 Tematizarea acoperă calendarul, apartamentele/fotografiile, formularele, statistici,
 rapoarte, încasări, întreținere, backup/restaurare, meniul compact, contul și
 ecranele de intrare/autentificare. RO/EN și toate controalele rămân disponibile.
+La lățimi de tabletă/Fold desfăcut, filtrele statisticilor folosesc trei coloane
+pentru a oferi loc selecțiilor lungi; nu sunt eliminate filtre sau opțiuni.
 PDF/Excel păstrează stilul lor imprimabil și generatorii originali; tema de ecran
 nu se propagă în fișierele exportate.
 
