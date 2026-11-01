@@ -33,14 +33,14 @@ async function geometry(page){return page.evaluate(()=>{
 
 for(const [name,width,height] of [['folded',344,882],['s24-ultra',430,932],['unfolded',840,900],['desktop',1440,1000]])test(`BUSINESS calendar matches exact baseline geometry ${name}`,async({page})=>{
  await page.setViewportSize({width,height});await setup(page);const before=await geometry(page);
- const palette=await page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle]));
+ const palette=await page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle,getComputedStyle(el.querySelector('.booking-guest')).color]));
  const source=(await readFile('checks/business-baseline.generated.css','utf8')).replace('url("./assets/welcome-seaside.jpg")','url("/src/assets/welcome-seaside.jpg")');
  await page.locator('link[rel=stylesheet]').evaluateAll(els=>els.forEach(el=>el.disabled=true));const baseline=await page.addStyleTag({content:source});
  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  expect(await geometry(page)).toEqual(before);
  // Stylesheet replacement can start the existing 150 ms color transition.
  // Wait for its final color, preserving exact equality with the stable palette.
- await expect.poll(()=>page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle]))).toEqual(palette);
+ await expect.poll(()=>page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle,getComputedStyle(el.querySelector('.booking-guest')).color]))).toEqual(palette);
  await baseline.evaluate(el=>el.remove());await page.locator('link[rel=stylesheet]').evaluateAll(els=>els.forEach(el=>el.disabled=false));
  await expect.poll(()=>page.locator('#add-booking').evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(220, 226, 229)');
  await contrast(page,['h1','.brand strong','.brand small','.legend','.day-heading strong','.day-heading small','.booking-guest','#add-booking']);

@@ -26,7 +26,8 @@ Punct de pornire: `3364c8617a3d814419a2f263030c2e98629797d9`, branch
 
 Numele rezervărilor pe telefon au 12,5 px/700, respectiv 12 px/650 în barele
 foarte scurte, păstrând fontul condensat existent acolo și textul complet în
-detalii/tooltip. Contrastul textului pe pastel este mărit discret. Nu se schimbă
+detalii/tooltip. Culoarea textului pe pastel este păstrată; conturul devine mai
+lizibil prin fontul puțin mai mare și mai apăsat. Nu se schimbă
 barele, lățimea zilelor, coordonatele, culorile rezervărilor, jumătățile de zi,
 suprapunerile, statusurile sau operațiile calendarului.
 
