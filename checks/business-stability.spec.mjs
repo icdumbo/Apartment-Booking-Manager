@@ -34,7 +34,7 @@ for(const [name,width,height] of profiles)test(`BUSINESS last content and actual
  await page.screenshot({path:`test-results/BUSINESS-stable-${name}-last-maintenance.png`});
 });
 
-for(const [name,width,height] of profiles.slice(0,2))test(`BUSINESS mobile reservation names remain readable and open full details ${name}`,async({page})=>{
+for(const [name,width,height] of [profiles[0],['phone-360',360,800],profiles[1]])test(`BUSINESS mobile reservation names remain readable and open full details ${name}`,async({page})=>{
  await page.setViewportSize({width,height});const data=fixture();data.state.apartments=data.state.apartments.slice(0,2);data.maintenance.expenses=[];data.state.bookings=[{id:'short-a',apartmentId:'reach-0',guest:'Ana',phone:'0700000000',checkIn:'2026-10-05',checkOut:'2026-10-06',status:'confirmed'},{id:'short-b',apartmentId:'reach-1',guest:'Dan',phone:'0700000000',checkIn:'2026-10-05',checkOut:'2026-10-06',status:'unconfirmed'}];await setup(page,data);
  for(const language of ['ro','en']){await page.locator('.top [data-language='+language+']').click();for(const guest of ['Ana','Dan']){
   const bar=page.locator('.booking').filter({hasText:guest}),label=bar.locator('.booking-guest');await expect(bar).toHaveAttribute('title',new RegExp(guest));

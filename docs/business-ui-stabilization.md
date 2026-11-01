@@ -51,7 +51,11 @@ apartament, rezervare din apartamente/încasări, afișare valori statistice,
 descărcare Excel, editare/anulare întreținere și deschidere backup. Datele sunt
 comparate integral înainte/după; RON rămâne separat de EUR.
 
-Numele scurte sunt verificate RO/EN și deschid detaliile cu numele integral.
+Numele scurte sunt verificate RO/EN la 344, 360 și 430 px și deschid detaliile cu
+numele integral. Prima rulare a detectat o depășire de 0,69 px la 360 px în testele
+existente de lizibilitate. Spațierea literelor din barele scurte a fost ajustată
+la -0,5 px, păstrând fontul de 12 px și dimensiunile barelor. Aserțiunile existente
+de încadrare a numelor au fost păstrate integral.
 Comparația exactă cu geometria de bază a calendarului rămâne; doar fontul/boxul
 textului guest este separat, fiind ajustarea cerută explicit acum. Dimensiunile
 și pozițiile barelor/zilelor, statusurile, handover și fonturile celorlalte
