@@ -644,6 +644,31 @@ body .google-button,body .google-button:hover{background:var(--business-silver);
  body .booking-guest{font-size:12.5px;font-weight:700;letter-spacing:-.1px}
  @container reservation (max-width:64px){body .booking-guest{font-size:12px;font-weight:650;letter-spacing:-.5px}}
 }
+
+/* BUSINESS finish: complete filter values with a dedicated arrow gutter. */
+body :is(.collections-filters,.statistics-filters,.report-filters,.maintenance-filters){grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+body :is(.collections-filters,.statistics-filters,.report-filters,.maintenance-filters)>label{grid-column:auto;min-width:0}
+body :is(.collections-filters,.maintenance-filters) select{
+ width:100%;min-width:0;min-height:44px;font-size:16px;
+ padding:10px 40px 10px 12px;appearance:none;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ccd4d9' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
+}
+/* Paint only: no timeline dimensions, positioning, typography or event changes. */
+body :is(.timeline-head,.timeline-row){background:#30363b}
+body .months{background:#3a4249;box-shadow:inset 0 1px #616b73,inset 0 -1px #616b73}
+body .months .month{color:#f2f4f5;border-color:#616b73}
+body :is(.day-heading,.corner,.corner:hover,.apartment-label){background:#343b41;color:#f2f4f5;border-color:#59636c}
+body .day-heading.weekend{background:#3c444b}
+body :is(.day-heading strong,.day-heading small,.apartment-label strong,.apartment-label small){color:#f2f4f5}
+body .apartment-label:hover{background:#414b53}
+body .day-cell{background:#30363b!important;border-color:#505960;box-shadow:inset 0 -2px #729b80}
+body .day-cell.weekend{background:#353c42!important;box-shadow:inset 0 -2px #729b80}
+body .day-cell:hover{background:#444e56!important}
+body .day-cell.current{background:#2c3c4b!important;box-shadow:inset 1px 0 #80b7ee,inset -1px 0 #80b7ee,inset 0 -2px #729b80}
+body .day-heading.current{background:#28445c!important}
+body .day-heading.current strong{color:#b9dcff}
+body .legend .free{background:#729b80;border-color:#8fba9e}
 /* Reserve the existing fixed bottom navigation's footprint plus breathing room.
    Scroll margins apply only to document panels, never to timeline day cells. */
 @media(max-width:1099px){
