@@ -512,3 +512,124 @@ body p,.intro p:last-child,.brand small,.local,.storage-note,.calendar-footer,.a
 #menu-account-content{padding:0 12px 12px;min-width:0}
 #menu-access-details{margin:8px 0;font-size:12px;line-height:1.5}
 @media(max-width:600px){#app-menu{padding:14px}#app-menu .dialog-heading{gap:8px}#app-menu .menu-shortcuts button{font-size:13px}}
+
+/* BUSINESS visual layer. Base/rollback: 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425.
+   Color, surface and shadow only. No timeline dimensions, positions, spacing,
+   font metrics, handlers or booking/status palette are changed by this layer. */
+:root{
+ --business-bg:#1d2327;--business-surface:#282f34;--business-raised:#343d44;
+ --business-input:#22292e;--business-hover:#3c464e;--business-line:#59656e;
+ --business-ink:#f2f4f5;--business-muted:#c3ccd2;--business-silver:#dce2e5;
+ --business-gold:#efd092;--business-error:#ffbdc6;--business-success:#b4ddc2;
+ --business-shadow:0 7px 22px #10161b40;
+ --ink:var(--business-ink);--muted:var(--business-muted);--ui-border:var(--business-line);
+ background:var(--business-bg);color:var(--business-ink);
+}
+body{background:var(--business-bg);color:var(--business-ink)}
+body .top{border-bottom-color:var(--business-line)}
+body :is(h1,h2,h3,.brand,.brand strong,.intro h1){color:var(--business-ink)}
+body :is(p,.brand small,.local,.intro p:last-child,.storage-note){color:var(--business-muted)}
+body .logo{background:linear-gradient(145deg,var(--business-raised),var(--business-surface));color:var(--business-ink);border-color:var(--business-line);box-shadow:inset 0 1px #ffffff18}
+body .language-selector{background:var(--business-input);border-color:var(--business-line)}
+body .language-selector button{background:transparent;color:var(--business-muted)}
+body .language-selector button[aria-pressed=true]{background:var(--business-hover);color:var(--business-ink);box-shadow:inset 0 1px #ffffff18}
+body button{background:var(--business-raised);color:var(--business-ink);border-color:var(--business-line);box-shadow:none}
+body button:hover{background:var(--business-hover);border-color:var(--business-muted)}
+body :is(.primary,#start-trial,.entry-primary){background:var(--business-silver);background-image:linear-gradient(160deg,#eff2f3,#cbd3d8);border-color:var(--business-silver);color:#20292f;box-shadow:0 3px 9px #10161b25}
+body :is(.primary:hover,#start-trial:hover,.entry-primary:hover){background:#f2f4f5;color:#20292f;border-color:#f2f4f5}
+body .secondary{background:var(--business-raised);border-color:var(--business-line);color:var(--business-ink)}
+body :is(button,input,select,textarea,a,summary):focus-visible{outline-color:var(--business-gold)}
+body :is(input,select,textarea),body .booking-editor :is(input,select,textarea),body .collections-filters :is(input,select),#maintenance-panel :is(input,select,textarea){background:var(--business-input);color:var(--business-ink);border-color:var(--business-line);accent-color:var(--business-gold)}
+body :is(input,select,textarea):hover{border-color:var(--business-muted)}
+body :is(input,select,textarea):focus{background:var(--business-input);color:var(--business-ink)}
+body input::placeholder,body textarea::placeholder{color:#b1bdc5;opacity:1}
+body option{background:var(--business-input);color:var(--business-ink)}
+body :is(.calendar-card,.calendar-footer,dialog,#app-menu,.booking-editor,.booking-editor fieldset,.collections-filters,.collections-summary>div,.statistics-primary>div,.statistics-secondary>div,.statistics-chart,.report-card,.apartment-card,.menu-account,.future-features,.collections-locked,.statistics-definitions,#report-explanation,.apartment-photo-editor,.maintenance-filters,.maintenance-editor,.maintenance-card,.report-summary){background:var(--business-surface);color:var(--business-ink);border-color:var(--business-line);box-shadow:var(--business-shadow)}
+body .calendar-footer{color:var(--business-muted);box-shadow:none}
+body :is(.toolbar,.month-selector,.legend){background:transparent}
+body :is(.navigation button,.year-navigation button,.month-option){background:var(--business-raised);color:var(--business-ink);border-color:var(--business-line);box-shadow:inset 0 1px #ffffff12}
+body :is(.navigation h2,.year-navigation strong,.legend){color:var(--business-ink)}
+body :is(.month-option.active,.month-option.active:hover){background:var(--business-silver);color:#20292f;box-shadow:inset 0 1px #ffffff80}
+body .month-option.upcoming{background:var(--business-raised);color:var(--business-ink);box-shadow:inset 0 0 0 1px #b4c0c9}
+/* Retain the functional light grid, exact booking palette and current-day blue. */
+body .months{background:#d7ddda;box-shadow:inset 0 1px #bac7c0,inset 0 -1px #bac7c0}
+body .months .month{color:#233129;border-color:#bac7c0}
+body :is(.day-heading,.corner,.corner:hover,.apartment-label){background:#edf1ee;color:#24352d;border-color:#ccd7d0}
+body .day-heading.weekend{background:#dfe6e1}
+body :is(.day-heading strong,.day-heading small,.apartment-label strong,.apartment-label small){color:#24352d}
+body .apartment-label:hover{background:#e0e9e3}
+/* Current day, free/weekend cells, bars, dashed status and handover are inherited. */
+body .app-navigation{background:var(--business-surface);border-color:var(--business-line);box-shadow:0 6px 20px #10161b50}
+body .app-navigation :is(a,button){background:transparent;color:var(--business-muted)}
+body .app-navigation :is(a[aria-current],button[aria-current]){background:var(--business-hover);color:var(--business-ink);box-shadow:inset 0 1px #ffffff20}
+body .app-navigation :is(a:hover,button:not(:disabled):hover){background:var(--business-raised);color:var(--business-ink)}
+body .app-navigation small{background:var(--business-raised);color:var(--business-muted)}
+body .access-card{background:var(--business-surface);border-color:var(--business-line)}
+body .access-card :is(summary,p),body .access-card details[open] p{color:var(--business-muted)}
+/* Existing visibility identifies TRIAL/PREMIUM for presentation only. No right is created. */
+body:has(#activate-secure-trial[hidden]) :is(.brand small,#access-message,#menu-access-status){color:var(--business-gold)}
+body dialog::backdrop{background:#10171db0;backdrop-filter:blur(5px)}
+body :is(.dialog-heading>button,.booking-editor .dialog-heading>button){background:var(--business-raised);color:var(--business-ink)}
+body .booking-editor :is(.dialog-heading,.dialog-actions){background:var(--business-surface);border-color:var(--business-line)}
+body :is(.booking-editor legend,.booking-editor #fields label,#fields label,.collections-filters label,.statistics-filters label,.report-filters label){color:var(--business-muted)}
+body .booking-editor :is(output,input[readonly]){background:var(--business-raised);color:var(--business-ink)}
+body :is(.amount-preview,.booking-editor .amount-preview){color:var(--business-muted)}
+body :is(.danger,.photo-message.photo-error){color:var(--business-error);background:#392b31;border-color:#a56e79}
+body :is(#form-error,#notice,#report-error,#entry-message),#maintenance-panel :is(.maintenance-error,.maintenance-field-error,.maintenance-due-overdue){color:var(--business-error)}
+body #notice{background:#392b31}
+#maintenance-panel [aria-invalid=true]{border-color:var(--business-error)}
+body :is(.apartment-info strong,.apartment-photo-editor>strong,.report-card h3,.collection-info>strong){color:var(--business-ink)}
+body :is(.apartment-info span,.apartment-info small,.photo-message,.collection-info>span,.collection-date,.collection-method){color:var(--business-muted)}
+body .apartment-photo{background:var(--business-input);border-color:var(--business-line);color:var(--business-muted)}
+body .apartment-badge{background:var(--business-raised);color:var(--business-ink)}
+body :is(.apartment-reservations,.apartment-booking-link,.payment-row,.collections-legacy,.backup-preview){background:var(--business-input);color:var(--business-ink);border-color:var(--business-line)}
+body .apartment-reservations summary{color:var(--business-muted)}
+body :is(.collections-summary strong,.statistics-primary strong,.statistics-secondary strong,.report-card dd,.payment-row strong){color:var(--business-ink)}
+body :is(.statistics-primary>div>span,.statistics-secondary span,.collections-summary span,.report-card dt){color:var(--business-muted)}
+body .statistics-primary>div:first-child{background:var(--business-surface);border-color:var(--business-line)}
+body .statistics-primary>div:before{filter:grayscale(1);background-color:var(--business-silver)}
+body :is(.statistics-chart>h2,#statistics-panel h2,#reports-panel h2,#payments-panel h2){color:var(--business-ink)}
+body :is(.statistics-definitions,.statistics-definitions p,.statistics-chart>p,#statistics-notice,#report-explanation,#report-explanation p,.report-card>p,#report-count,.statistics-values th,.statistics-values td){color:var(--business-muted)}
+body :is(.statistics-definitions summary,.statistics-chart summary,#report-explanation summary){color:var(--business-ink)}
+body .statistics-values :is(th,td){border-color:var(--business-line)}
+body :is(.statistics-month,.statistics-axis){fill:var(--business-muted)}
+body .chart-current{fill:#8dc8aa}body .chart-previous{fill:#89969f}
+body .collection-row{background:var(--business-surface);border-color:var(--business-line);box-shadow:var(--business-shadow)}
+body :is(.collection-amount,.maintenance-totals strong){color:var(--business-gold)}
+body :is(.collections-locked>strong,.collections-locked h2){color:var(--business-ink)}
+body .collections-locked p{color:var(--business-muted)}
+body :is(.report-card dl>div,.report-legacy){border-color:var(--business-line)}
+body #reports-panel .report-counters p{color:var(--business-ink)}
+body #reports-panel #report-unpriced{color:var(--business-gold)}
+body .report-summary-table caption{background:var(--business-surface);color:var(--business-ink)}
+body .report-summary-table thead th{background:var(--business-raised);color:var(--business-ink)}
+body .report-summary-table :is(th,td){border-color:var(--business-line);color:var(--business-ink)}
+body :is(#report-export-excel,#maintenance-export-excel){background:#2b4136;color:#e3f2e9;border-color:#638b73}
+body :is(#report-export-pdf,#maintenance-export-pdf){background:#49363a;color:#ffe6e9;border-color:#9b757e}
+body #maintenance-panel{color:var(--business-ink)}
+body .maintenance-tabs [aria-pressed=true]{background:var(--business-silver);color:#20292f;border-color:var(--business-silver)}
+body .maintenance-card p{color:var(--business-muted)}
+body .maintenance-totals strong{background:var(--business-raised)}
+body .maintenance-card .maintenance-due-soon{color:var(--business-gold)}
+body :is(#backup-dialog,#backup-content .backup-status){color:var(--business-ink)}
+body #backup-content p{color:var(--business-muted)}
+body #app-menu .menu-shortcuts{background:var(--business-surface);border-color:var(--business-line)}
+body #app-menu .menu-shortcuts button{background:var(--business-surface);color:var(--business-ink);border-color:#465159}
+body #app-menu .menu-shortcuts button:hover{background:var(--business-raised)}
+body #app-menu .menu-shortcuts button:before{filter:grayscale(1) brightness(2.6)}
+body #app-menu .menu-shortcuts button:after{color:var(--business-muted)}
+body #app-menu :is(.menu-account-label strong,.menu-account-indicator){color:var(--business-ink)}
+body #menu-access-status{color:var(--business-muted)}
+body .entry-layout{background:var(--business-bg)}
+body .entry-screen,body .entry-screen::backdrop{background:var(--business-bg);color:var(--business-ink)}
+body .entry-toolbar #entry-back{background:var(--business-raised);border-color:var(--business-line);color:var(--business-ink)}
+body .entry-toolbar .language-selector{background:var(--business-input);border-color:var(--business-line)}
+body .entry-layout:before{background:linear-gradient(180deg,#1d2327bb,#1d2327dd)}
+body .entry-brand,body .entry-screen[data-view=login] .entry-brand{background:var(--business-surface);box-shadow:var(--business-shadow)}
+body :is(.entry-brand .entry-title,.entry-brand p,.entry-brand>svg){color:var(--business-ink)}
+body .entry-brand>svg{stroke:var(--business-ink)}
+body .entry-login{background:var(--business-surface);border-color:var(--business-line);box-shadow:var(--business-shadow)}
+body .entry-login h2{color:var(--business-ink)}
+body :is(.entry-login>p,.entry-login .entry-terms,.entry-actions>p){color:var(--business-muted)}
+body .entry-actions>p:last-child{background:var(--business-surface);color:var(--business-ink)}
+body .google-button,body .google-button:hover{background:var(--business-silver);color:#20292f;border-color:var(--business-silver)}

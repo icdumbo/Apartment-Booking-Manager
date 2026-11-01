@@ -1,0 +1,43 @@
+name: BUSINESS UI checks (no APK)
+on:
+  push:
+    branches: [codex/business-ui-redesign]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  business-ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify stable baseline and protected application sources
+        run: |
+          git fetch --no-tags --depth=1 origin 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425
+          git diff --exit-code 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425 HEAD -- src ':!src/styles.css' index.html android backend package.json package-lock.json capacitor.config.json
+          git show 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425:src/styles.css > checks/business-baseline.generated.css
+      - run: npm ci
+      - run: node --test tests/maintenance-export.test.js tests/owners.test.js tests/backup-large.test.js tests/backup-native.test.js tests/backup-stream.test.js tests/backup.test.js tests/backup-resources.test.js tests/maintenance-drafts.test.js tests/photo-picker.test.js tests/photo-picker-native.test.js tests/maintenance.test.js tests/entry-screen.test.js tests/booking-colors.test.js tests/manual-dates.test.js tests/report-pdf.test.js tests/report-excel.test.js tests/reservations-report.test.js tests/report-consecutive.test.js tests/report-multicurrency.test.js tests/report-presentation.test.js tests/statistics.test.js tests/collections.test.js tests/currency.test.js tests/payments.test.js tests/booking-values.test.js tests/access.test.js tests/domain.test.js tests/i18n.test.js
+      - run: python3 -m pip install --quiet pypdf==6.10.0 openpyxl==3.1.5 pdfplumber==0.11.9
+      - run: python3 checks/verify-owner-pdfs.py
+      - run: python3 checks/verify-maintenance-exports.py
+      - run: node scripts/build-ui-preview.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - run: python3 checks/verify-owner-pdfs.py --ui
+      - run: python3 checks/verify-maintenance-exports.py --ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Apartment-Booking-Manager-BUSINESS-UI
+          path: |
+            ui-preview/*.html
+            test-results/
+          retention-days: 30
