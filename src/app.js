@@ -23,6 +23,7 @@ import {initializeLanguage,selectLanguage,t,translateUI,translateError} from './
 import {createAccessService,accessPolicy} from './access.js?v=1';
 import {createOptionalAndroidAuth} from './native-auth.js';
 import {mountCommerce} from './commerce-screen.js';
+import {mountPrivacy} from './privacy-screen.js';
 import {owners,existingOwnerName} from './owners.js';
 const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
 const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
@@ -216,6 +217,7 @@ $('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(sta
 
 const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
 commerce=mountCommerce({root:$('menu-account-content'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});
+mountPrivacy({auth:androidAuth});
 const upgradeAction=document.createElement('button');upgradeAction.type='button';upgradeAction.dataset.i18n='upgradePremium';upgradeAction.textContent=t('upgradePremium');upgradeAction.onclick=()=>{showMenu(true);commerce.refresh();};document.querySelector('.access-card details').append(upgradeAction);
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){

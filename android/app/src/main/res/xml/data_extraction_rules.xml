@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+  <cloud-backup>
+    <include domain="root" path="app_webview"/>
+    <exclude domain="sharedpref" path="."/>
+    <exclude domain="device_sharedpref" path="."/>
+    <exclude domain="file" path="."/>
+    <exclude domain="device_file" path="."/>
+    <exclude domain="database" path="."/>
+    <exclude domain="device_database" path="."/>
+    <exclude domain="external" path="."/>
+    <exclude domain="root" path="app_webview/Cookies"/>
+    <exclude domain="root" path="app_webview/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Default/Cookies"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Default/Network"/>
+    <exclude domain="root" path="app_webview/Default/Network/Cookies"/>
+    <exclude domain="root" path="app_webview/Default/Network/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Web Data"/>
+    <exclude domain="root" path="app_webview/Default/Web Data"/>
+    <exclude domain="root" path="app_webview/Default/Session Storage"/>
+    <exclude domain="root" path="app_webview/Default/Cache"/>
+    <exclude domain="root" path="app_webview/Default/Code Cache"/>
+    <exclude domain="root" path="app_webview/Cookies-wal"/>
+    <exclude domain="root" path="app_webview/Cookies-shm"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-wal"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-shm"/>
+    <exclude domain="root" path="app_webview/Web Data-journal"/>
+    <exclude domain="root" path="app_webview/Web Data-wal"/>
+    <exclude domain="root" path="app_webview/Web Data-shm"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-journal"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-wal"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-shm"/>
+    <exclude domain="root" path="app_webview/Default/Login Data"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-journal"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-wal"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-shm"/>
+  </cloud-backup>
+  <device-transfer>
+    <include domain="root" path="app_webview"/>
+    <exclude domain="sharedpref" path="."/>
+    <exclude domain="device_sharedpref" path="."/>
+    <exclude domain="file" path="."/>
+    <exclude domain="device_file" path="."/>
+    <exclude domain="database" path="."/>
+    <exclude domain="device_database" path="."/>
+    <exclude domain="external" path="."/>
+    <exclude domain="root" path="app_webview/Cookies"/>
+    <exclude domain="root" path="app_webview/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Default/Cookies"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Default/Network"/>
+    <exclude domain="root" path="app_webview/Default/Network/Cookies"/>
+    <exclude domain="root" path="app_webview/Default/Network/Cookies-journal"/>
+    <exclude domain="root" path="app_webview/Web Data"/>
+    <exclude domain="root" path="app_webview/Default/Web Data"/>
+    <exclude domain="root" path="app_webview/Default/Session Storage"/>
+    <exclude domain="root" path="app_webview/Default/Cache"/>
+    <exclude domain="root" path="app_webview/Default/Code Cache"/>
+    <exclude domain="root" path="app_webview/Cookies-wal"/>
+    <exclude domain="root" path="app_webview/Cookies-shm"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-wal"/>
+    <exclude domain="root" path="app_webview/Default/Cookies-shm"/>
+    <exclude domain="root" path="app_webview/Web Data-journal"/>
+    <exclude domain="root" path="app_webview/Web Data-wal"/>
+    <exclude domain="root" path="app_webview/Web Data-shm"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-journal"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-wal"/>
+    <exclude domain="root" path="app_webview/Default/Web Data-shm"/>
+    <exclude domain="root" path="app_webview/Default/Login Data"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-journal"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-wal"/>
+    <exclude domain="root" path="app_webview/Default/Login Data-shm"/>
+  </device-transfer>
+</data-extraction-rules>

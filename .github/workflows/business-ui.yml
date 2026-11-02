@@ -21,19 +21,7 @@ jobs:
       - name: Verify stable baseline and protected application sources
         run: |
           git fetch --no-tags --depth=1 origin 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425
-          git diff --exit-code 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425 HEAD -- src ':!src/styles.css' index.html android ':!android/app/build.gradle' backend package.json package-lock.json capacitor.config.json
-          python3 - <<'PY'
-          import pathlib, re, subprocess
-          baseline = subprocess.check_output(['git','show','84317b27fc2106c1e0406f4cfe36ff5f3c1fc425:android/app/build.gradle'], text=True)
-          current = pathlib.Path('android/app/build.gradle').read_text()
-          def normalize(text):
-              text, codes = re.subn(r'(?m)^(\s*versionCode )\d+$', r'\g<1>0', text)
-              text, names = re.subn(r'(?m)^(\s*versionName )"\d+\.\d+\.\d+"$', r'\g<1>"0.0.0"', text)
-              assert codes == names == 1, 'Expected exactly one Android version pair'
-              return text
-          assert normalize(baseline) == normalize(current), 'Only Android version metadata may differ'
-          assert int(re.search(r'(?m)^\s*versionCode (\d+)$', current)[1]) >= 23, 'Android versionCode must not regress'
-          PY
+          node checks/protected-foundation.mjs
           git show 84317b27fc2106c1e0406f4cfe36ff5f3c1fc425:src/styles.css > checks/business-baseline.generated.css
       - run: npm ci
       - run: node --test tests/maintenance-export.test.js tests/owners.test.js tests/backup-large.test.js tests/backup-native.test.js tests/backup-stream.test.js tests/backup.test.js tests/backup-resources.test.js tests/maintenance-drafts.test.js tests/photo-picker.test.js tests/photo-picker-native.test.js tests/maintenance.test.js tests/entry-screen.test.js tests/booking-colors.test.js tests/manual-dates.test.js tests/report-pdf.test.js tests/report-excel.test.js tests/reservations-report.test.js tests/report-consecutive.test.js tests/report-multicurrency.test.js tests/report-presentation.test.js tests/statistics.test.js tests/collections.test.js tests/currency.test.js tests/payments.test.js tests/booking-values.test.js tests/access.test.js tests/domain.test.js tests/i18n.test.js

@@ -1,0 +1,34 @@
+name: Privacy and deletion checks (no APK)
+on:
+  push:
+    branches: [codex/business-ui-redesign]
+permissions:
+  contents: read
+jobs:
+  privacy:
+    runs-on: ubuntu-latest
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npm ci --prefix backend --ignore-scripts
+      - run: node --test tests/privacy.test.js tests/access.test.js tests/secure-trial.test.js tests/backup.test.js tests/backup-resources.test.js
+      - run: node --test backend/checks/deletion.check.mjs
+      - run: npm run check --prefix backend
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test checks/privacy.spec.mjs checks/access.spec.mjs checks/backup.spec.mjs checks/menu-layout.spec.mjs
+      - run: npm run android:sync
+      - name: Validate Android resources without assembling an APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew processDebugResources
+      - working-directory: android
+        run: test -z "$(find app/build -name '*.apk' -o -name '*.aab')"
