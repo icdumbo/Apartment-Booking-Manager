@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {createPrivacyWorker} from '../privacy-worker.js';
 let runtime,db;
-before(async()=>{runtime=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("fixture")}}',compatibilityDate:'2026-10-22',d1Databases:{DB:'deletion-fixture'}}));db=await runtime.getD1Database('DB');await db.exec(await readFile(new URL('../migrations/0001_access.sql',import.meta.url),'utf8'));await db.exec(await readFile(new URL('../migrations/0003_deletion_requests.sql',import.meta.url),'utf8'));await db.prepare("INSERT INTO trials(subject,status,started_at,expires_at) VALUES ('fictional-a','used',0,1296000000)").run();});
+before(async()=>{runtime=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("fixture")}}',compatibilityDate:'2026-10-22',d1Databases:{DB:'deletion-fixture'}}));db=await runtime.getD1Database('DB');await db.exec(await readFile(new URL('../migrations/0001_access.sql',import.meta.url),'utf8'));await db.prepare(await readFile(new URL('../migrations/0003_deletion_requests.sql',import.meta.url),'utf8')).run();await db.prepare("INSERT INTO trials(subject,status,started_at,expires_at) VALUES ('fictional-a','used',0,1296000000)").run();});
 after(async()=>runtime?.dispose());
 const now=1800000000000;
 const worker=createPrivacyWorker({clock:()=>now,makeVerifier:()=>async token=>{if(!['fictional-a','fictional-b'].includes(token))throw Object.assign(Error(),{status:401});return {uid:token,sub:token,auth_time:now/1000,firebase:{sign_in_provider:'google.com'}};},worker:{fetch:async()=>new Response('unchanged access delegate',{status:418})}});

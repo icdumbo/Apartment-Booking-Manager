@@ -30,14 +30,12 @@ nou. Politica și paginile web sunt proiecte; nu se furnizează URL-uri de produ
 
 ## Informații obligatorii de confirmat înainte de publicare
 
-1. Identitatea reală a operatorului și contactul public pentru confidențialitate.
+1. Numele legal al operatorului persoană fizică titulară a contului Google Play și contactul public pentru confidențialitate. Tipul operatorului este confirmat; numele și e-mailul rămân necompletate. Nu se introduce adresa de domiciliu.
 2. Politica de retenție pentru UID, trialuri, licențe, tranzacții, tokenuri criptate
    și jurnalul cererilor; scopul și justificarea oricărei păstrări anti-abuz.
    Nu este stabilit un termen fiscal sau un termen de procesare neverificat.
 3. Jurisdicția, temeiurile, destinatarii și condițiile transferurilor internaționale.
-4. Alegerea comercială pentru backupul automat al datelor de afaceri. Recomandarea
-   comunicată proprietarului este excluderea cloud și D2D, cu JSON manual păstrat.
-   **Până la răspuns, această alegere nu este presupusă.**
+4. Alegerea pentru backupul automat este **aprobată de proprietar la 2 noiembrie 2026**: excludere completă cloud și D2D, cu JSON manual și toate datele existente păstrate.
 5. Hostingul public, domeniul HTTPS, OAuth web și domeniile Firebase autorizate.
    Operatorul trebuie să verifice și declarațiile Data Safety după configurare.
 
@@ -49,7 +47,7 @@ nou. Politica și paginile web sunt proiecte; nu se furnizează URL-uri de produ
    către sursă drept politică publicată. Actualizează Console numai după verificare.
 2. Configurează clientul OAuth web în proiectul Firebase existent și autorizează
    domeniul real. Completează numai valorile publice în `privacy-settings.js`:
-   `webClientId`, `firebaseApiKey`, `deletionEndpoint` (HTTPS, `/account-deletion`).
+   `webClientId`, `firebaseApiKey`, `deletionEndpoint` (HTTPS, `/account-deletion`). `publicationApproved` rămâne false până la completarea și aprobarea operatorului, contactului și retenției; formularul web verifică și aceste condiții.
    Cheia API web nu este credential administrativ; restricțiile sale trebuie să
    permită Identity Toolkit de pe domeniul aprobat. Nu copia secrete server în web.
 3. Revizuiește și aplică `0003_deletion_requests.sql` exclusiv bazei D1 corecte,
@@ -85,23 +83,25 @@ resetarea trialului sau transferul/revocarea arbitrară a achizițiilor Play.
 
 | Date | Loc relevant | Tratament |
 | --- | --- | --- |
-| Apartamente/rezervări/întreținere/ciorne/limbă | WebView localStorage în `app_webview` | Eligibile în continuare, până la alegerea proprietarului |
-| Fotografii | IndexedDB `apartment-booking-manager:photos`, în WebView | Eligibile în continuare; formatul JSON manual nu se schimbă |
-| Import temporar fotografii | IndexedDB `apartment-booking-manager:backup-stage` | Același spațiu WebView; alegerea finală privind excluderea completă rămâne deschisă |
+| Apartamente/rezervări/întreținere/ciorne/limbă | WebView localStorage în `app_webview` | Excluse din backupul automat, păstrate local |
+| Fotografii | IndexedDB `apartment-booking-manager:photos`, în WebView | Excluse automat; formatul JSON manual nu se schimbă |
+| Import temporar fotografii | IndexedDB `apartment-booking-manager:backup-stage` | Exclus, împreună cu întregul spațiu WebView |
 | Firebase Auth, preferințe SDK, dovadă criptată `abm-verified-access` | `shared_prefs`, fișiere/baze native | Excluse; nu sunt incluse în whitelist |
 | Cookies, Web Data, session storage și cache WebView | Căile explicite din XML, inclusiv Network și jurnale SQLite | Excluse |
 | Cheie Android Keystore | Stocare hardware/sistem | Nu este exportată/restaurată de aplicație |
 | Fișier temporar import Android | `getCacheDir()/abm-backup-import` | Cache exclus de sistem, nu inclus în whitelist |
 | Export manual JSON/Excel/PDF | URI ales prin document provider | Independent de Auto Backup; rămâne sub controlul utilizatorului |
 
-`allowBackup=true` rămâne până la confirmare. XML-ul legacy se aplică API 24–30,
-iar `dataExtractionRules` are secțiuni explicite cloud și device-transfer pentru
-API 31+. Whitelist-ul este doar `root/app_webview`, cu excluderi de autentificare;
-niciun fișier nativ/prefs/token nu devine implicit eligibil. Nu se execută curățare,
-migrare sau restaurare la update. O copie JSON nu include identitatea/entitlementul;
-după reinstalare este necesară autentificare și verificare server pentru drepturi.
-Comportamentul efectiv al transportului OEM necesită un build și dispozitive de
-test aprobate separat; nu se declanșează backup cloud pe telefonul utilizatorului.
+`allowBackup=false` aplică alegerea aprobată. XML-ul legacy acoperă API 24–30, iar
+`dataExtractionRules` exclude explicit toate cele nouă domenii în ambele secțiuni
+cloud și device-transfer pe API 31+. Aceasta protejează și împotriva transporturilor
+OEM care ignoră doar atributul allowBackup. Nu se execută curățare, migrare sau
+restaurare la update. Nu se șterg copii existente la furnizor și nu se promit
+comportamente OEM neverificate; utilizatorul gestionează copiile anterioare.
+Backupul JSON manual rămâne soluția de transfer al datelor. Autentificarea și
+verificarea server rămân necesare pentru drepturi pe o instalare nouă.
+Testarea efectivă a transportului necesită build/dispozitive aprobate separat;
+nu se declanșează backup cloud pe telefonul utilizatorului.
 
 Referințe: https://developer.android.com/identity/data/autobackup și
 https://support.google.com/googleplay/android-developer/answer/13327111

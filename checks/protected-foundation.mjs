@@ -9,8 +9,8 @@ const old=p=>execFileSync('git',['show',base+':'+p],{encoding:'utf8'}).replaceAl
 const current=p=>readFileSync(p,'utf8').replaceAll('\r\n','\n');
 const app=current('src/app.js').replace("import {mountPrivacy} from './privacy-screen.js';\n",'').replace('mountPrivacy({auth:androidAuth});\n','');
 assert.equal(app,old('src/app.js'),'Existing app code must remain exact; only the privacy mount is authorized');
-const manifest=current('android/app/src/main/AndroidManifest.xml').replace('        android:fullBackupContent="@xml/backup_rules"\n','').replace('        android:dataExtractionRules="@xml/data_extraction_rules"\n','');
-assert.equal(manifest,old('android/app/src/main/AndroidManifest.xml'),'Only backup rule references may change');
+const manifest=current('android/app/src/main/AndroidManifest.xml').replace('        android:fullBackupContent="@xml/backup_rules"\n','').replace('        android:dataExtractionRules="@xml/data_extraction_rules"\n','').replace('android:allowBackup="false"','android:allowBackup="true"');
+assert.equal(manifest,old('android/app/src/main/AndroidManifest.xml'),'Only the approved backup exclusions may change');
 const config=JSON.parse(current('backend/wrangler.jsonc')),previous=JSON.parse(old('backend/wrangler.jsonc'));
 assert.equal(config.main,'privacy-worker.js');assert.equal(config.vars.DELETION_REQUESTS_ENABLED,'false');delete config.vars.DELETION_REQUESTS_ENABLED;config.main=previous.main;
 assert.deepEqual(config,previous,'Existing server configuration and commercial switches must remain exact');

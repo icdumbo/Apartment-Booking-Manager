@@ -4,7 +4,7 @@ import {createDeletionClient} from '../account-deletion.js';
 const root=document.getElementById('legal-content'),title=document.getElementById('legal-title'),nav=document.getElementById('legal-language');
 let language=new URL(location.href).searchParams.get('lang')==='en'?'en':'ro',user=null,idToken=null,busy=false,generation=0;
 const isDeletion=location.pathname.endsWith('delete-account.html');
-const configured=Boolean(settings.webClientId&&settings.firebaseApiKey&&settings.deletionEndpoint);
+const configured=Boolean(settings.publicationApproved&&settings.operator&&settings.contact&&settings.retentionPolicy&&settings.webClientId&&settings.firebaseApiKey&&settings.deletionEndpoint);
 function googleSignIn(container,message){
  if(!configured)return;
  const version=++generation;
