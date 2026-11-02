@@ -6,7 +6,9 @@ async function mockLegalConfiguration(page,changes={}){
  await page.route('**/src/privacy-settings.js',route=>route.fulfill({contentType:'text/javascript',body:source.replace(/export const privacySettings=Object\.freeze\(\{[\s\S]*?\}\);/,'export const privacySettings=Object.freeze('+JSON.stringify(fixture)+');')}));
 }
 test('offline anonymous BASIC can read both policy languages without touching business data',async({page,context})=>{
- await page.goto('/');const original=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));await context.setOffline(true);
+ const fixture={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'privacy-a',name:'Fictional apartment',address:'Test street',city:'Test city'}],bookings:[{id:'privacy-b',apartmentId:'privacy-a',guest:'Fictional guest',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-12',status:'confirmed'}]};
+ await page.addInitScript(value=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(value)),fixture);
+ await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(1);await expect(page.locator('#open-privacy')).toHaveCount(1);const original=JSON.stringify(fixture);await context.setOffline(true);
  for(const lang of ['ro','en']){await page.locator('.top [data-language='+lang+']').click();await page.locator('#open-menu').click();await expect(page.locator('#open-account-deletion')).toBeHidden();await page.locator('#open-privacy').click();await expect(page.locator('#privacy-dialog')).toContainText('Cloudflare');await expect(page.locator('#privacy-dialog')).toContainText(lang==='ro'?'NECONFIRMAT':'UNCONFIRMED');await page.locator('#privacy-dialog .dialog-heading button').click();}
  expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toEqual(original);
 });
