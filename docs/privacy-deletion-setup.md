@@ -30,6 +30,43 @@ nou. Politica și paginile web sunt proiecte; nu se furnizează URL-uri de produ
 
 ## Informații obligatorii de confirmat înainte de publicare
 
+### Un singur loc de completare: `src/privacy-settings.js`
+
+Nu se copiază numele, e-mailul sau perioadele în fișierele RO/EN. Randarea web și
+cea din aplicație folosesc aceeași configurație și același conținut.
+
+| Câmp | Ce trebuie completat / verificat |
+| --- | --- |
+| `controllerType` | `individual`, deja confirmat; nu se introduce domiciliul |
+| `operator` | Numele legal real al titularului Play, încă necompletat |
+| `contact` | E-mailul public de confidențialitate, încă necompletat |
+| `retentionPolicy.ro`, `.en` | Aceleași perioade și excepții aprobate, în cele două limbi; nu o singură frază RO în politica EN |
+| `processingPolicy.ro`, `.en` | Rolurile/temeiurile și condițiile transferurilor menționate în proiectul politicii, confirmate de operator |
+| `publicBaseUrl` | Directorul HTTPS real cu paginile, fără credențiale, query sau fragment; cale terminată cu `/` |
+| `publicationApproved` | Rămâne `false` până la aprobarea întregului conținut și verificarea paginilor pe hosting |
+| `deletionEndpoint` | Endpointul HTTPS real `/account-deletion`, fără token în URL |
+| `deletionBackendVerified` | Rămâne `false` până la verificarea backendului real; nu activează variabila server |
+| `webClientId`, `firebaseApiKey` | Configurație publică pentru autentificarea web; fără chei administrative |
+| `automaticBackup` | `excluded`, alegere deja aprobată și implementată; nu se schimbă aici |
+
+`privacyConfigurationIssues()` enumeră câmpurile obligatorii lipsă/invalide.
+`publicLegalUrls()` derivă cele patru URL-uri RO/EN pentru politică și ștergere
+dintr-o singură adresă de bază. Aceste funcții verifică configurația/formatul,
+**nu dovedesc că hostingul există sau că operatorul a făcut verificarea externă**.
+Nu se furnizează un URL real până la publicarea și verificarea efectivă.
+
+`isPrivacyPublicationReady()` verifică toate câmpurile și aprobarea explicită.
+`isDeletionBackendReady()` adaugă verificarea backendului și endpointului; aceasta
+este folosită și în aplicația Android. `isDeletionWebReady()` adaugă OAuth web.
+În configurația comisă toate rămân false, iar pe server
+`DELETION_REQUESTS_ENABLED=false` rămâne neschimbat. Nu există formular activ sau
+reautentificare pentru cerere în aplicație dacă backendul nu a fost confirmat.
+
+Politica poate fi citită fără autentificare și când formularele sunt dezactivate.
+Legăturile dintre pagini și URL-ul la schimbarea limbii păstrează RO/EN. Avertizarea
+de proiect dispare numai când informațiile și aprobarea sunt complete; aceasta nu
+este o certificare juridică sau o dovadă a executării ștergerii.
+
 1. Numele legal al operatorului persoană fizică titulară a contului Google Play și contactul public pentru confidențialitate. Tipul operatorului este confirmat; numele și e-mailul rămân necompletate. Nu se introduce adresa de domiciliu.
 2. Politica de retenție pentru UID, trialuri, licențe, tranzacții, tokenuri criptate
    și jurnalul cererilor; scopul și justificarea oricărei păstrări anti-abuz.
@@ -50,6 +87,10 @@ nou. Politica și paginile web sunt proiecte; nu se furnizează URL-uri de produ
    `webClientId`, `firebaseApiKey`, `deletionEndpoint` (HTTPS, `/account-deletion`). `publicationApproved` rămâne false până la completarea și aprobarea operatorului, contactului și retenției; formularul web verifică și aceste condiții.
    Cheia API web nu este credential administrativ; restricțiile sale trebuie să
    permită Identity Toolkit de pe domeniul aprobat. Nu copia secrete server în web.
+   Completează și `publicBaseUrl`, textele RO/EN de retenție și prelucrare din
+   tabelul de mai sus. După teste reale controlate setează explicit
+   `deletionBackendVerified`; completarea credențialelor publice singură nu activează
+   formularul. Serverul are în continuare propriul comutator independent.
 3. Revizuiește și aplică `0003_deletion_requests.sql` exclusiv bazei D1 corecte,
    prin procesul aprobat. Migrarea adaugă numai tabela de cereri și nu modifică
    istoricul existent. Nu executa schema pe producție în această etapă.
@@ -107,6 +148,15 @@ Referințe: https://developer.android.com/identity/data/autobackup și
 https://support.google.com/googleplay/android-developer/answer/13327111
 
 ## Verificări și limite
+
+Pentru hosting static nu este necesară publicarea întregii aplicații sau a
+repository-ului. Păstrează structura relativă: un director `legal/` cu
+`privacy.html`, `delete-account.html` și `public.js`, iar în directorul său părinte
+`privacy-content.js`, `privacy-settings.js`, `account-deletion.js` și `styles.css`.
+Nu copia `.git`, backendul, configurații private, date locale sau arhive de semnare.
+Directorul `legal/` al hostingului aprobat corespunde lui `publicBaseUrl`.
+Verifică accesul anonim direct la ambele pagini, în ambele limbi, legăturile,
+URL-urile canonice și mesajul de indisponibilitate înainte de orice activare.
 
 Testele folosesc numai UID-uri, conturi, receipts și baze fictive. Acoperă
 confirmarea, identitatea schimbată, auth vechi/invalid, UID străin, CORS, limite de

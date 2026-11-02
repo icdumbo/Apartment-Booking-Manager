@@ -1,5 +1,5 @@
 import {getLanguage} from './i18n.js?v=0.3.1';
-import {LICENSE_ENDPOINT} from './native-auth.js';
+import {privacySettings,isDeletionBackendReady} from './privacy-settings.js';
 import {privacyCopy,renderPolicy} from './privacy-content.js';
 import {createDeletionClient} from './account-deletion.js';
 export function mountPrivacy({auth}){
@@ -8,12 +8,13 @@ export function mountPrivacy({auth}){
  const dialog=document.createElement('dialog');dialog.id='privacy-dialog';dialog.setAttribute('aria-labelledby','privacy-title');dialog.style.maxHeight='calc(100dvh - 24px)';dialog.style.overflowY='auto';
  const heading=document.createElement('div'),title=document.createElement('h2'),close=document.createElement('button'),body=document.createElement('div');heading.className='dialog-heading';title.id='privacy-title';close.type='button';close.style.minHeight='44px';heading.append(title,close);dialog.append(heading,body);document.body.append(dialog);
  let mode='policy',busy=false,session=auth.bridge?.getCurrentUser()?.uid;
- const client=auth.bridge?createDeletionClient({endpoint:new URL('/account-deletion',LICENSE_ENDPOINT).href,getUser:()=>auth.bridge.getCurrentUser(),getIdToken:expected=>auth.bridge.getIdToken(expected),reauthenticate:()=>auth.signIn()}):null;
+ const client=auth.bridge&&isDeletionBackendReady()?createDeletionClient({endpoint:privacySettings.deletionEndpoint,getUser:()=>auth.bridge.getCurrentUser(),getIdToken:expected=>auth.bridge.getIdToken(expected),reauthenticate:()=>auth.signIn()}):null;
  function labels(){const c=privacyCopy[getLanguage()];privacy.textContent=c.title;deletion.textContent=getLanguage()==='ro'?'Ștergere cont':'Delete account';deletion.hidden=!auth.bridge?.getCurrentUser();close.textContent=c.close;}
  function render(){
   const c=privacyCopy[getLanguage()];title.textContent=mode==='policy'?c.title:c.deletion;labels();body.replaceChildren();
   if(mode==='policy'){renderPolicy(body,getLanguage());return;}
   const scope=document.createElement('p');scope.textContent=c.scope;
+  if(!client){const notice=document.createElement('p');notice.textContent=c.backendUnavailable;notice.setAttribute('role','status');body.append(scope,notice);return;}
   const form=document.createElement('form'),label=document.createElement('label'),check=document.createElement('input'),submit=document.createElement('button'),status=document.createElement('button'),message=document.createElement('p');
   check.type='checkbox';check.id='deletion-confirm';check.style.width='22px';check.style.minHeight='22px';label.append(check,document.createTextNode(c.confirm));submit.type='submit';submit.textContent=c.submit;submit.disabled=true;status.type='button';status.textContent=c.status;message.id='deletion-message';message.setAttribute('role','status');form.append(label,submit,status,message);body.append(scope,form);
   check.onchange=()=>submit.disabled=busy||!check.checked;

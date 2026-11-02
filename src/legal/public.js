@@ -1,10 +1,10 @@
 import {privacyCopy,renderPolicy} from '../privacy-content.js';
-import {privacySettings as settings} from '../privacy-settings.js';
+import {privacySettings as settings,isPrivacyPublicationReady,isDeletionWebReady,publicLegalUrls} from '../privacy-settings.js';
 import {createDeletionClient} from '../account-deletion.js';
 const root=document.getElementById('legal-content'),title=document.getElementById('legal-title'),nav=document.getElementById('legal-language');
 let language=new URL(location.href).searchParams.get('lang')==='en'?'en':'ro',user=null,idToken=null,busy=false,generation=0;
 const isDeletion=location.pathname.endsWith('delete-account.html');
-const configured=Boolean(settings.publicationApproved&&settings.operator&&settings.contact&&settings.retentionPolicy&&settings.webClientId&&settings.firebaseApiKey&&settings.deletionEndpoint);
+const configured=isDeletionWebReady();
 function googleSignIn(container,message){
  if(!configured)return;
  const version=++generation;
@@ -23,16 +23,19 @@ function googleSignIn(container,message){
 }
 function render(){
  const c=privacyCopy[language];document.documentElement.lang=language;nav.replaceChildren();for(const lang of ['ro','en']){const b=document.createElement('button');b.type='button';b.textContent=lang.toUpperCase();b.disabled=busy;b.onclick=()=>{generation++;language=lang;user=null;idToken=null;render();};nav.append(b);}
+ const current=new URL(location.href);current.searchParams.set('lang',language);history.replaceState(null,'',current);
+ const related=document.querySelector('main>p>a');related.href=(isDeletion?'privacy.html':'delete-account.html')+'?lang='+language;related.textContent=isDeletion?c.title:c.deletion;
+ const urls=publicLegalUrls();let canonical=document.querySelector('link[rel=canonical]');if(isPrivacyPublicationReady()&&urls){if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.append(canonical);}canonical.href=urls[isDeletion?'deletion':'privacy'][language];}
  title.textContent=isDeletion?c.deletion:c.title;root.replaceChildren();
  if(!isDeletion){renderPolicy(root,language);return;}
- const scope=document.createElement('p'),notice=document.createElement('p'),message=document.createElement('p');scope.textContent=c.scope;notice.textContent=c.draft;message.setAttribute('role','status');root.append(scope,notice);
+ const scope=document.createElement('p'),notice=document.createElement('p'),message=document.createElement('p');scope.textContent=c.scope;if(!isPrivacyPublicationReady())notice.textContent=c.draft;message.setAttribute('role','status');root.append(scope,notice);
  if(!configured){message.textContent=c.unconfigured;root.append(message);return;}
  const signin=document.createElement('button'),googleContainer=document.createElement('div');signin.type='button';signin.textContent=c.signIn;signin.onclick=()=>{signin.disabled=true;googleSignIn(googleContainer,message);};root.append(signin,googleContainer);
  if(user){
   const form=document.createElement('form'),label=document.createElement('label'),check=document.createElement('input'),submit=document.createElement('button'),status=document.createElement('button');check.type='checkbox';check.style.width='22px';label.append(check,document.createTextNode(c.confirm));submit.type='submit';submit.textContent=c.submit;submit.disabled=true;status.type='button';status.textContent=c.status;form.append(label,submit,status);root.append(form);
   const client=createDeletionClient({endpoint:settings.deletionEndpoint,getUser:()=>user,getIdToken:async()=>idToken,reauthenticate:async()=>{if(!idToken)throw Error('authenticationRequired');}});
   check.onchange=()=>submit.disabled=busy||!check.checked;
-  async function run(request){if(busy)return;busy=true;check.disabled=submit.disabled=status.disabled=signin.disabled=true;message.textContent=c.busy;try{const result=await(request?client.request({confirmed:check.checked,language}):client.status());message.textContent=result.status==='pending_review'?c.pending+result.requestId:c.none;}catch{message.textContent=c.error;}finally{busy=false;check.disabled=status.disabled=false;submit.disabled=!check.checked;signin.disabled=false;}}
+  async function run(request){if(busy)return;busy=true;for(const b of nav.querySelectorAll('button'))b.disabled=true;check.disabled=submit.disabled=status.disabled=signin.disabled=true;message.textContent=c.busy;try{const result=await(request?client.request({confirmed:check.checked,language}):client.status());message.textContent=result.status==='pending_review'?c.pending+result.requestId:c.none;}catch(error){message.textContent=error.message==='recentAuthenticationRequired'?c.session:c.error;}finally{busy=false;for(const b of nav.querySelectorAll('button'))b.disabled=false;check.disabled=status.disabled=false;submit.disabled=!check.checked;signin.disabled=false;}}
   form.onsubmit=e=>{e.preventDefault();if(check.checked)run(true);};status.onclick=()=>run(false);
  }
  root.append(message);
