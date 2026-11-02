@@ -3,7 +3,7 @@
 export const privacySettings=Object.freeze({
  controllerType:'individual',
  operator:null, // Legal name; never add a home address.
- contact:null, // Public privacy contact email.
+ contact:'support.apartmentbookingmanager@gmail.com', // Confirmed public support/privacy contact; single source.
  retentionPolicy:{ro:null,en:null}, // Approved periods, purposes and retention exceptions.
  processingPolicy:{ro:null,en:null}, // Approved legal roles/bases and international-transfer arrangements.
  publicBaseUrl:null, // HTTPS directory containing privacy.html and delete-account.html.

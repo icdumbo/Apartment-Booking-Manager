@@ -31,8 +31,13 @@ test('approved Android policy excludes all backup domains in legacy, cloud and D
 
 const approvedConfiguration=()=>({...privacySettings,operator:'Fictional Controller',contact:'privacy@example.invalid',retentionPolicy:{ro:'Retenție fictivă RO',en:'Fictional EN retention'},processingPolicy:{ro:'Cadru fictiv RO',en:'Fictional EN framework'},publicBaseUrl:'https://legal.fixture.invalid/legal/',publicationApproved:true,webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://api.fixture.invalid/account-deletion',deletionBackendVerified:true});
 test('default configuration reports all missing fields and keeps publication and deletion disabled',()=>{
- assert.deepEqual(privacyConfigurationIssues(),['operator','contact','retentionPolicy.ro','retentionPolicy.en','processingPolicy.ro','processingPolicy.en','publicBaseUrl','publicationApproved']);
+ assert.deepEqual(privacyConfigurationIssues(),['operator','retentionPolicy.ro','retentionPolicy.en','processingPolicy.ro','processingPolicy.en','publicBaseUrl','publicationApproved']);
  assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionWebReady(),false);assert.equal(publicLegalUrls(),null);assert.equal(privacySettings.controllerType,'individual');assert.equal(Object.hasOwn(privacySettings,'address'),false);
+});
+test('confirmed public contact is reused in RO/EN without enabling publication or requests',()=>{
+ assert.equal(privacyConfigurationIssues().includes('contact'),false);
+ for(const language of ['ro','en'])assert.ok(policySections(language).flat().join(' ').includes(privacySettings.contact));
+ assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionBackendReady(),false);assert.equal(isDeletionWebReady(),false);
 });
 test('single configuration supplies localized retention and processing without copying personal fields into translations',()=>{
  const config=approvedConfiguration();assert.equal(isPrivacyPublicationReady(config),true);assert.equal(isDeletionWebReady(config),true);

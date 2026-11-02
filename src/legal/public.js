@@ -1,4 +1,4 @@
-import {privacyCopy,renderPolicy} from '../privacy-content.js';
+import {privacyCopy,renderPolicy,renderSupportContact} from '../privacy-content.js';
 import {privacySettings as settings,isPrivacyPublicationReady,isDeletionWebReady,publicLegalUrls} from '../privacy-settings.js';
 import {createDeletionClient} from '../account-deletion.js';
 const root=document.getElementById('legal-content'),title=document.getElementById('legal-title'),nav=document.getElementById('legal-language');
@@ -29,6 +29,7 @@ function render(){
  title.textContent=isDeletion?c.deletion:c.title;root.replaceChildren();
  if(!isDeletion){renderPolicy(root,language);return;}
  const scope=document.createElement('p'),notice=document.createElement('p'),message=document.createElement('p');scope.textContent=c.scope;if(!isPrivacyPublicationReady())notice.textContent=c.draft;message.setAttribute('role','status');root.append(scope,notice);
+ renderSupportContact(root,language,true);
  if(!configured){message.textContent=c.unconfigured;root.append(message);return;}
  const signin=document.createElement('button'),googleContainer=document.createElement('div');signin.type='button';signin.textContent=c.signIn;signin.onclick=()=>{signin.disabled=true;googleSignIn(googleContainer,message);};root.append(signin,googleContainer);
  if(user){

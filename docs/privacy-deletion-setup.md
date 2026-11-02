@@ -7,8 +7,8 @@ nou. Politica și paginile web sunt proiecte; nu se furnizează URL-uri de produ
 ## Ce este implementat
 
 - `src/privacy-content.js`: aceeași politică RO/EN în aplicație și pe web, bazată
-  pe fluxurile reale. Operatorul, contactul, temeiurile/transferurile și retenția
-  sunt marcate neconfirmate, nu inventate. `privacy-settings.js` conține numai
+  pe fluxurile reale. Numele operatorului, temeiurile/transferurile și retenția
+  sunt marcate neconfirmate, nu inventate. Adresa oficială de suport este confirmată și centralizată. `privacy-settings.js` conține numai
   configurări publice, implicit nule. Reclamele și cumpărarea sunt descrise ca
   dezactivate în configurația livrată.
 - Acces permanent la Confidențialitate în Meniu, fără cont; solicitarea ștergerii
@@ -39,7 +39,7 @@ cea din aplicație folosesc aceeași configurație și același conținut.
 | --- | --- |
 | `controllerType` | `individual`, deja confirmat; nu se introduce domiciliul |
 | `operator` | Numele legal real al titularului Play, încă necompletat |
-| `contact` | E-mailul public de confidențialitate, încă necompletat |
+| `contact` | Adresa oficială de suport/confidențialitate confirmată, definită o singură dată în acest fișier |
 | `retentionPolicy.ro`, `.en` | Aceleași perioade și excepții aprobate, în cele două limbi; nu o singură frază RO în politica EN |
 | `processingPolicy.ro`, `.en` | Rolurile/temeiurile și condițiile transferurilor menționate în proiectul politicii, confirmate de operator |
 | `publicBaseUrl` | Directorul HTTPS real cu paginile, fără credențiale, query sau fragment; cale terminată cu `/` |
@@ -67,7 +67,7 @@ Legăturile dintre pagini și URL-ul la schimbarea limbii păstrează RO/EN. Ave
 de proiect dispare numai când informațiile și aprobarea sunt complete; aceasta nu
 este o certificare juridică sau o dovadă a executării ștergerii.
 
-1. Numele legal al operatorului persoană fizică titulară a contului Google Play și contactul public pentru confidențialitate. Tipul operatorului este confirmat; numele și e-mailul rămân necompletate. Nu se introduce adresa de domiciliu.
+1. Numele legal al operatorului persoană fizică titulară a contului Google Play și contactul public pentru confidențialitate. Tipul operatorului și contactul de suport sunt confirmate; numele legal rămâne necompletat. Nu se introduce adresa de domiciliu.
 2. Politica de retenție pentru UID, trialuri, licențe, tranzacții, tokenuri criptate
    și jurnalul cererilor; scopul și justificarea oricărei păstrări anti-abuz.
    Nu este stabilit un termen fiscal sau un termen de procesare neverificat.
@@ -165,3 +165,30 @@ public web fără login, GIS/Firebase simulate, BASIC offline și backup JSON.
 XML-ul este verificat static și prin `processDebugResources`, fără APK/AAB.
 Aceste teste nu probează un deployment real, un domeniu public, retenția juridică,
 ștergerea Firebase/Cloudflare sau un transport Auto Backup real.
+
+## Contact oficial și verificare HTTPS — 2 noiembrie 2026
+
+Adresa oficială confirmată este definită numai în `privacySettings.contact`.
+Politica RO/EN o folosește în text și într-un link mailto. Același renderer este
+folosit în pagina/ecranul solicitării de ștergere, inclusiv când înregistrarea
+cererilor este dezactivată. Linkul deschide clientul de e-mail ales de utilizator;
+nu trimite automat mesaje și nu confirmă înregistrarea sau executarea unei ștergeri.
+Adresa nu este utilizată pentru autorizarea OWNER.
+
+Verificări HTTP GET anonime, fără publicare sau modificări de hosting:
+
+- Adresa documentată a aplicației, https://icdumbo.github.io/Apartment-Booking-Manager/ : HTTP 200.
+- Sub aceeași adresă, `src/legal/privacy.html?lang=ro`, `?lang=en` și
+  `src/legal/delete-account.html?lang=ro`, `?lang=en`: HTTP 404.
+- Variantele `legal/privacy.html` și `legal/delete-account.html`, în ambele
+  limbi: HTTP 404.
+
+Acesta nu este un URL de politică/ștergere funcțional. `publicBaseUrl` rămâne
+necompletat; nu am presupus că un alt domeniu neconfirmat există. Nu se modifică
+sursa/deploymentul GitHub Pages pentru a publica implicit branch-ul BUSINESS.
+Structura de hosting descrisă mai sus este pregătită pentru o etapă aprobată
+separat, după completarea numelui legal, retenției, cadrului prelucrării și URL-urilor.
+
+`publicationApproved`, `deletionBackendVerified` și comutatorul server
+`DELETION_REQUESTS_ENABLED` rămân false. Confirmarea unui contact public nu
+activează solicitări, trialuri, achiziții, reclame sau publicarea paginilor.

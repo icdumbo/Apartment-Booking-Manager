@@ -1,6 +1,6 @@
 import {getLanguage} from './i18n.js?v=0.3.1';
 import {privacySettings,isDeletionBackendReady} from './privacy-settings.js';
-import {privacyCopy,renderPolicy} from './privacy-content.js';
+import {privacyCopy,renderPolicy,renderSupportContact} from './privacy-content.js';
 import {createDeletionClient} from './account-deletion.js';
 export function mountPrivacy({auth}){
  const menu=document.getElementById('app-menu'),links=document.createElement('nav'),privacy=document.createElement('button'),deletion=document.createElement('button');
@@ -13,10 +13,10 @@ export function mountPrivacy({auth}){
  function render(){
   const c=privacyCopy[getLanguage()];title.textContent=mode==='policy'?c.title:c.deletion;labels();body.replaceChildren();
   if(mode==='policy'){renderPolicy(body,getLanguage());return;}
-  const scope=document.createElement('p');scope.textContent=c.scope;
-  if(!client){const notice=document.createElement('p');notice.textContent=c.backendUnavailable;notice.setAttribute('role','status');body.append(scope,notice);return;}
+  const scope=document.createElement('p');scope.textContent=c.scope;body.append(scope);renderSupportContact(body,getLanguage(),true);
+  if(!client){const notice=document.createElement('p');notice.textContent=c.backendUnavailable;notice.setAttribute('role','status');body.append(notice);return;}
   const form=document.createElement('form'),label=document.createElement('label'),check=document.createElement('input'),submit=document.createElement('button'),status=document.createElement('button'),message=document.createElement('p');
-  check.type='checkbox';check.id='deletion-confirm';check.style.width='22px';check.style.minHeight='22px';label.append(check,document.createTextNode(c.confirm));submit.type='submit';submit.textContent=c.submit;submit.disabled=true;status.type='button';status.textContent=c.status;message.id='deletion-message';message.setAttribute('role','status');form.append(label,submit,status,message);body.append(scope,form);
+  check.type='checkbox';check.id='deletion-confirm';check.style.width='22px';check.style.minHeight='22px';label.append(check,document.createTextNode(c.confirm));submit.type='submit';submit.textContent=c.submit;submit.disabled=true;status.type='button';status.textContent=c.status;message.id='deletion-message';message.setAttribute('role','status');form.append(label,submit,status,message);body.append(form);
   check.onchange=()=>submit.disabled=busy||!check.checked;
   async function run(request){if(busy)return;busy=true;check.disabled=submit.disabled=status.disabled=true;message.textContent=c.busy;const expected=session;try{
    const result=await(request?client.request({confirmed:check.checked,language:getLanguage()}):client.status());if(expected!==session)return;
