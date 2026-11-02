@@ -26,7 +26,7 @@ const account={localId:'test-user',validSince:String(now-200)};
 function verifier(overrides={}){return createFirebaseVerifier({apiKey:'fixture-api-key',resolveKey:()=>publicCryptoKey,clock:()=>now*1000,fetchImpl:async()=>Response.json({users:[account]}),...overrides});}
 let runtime,db,lookupMode='valid';
 before(async()=>{
- runtime=new Miniflare(convertV4MiniflareOptions({name:'access',modules:true,scriptPath:new URL('../.worker-build/index.js',import.meta.url).pathname,compatibilityDate:'2026-10-22',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'local-access-test'},bindings:{FIREBASE_API_KEY:'fixture-api-key',ACCESS_PRIVATE_KEY:pem,OWNER_SUBJECT:'test-owner',NEW_TRIALS_ENABLED:'true'},outboundService:async request=>{
+ runtime=new Miniflare(convertV4MiniflareOptions({name:'access',modules:true,scriptPath:new URL('../.worker-build/privacy-worker.js',import.meta.url).pathname,compatibilityDate:'2026-10-22',compatibilityFlags:['nodejs_compat'],d1Databases:{DB:'local-access-test'},bindings:{FIREBASE_API_KEY:'fixture-api-key',ACCESS_PRIVATE_KEY:pem,OWNER_SUBJECT:'test-owner',NEW_TRIALS_ENABLED:'true'},outboundService:async request=>{
   if(new URL(request.url).hostname==='www.googleapis.com')return Response.json({'test-key':certificate.stdout},{headers:{'Cache-Control':'public, max-age=3600'}});
   assert.equal(new URL(request.url).origin,'https://identitytoolkit.googleapis.com');
   if(lookupMode==='outage')return Response.json({error:{message:'QUOTA_EXCEEDED'}},{status:429});

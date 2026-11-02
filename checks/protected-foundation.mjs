@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 const base='84317b27fc2106c1e0406f4cfe36ff5f3c1fc425';
 const additions=['src/privacy-settings.js','src/privacy-content.js','src/privacy-screen.js','src/account-deletion.js','src/legal','backend/privacy-worker.js','backend/deletion-requests.js','backend/checks/deletion.check.mjs','backend/migrations/0003_deletion_requests.sql','android/app/src/main/res/xml/backup_rules.xml','android/app/src/main/res/xml/data_extraction_rules.xml'];
-const integrations=['src/app.js','backend/wrangler.jsonc','android/app/src/main/AndroidManifest.xml','android/app/build.gradle'];
+const integrations=['backend/checks/worker-access.check.mjs','src/app.js','backend/wrangler.jsonc','android/app/src/main/AndroidManifest.xml','android/app/build.gradle'];
 execFileSync('git',['diff','--exit-code',base,'HEAD','--','src','index.html','android','backend','package.json','package-lock.json','capacitor.config.json',':!src/styles.css',...additions.concat(integrations).map(p=>':!'+p)],{stdio:'pipe'});
 const old=p=>execFileSync('git',['show',base+':'+p],{encoding:'utf8'}).replaceAll('\r\n','\n');
 const current=p=>readFileSync(p,'utf8').replaceAll('\r\n','\n');
@@ -18,3 +18,5 @@ function version(text){let n=0;const normalized=text.replace(/^(\s*versionCode )
 assert.equal(version(current('android/app/build.gradle')),version(old('android/app/build.gradle')));
 assert.ok(Number(current('android/app/build.gradle').match(/^\s*versionCode (\d+)$/m)[1])>=23);
 console.log('Protected functional sources unchanged; only explicit privacy integration and version metadata allowed.');
+
+assert.equal(current('backend/checks/worker-access.check.mjs').replace('../.worker-build/privacy-worker.js','../.worker-build/index.js'),old('backend/checks/worker-access.check.mjs'),'Existing Worker assertions unchanged; only bundle entrypoint may change');

@@ -4,12 +4,12 @@ import {privacyCopy,renderPolicy} from './privacy-content.js';
 import {createDeletionClient} from './account-deletion.js';
 export function mountPrivacy({auth}){
  const menu=document.getElementById('app-menu'),links=document.createElement('nav'),privacy=document.createElement('button'),deletion=document.createElement('button');
- links.id='privacy-actions';privacy.type=deletion.type='button';privacy.id='open-privacy';deletion.id='open-account-deletion';links.append(privacy,deletion);menu.append(links);
+ links.id='privacy-actions';links.style.cssText='display:flex;gap:6px;margin-top:8px';privacy.type=deletion.type='button';privacy.id='open-privacy';deletion.id='open-account-deletion';for(const button of [privacy,deletion])button.style.cssText='flex:1 1 auto;min-width:0;min-height:44px;font-size:13px;padding:9px 10px';links.append(privacy,deletion);menu.append(links);
  const dialog=document.createElement('dialog');dialog.id='privacy-dialog';dialog.setAttribute('aria-labelledby','privacy-title');dialog.style.maxHeight='calc(100dvh - 24px)';dialog.style.overflowY='auto';
  const heading=document.createElement('div'),title=document.createElement('h2'),close=document.createElement('button'),body=document.createElement('div');heading.className='dialog-heading';title.id='privacy-title';close.type='button';close.style.minHeight='44px';heading.append(title,close);dialog.append(heading,body);document.body.append(dialog);
  let mode='policy',busy=false,session=auth.bridge?.getCurrentUser()?.uid;
  const client=auth.bridge?createDeletionClient({endpoint:new URL('/account-deletion',LICENSE_ENDPOINT).href,getUser:()=>auth.bridge.getCurrentUser(),getIdToken:expected=>auth.bridge.getIdToken(expected),reauthenticate:()=>auth.signIn()}):null;
- function labels(){const c=privacyCopy[getLanguage()];privacy.textContent=c.title;deletion.textContent=c.deletion;deletion.hidden=!auth.bridge?.getCurrentUser();close.textContent=c.close;}
+ function labels(){const c=privacyCopy[getLanguage()];privacy.textContent=c.title;deletion.textContent=getLanguage()==='ro'?'Ștergere cont':'Delete account';deletion.hidden=!auth.bridge?.getCurrentUser();close.textContent=c.close;}
  function render(){
   const c=privacyCopy[getLanguage()];title.textContent=mode==='policy'?c.title:c.deletion;labels();body.replaceChildren();
   if(mode==='policy'){renderPolicy(body,getLanguage());return;}
