@@ -6,7 +6,17 @@
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "preview_urls": false,
-  "vars": {"NEW_TRIALS_ENABLED": "false", "DELETION_REQUESTS_ENABLED": "false"},
+  "vars": {
+    "NEW_TRIALS_ENABLED": "false",
+    "DELETION_REQUESTS_ENABLED": "false",
+    "TRIAL_RETENTION_ENABLED": "false",
+    "TRIAL_RETENTION_BACKEND_VERIFIED": "false",
+    "TRIAL_RETENTION_POLICY_APPROVED": "false",
+    "DELETION_EXECUTION_ENABLED": "false",
+    "DELETION_BACKEND_VERIFIED": "false",
+    "DELETION_RETENTION_APPROVED": "false",
+    "DELETION_MAINTENANCE_VERIFIED": "false"
+  },
   "d1_databases": [{
     "binding": "DB",
     "database_name": "apartment-booking-licenses",

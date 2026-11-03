@@ -1,5 +1,8 @@
 # Firebase Authentication integration
 
+> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 supersedes the historical permanent anti-abuse/admission lock and trial-based deletion blocker described below. No production activation has occurred.
+
+
 Firebase remains responsible only for Android Google Sign-In in the existing project `apartment-booking-manage-2d218`, on Spark. The existing native Auth plugin, Google Credential Manager, Android/OAuth configuration, package ID and APK signing identity are unchanged. No Functions, Firestore, Cloud Storage, Blaze or Google service-account private key is required by the active backend.
 
 The server is now Cloudflare Workers + D1. See [access.md](access.md) for the access policy and [secure-access-setup.md](secure-access-setup.md) for the exact manual setup, free-plan quotas, credentials and offline limits. The previous Firebase Functions deployment path has been removed rather than left as an accidental billing dependency.

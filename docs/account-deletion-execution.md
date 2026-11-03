@@ -1,5 +1,8 @@
 # Account deletion processor — NOT activated or production-verified
 
+> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 supersedes the historical permanent anti-abuse/admission lock and trial-based deletion blocker described below. No production activation has occurred.
+
+
 The authenticated intake remains `/account-deletion`. Only a recently authenticated
 Google/Firebase identity (five minutes) with explicit consent can create its own
 request; a client cannot nominate a UID. A scheduled server-side handler processes

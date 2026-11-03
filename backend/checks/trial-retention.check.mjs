@@ -37,6 +37,7 @@ before(async()=>{
  await db.prepare("INSERT INTO identity_policy(subject,blocked) VALUES ('legacy-003',1)").run();
  await migrate('0005_trial_retention.sql');
  await migrate('0006_trial_retention_cursor.sql');
+ await migrate('0007_approved_trial_policy.sql');
 });
 after(async()=>runtime?.dispose());
 const rows=async table=>(await db.prepare('SELECT * FROM '+table+' ORDER BY subject').all()).results;
@@ -47,13 +48,16 @@ test('six UTC calendar months clamp month ends, leap years and preserve time/mil
  }
  for(const subject of ['legacy-000','unknown-range'])assert.equal((await db.prepare('SELECT retention_until FROM trial_retention_source WHERE subject=?').bind(subject).first()).retention_until,0);
 });
-test('migration fences new enrolment immediately; existing trials stay unchanged and cannot be renewed',async()=>{
+test('approved migration permits explicit enrolment only; existing trials cannot be renewed',async()=>{
  const repository=createD1Repository(db,{allowNewTrials:true});
  const existing=await repository.trialRepository.resolve('active',{activate:true,now});assert.equal(existing.startedAt,now-1000);assert.equal(existing.expiresAt,now-1000+1296000000);
- await assert.rejects(repository.trialRepository.resolve('new-account',{activate:true,now}),/anti-abuse/);
+ assert.equal(await createD1Repository(db).trialRepository.resolve('new-account',{activate:true,now}),null);
+ assert.equal(await repository.trialRepository.resolve('new-account',{activate:false,now}),null);
+ const fresh=await repository.trialRepository.resolve('new-account',{activate:true,now});assert.equal(fresh.startedAt,now);assert.equal(fresh.expiresAt,now+1296000000);
+ const again=await repository.trialRepository.resolve('new-account',{activate:true,now:now+5000});assert.equal(again.startedAt,now);assert.equal(again.expiresAt,fresh.expiresAt);
  await assert.rejects(db.prepare("UPDATE trials SET started_at=started_at+1,expires_at=expires_at+1 WHERE subject='active'").run(),/immutable/);
- await assert.rejects(db.prepare("DELETE FROM trials WHERE subject='active'").run(),/unexpired|unclassified/);
- assert.equal(await db.prepare("SELECT * FROM trials WHERE subject='new-account'").first(),null);
+ await assert.rejects(db.prepare("DELETE FROM trials WHERE subject='active'").run(),/expiry|authenticated/);
+ assert.equal(await db.prepare("SELECT name FROM sqlite_master WHERE type='trigger' AND name='trial_retention_admission'").first(),null);
 });
 test('bounded indexed keyset cleanup removes dated/undated legacy history without changing purchases or access data',async()=>{
  const protectedBefore=JSON.stringify(await Promise.all(['licenses','play_purchases','identity_policy'].map(rows)));
@@ -64,28 +68,32 @@ test('bounded indexed keyset cleanup removes dated/undated legacy history withou
   await cleanTrialHistory(budgetDb,Date.now());const remaining=(await rows('trials')).length;
   assert.ok(previous-remaining<=TRIAL_RETENTION_BATCH);previous=remaining;
  }
- assert.equal(calls,5);assert.deepEqual((await rows('trials')).map(row=>row.subject),['active']);
+ assert.equal(calls,5);assert.deepEqual((await rows('trials')).map(row=>row.subject),['active','new-account']);
  const control=await db.prepare('SELECT * FROM trial_retention_control WHERE singleton=1').first();
  assert.equal(control.backfill_complete,1);assert.equal(control.backfill_after,'');assert.equal(control.enrollment_locked,1);
  assert.deepEqual(Object.keys(control).sort(),['backfill_after','backfill_complete','enrollment_locked','singleton']);
- assert.deepEqual((await rows('trial_retention')).map(row=>row.subject),['active']);
+ assert.deepEqual((await rows('trial_retention')).map(row=>row.subject),['active','new-account']);
  assert.equal(JSON.stringify(await Promise.all(['licenses','play_purchases','identity_policy'].map(rows))),protectedBefore);
  await assert.rejects(db.prepare("UPDATE trial_retention SET retention_until=retention_until+1 WHERE subject='active'").run(),/immutable/);
- await assert.rejects(db.prepare("DELETE FROM trials WHERE subject='active'").run(),/unexpired/);
- await assert.rejects(cleanTrialHistory(db,now+200*86400000),/unexpired/);
+ await assert.rejects(db.prepare("DELETE FROM trials WHERE subject='active'").run(),/expiry|authenticated/);
+ await assert.rejects(cleanTrialHistory(db,now+200*86400000),/expiry|authenticated/);
  assert.ok(await db.prepare("SELECT * FROM trials WHERE subject='active'").first());
  const plan=(await db.prepare('EXPLAIN QUERY PLAN SELECT subject FROM trial_retention WHERE retention_until<=? ORDER BY retention_until,subject LIMIT 25').bind(now).all()).results;
  assert.ok(plan.some(row=>row.detail.includes('trial_retention_due')));
  const backfillPlan=(await db.prepare('EXPLAIN QUERY PLAN SELECT subject FROM trials WHERE subject>? ORDER BY subject LIMIT 25').bind('legacy-001').all()).results;
  assert.ok(backfillPlan.some(row=>row.detail.includes('INDEX')&&row.detail.includes('subject>')));
- // A purged UID and a recreated UID are both denied, even if NEW_TRIALS is enabled.
- for(const subject of ['case-0','legacy-000','recreated-uid'])await assert.rejects(createD1Repository(db,{allowNewTrials:true}).trialRepository.resolve(subject,{activate:true,now}),/anti-abuse/);
+ // Approved tradeoff: repeat only by explicit activation, when the server flag permits it.
+ for(const subject of ['case-0','legacy-000','recreated-uid']){
+  assert.equal(await createD1Repository(db,{allowNewTrials:true}).trialRepository.resolve(subject,{activate:false,now}),null);
+  assert.equal(await createD1Repository(db).trialRepository.resolve(subject,{activate:true,now}),null);
+  const trial=await createD1Repository(db,{allowNewTrials:true}).trialRepository.resolve(subject,{activate:true,now});assert.equal(trial.startedAt,now);assert.equal(trial.expiresAt,now+1296000000);
+ }
 });
 test('after-insert classification handles rows behind the cursor and repeated cleanup is idempotent',async()=>{
  await db.prepare("INSERT INTO trials(subject,status) VALUES ('aaa-new-block','blocked')").run();
  assert.equal((await db.prepare("SELECT retention_until FROM trial_retention WHERE subject='aaa-new-block'").first()).retention_until,0);
  await cleanTrialHistory(db,Date.now());await cleanTrialHistory(db,Date.now());
- assert.deepEqual((await rows('trials')).map(row=>row.subject),['active']);
+ assert.deepEqual((await rows('trials')).map(row=>row.subject),['active','case-0','legacy-000','new-account','recreated-uid']);
  assert.equal((await db.prepare('SELECT backfill_after FROM trial_retention_control WHERE singleton=1').first()).backfill_after,'');
  await assert.rejects(db.prepare('UPDATE trial_retention_control SET enrollment_locked=0').run());
 });

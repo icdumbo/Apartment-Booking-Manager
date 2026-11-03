@@ -1,5 +1,8 @@
 # Trial anti-abuse decision — no new tracking or enrolment activated
 
+> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 supersedes the historical permanent anti-abuse/admission lock and trial-based deletion blocker described below. No production activation has occurred.
+
+
 ## Verified limitation and safe current behavior
 
 The commercial rule remains one voluntary 15-day PREMIUM trial per eligible

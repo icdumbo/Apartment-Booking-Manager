@@ -1,5 +1,8 @@
 # Six-calendar-month trial history retention — prepared, NOT activated
 
+> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 supersedes the historical permanent anti-abuse/admission lock and trial-based deletion blocker described below. No production activation has occurred.
+
+
 Scope: migrations `0005_trial_retention.sql` and `0006_trial_retention_cursor.sql`, module `backend/trial-retention.js`.
 No local data, backups, purchase rows, licenses, OWNER configuration or Firebase
 identities are changed. The existing 15-day access duration is unchanged.

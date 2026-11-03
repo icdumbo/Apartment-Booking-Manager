@@ -13,8 +13,8 @@ export function createExecutionRepository(database){
  const statement=(sql,...args)=>db.prepare(sql).bind(...args);
  return {
   async candidates(now){
-   await statement('DELETE FROM deletion_receipts WHERE expires_at<=?',now).run();
-   return (await statement("SELECT r.subject,r.request_id,r.created_at FROM account_deletion_requests r LEFT JOIN deletion_execution e ON e.subject=r.subject WHERE e.subject IS NULL OR (e.state IN ('processing','retry') AND e.lease_until<=?) ORDER BY r.created_at LIMIT 10",now).all()).results;
+   await statement('DELETE FROM deletion_receipts WHERE request_id IN (SELECT request_id FROM deletion_receipts WHERE expires_at<=? ORDER BY expires_at,request_id LIMIT 25)',now).run();
+   return (await statement("SELECT r.subject,r.request_id,r.created_at FROM account_deletion_requests r LEFT JOIN deletion_execution e ON e.subject=r.subject WHERE e.subject IS NULL OR (e.state IN ('processing','retry') AND e.lease_until<=?) ORDER BY r.created_at,r.subject LIMIT 1",now).all()).results;
   },
   async claim(request,now){
    const lease=randomUUID();
@@ -24,7 +24,8 @@ export function createExecutionRepository(database){
   async blocker(subject,owner){
    if(subject===owner)return 'owner_configuration';
    if(await statement('SELECT 1 FROM play_purchases WHERE subject=? LIMIT 1',subject).first()||await statement("SELECT 1 FROM licenses WHERE subject=? AND (source='GOOGLE_PLAY_PURCHASE' OR purchase_token_hash IS NOT NULL) LIMIT 1",subject).first())return 'purchase_recovery';
-   if(await statement('SELECT 1 FROM trials WHERE subject=? LIMIT 1',subject).first()||await statement('SELECT 1 FROM identity_policy WHERE subject=? LIMIT 1',subject).first())return 'trial_policy';
+   // Identity revocation/security restrictions remain independent of trial history.
+   if(await statement('SELECT 1 FROM identity_policy WHERE subject=? LIMIT 1',subject).first())return 'trial_policy';
    return null;
   },
   async mark(subject,lease,state,reason,now){
@@ -32,13 +33,14 @@ export function createExecutionRepository(database){
   },
   async finish(request,lease,now,ttl){
    // All deletions and the completion receipt commit together. A lost lease
-   // cannot remove rows or claim completion. No trial/purchase rows are erased.
+   // cannot remove rows or claim completion. Purchase evidence is never erased.
    const guard='EXISTS(SELECT 1 FROM deletion_execution WHERE subject=? AND lease=? AND state=\'processing\')';
-   const absent="NOT EXISTS(SELECT 1 FROM trials WHERE subject=?) AND NOT EXISTS(SELECT 1 FROM identity_policy WHERE subject=?) AND NOT EXISTS(SELECT 1 FROM play_purchases WHERE subject=?) AND NOT EXISTS(SELECT 1 FROM licenses WHERE subject=? AND (source='GOOGLE_PLAY_PURCHASE' OR purchase_token_hash IS NOT NULL))";
+   const absent="NOT EXISTS(SELECT 1 FROM identity_policy WHERE subject=?) AND NOT EXISTS(SELECT 1 FROM play_purchases WHERE subject=?) AND NOT EXISTS(SELECT 1 FROM licenses WHERE subject=? AND (source='GOOGLE_PLAY_PURCHASE' OR purchase_token_hash IS NOT NULL))";
    const condition=guard+' AND '+absent;
-   const args=[request.subject,lease,...Array(4).fill(request.subject)];
+   const args=[request.subject,lease,...Array(3).fill(request.subject)];
    await db.batch([
     statement('INSERT INTO deletion_receipts(request_id,completed_at,expires_at) SELECT ?,?,? WHERE '+condition,request.request_id,now,now+ttl,...args),
+    statement('DELETE FROM trials WHERE subject=? AND '+condition,request.subject,...args),
     statement('DELETE FROM licenses WHERE subject=? AND '+condition,request.subject,...args),
     statement('DELETE FROM account_deletion_requests WHERE subject=? AND '+condition,request.subject,...args),
     statement('DELETE FROM deletion_execution WHERE subject=? AND lease=? AND EXISTS(SELECT 1 FROM deletion_receipts WHERE request_id=?)',request.subject,lease,request.request_id)
