@@ -1,6 +1,6 @@
 # Six-calendar-month trial history retention — prepared, NOT activated
 
-Scope: migration `0005_trial_retention.sql`, module `backend/trial-retention.js`.
+Scope: migrations `0005_trial_retention.sql` and `0006_trial_retention_cursor.sql`, module `backend/trial-retention.js`.
 No local data, backups, purchase rows, licenses, OWNER configuration or Firebase
 identities are changed. The existing 15-day access duration is unchanged.
 
@@ -37,6 +37,12 @@ pseudonymous data; deleting it after six months cannot enforce a lifetime ban.
 No such identity collection, retention exception or new trial rule is implemented
 here. Permanent prevention of repeat trials is NOT promised.
 
+The global lock bit is non-identifying; the temporary backfill cursor itself
+contains a Firebase UID. Migration 0006 clears old completed cursors and records a
+completion bit; the cleaner clears its cursor atomically on finishing, without
+restarting scans. See `docs/trial-anti-abuse-decision.md` for the separate marker
+options requiring legal/commercial approval. Neither migration unlocks enrolment.
+
 ## Free-plan budget and separation
 
 Each invocation makes one D1 batch containing three bounded statements: classify
@@ -50,6 +56,8 @@ For a proposed hourly schedule, the full-backlog estimate is 1,824 logical row
 changes/day BEFORE index maintenance, plus query reads and any other applications
 sharing the account quotas. Measure actual billed rows; this is not a cost cap.
 No such schedule is activated.
+Once backfill completes, idle runs do not rewrite the control row or classify
+previous rows again. Only due-history cleanup remains.
 Do not schedule continuously once per minute during a large backlog without a
 separate daily write budget; the Free quota is account-wide, not per Worker.
 

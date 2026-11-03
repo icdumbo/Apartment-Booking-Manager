@@ -7,6 +7,7 @@ const integrations=['backend/checks/worker-access.check.mjs','src/app.js','backe
 // Explicit deletion-only additions; commercial/authentication/data sources remain protected.
 additions.push('backend/deletion-executor.js','backend/firebase-deletion.js','backend/checks/deletion-execution.check.mjs','backend/checks/local-d1-sqlite.mjs','backend/migrations/0004_deletion_execution.sql');
 additions.push('backend/trial-retention.js','backend/checks/trial-retention.check.mjs','backend/migrations/0005_trial_retention.sql');
+additions.push('backend/migrations/0006_trial_retention_cursor.sql');
 execFileSync('git',['diff','--exit-code',base,'HEAD','--','src','index.html','android','backend','package.json','package-lock.json','capacitor.config.json',':!src/styles.css',...additions.concat(integrations).map(p=>':!'+p)],{stdio:'pipe'});
 const old=p=>execFileSync('git',['show',base+':'+p],{encoding:'utf8'}).replaceAll('\r\n','\n');
 const current=p=>readFileSync(p,'utf8').replaceAll('\r\n','\n');

@@ -18,7 +18,7 @@ const cases=[
 ];
 async function migrate(name){
  const sql=(await readFile(new URL('../migrations/'+name,import.meta.url),'utf8')).replace(/--[^\n]*/g,'').trim();
- for(const statement of sql.split(/(?<=;)\s*(?=CREATE|INSERT INTO trial_retention_control|DROP TRIGGER)/))await db.prepare(statement).run();
+ for(const statement of sql.split(/(?<=;)\s*(?=CREATE|INSERT INTO trial_retention_control|DROP TRIGGER|ALTER TABLE|UPDATE trial_retention_control)/))await db.prepare(statement).run();
 }
 before(async()=>{
  if(process.env.ABM_LOCAL_SQLITE==='1'){
@@ -36,6 +36,7 @@ before(async()=>{
  await db.prepare("INSERT INTO play_purchases VALUES (?,'legacy-002','fixture','encrypted-fixture','active',0)").bind('a'.repeat(64)).run();
  await db.prepare("INSERT INTO identity_policy(subject,blocked) VALUES ('legacy-003',1)").run();
  await migrate('0005_trial_retention.sql');
+ await migrate('0006_trial_retention_cursor.sql');
 });
 after(async()=>runtime?.dispose());
 const rows=async table=>(await db.prepare('SELECT * FROM '+table+' ORDER BY subject').all()).results;
@@ -64,6 +65,9 @@ test('bounded indexed keyset cleanup removes dated/undated legacy history withou
   assert.ok(previous-remaining<=TRIAL_RETENTION_BATCH);previous=remaining;
  }
  assert.equal(calls,5);assert.deepEqual((await rows('trials')).map(row=>row.subject),['active']);
+ const control=await db.prepare('SELECT * FROM trial_retention_control WHERE singleton=1').first();
+ assert.equal(control.backfill_complete,1);assert.equal(control.backfill_after,'');assert.equal(control.enrollment_locked,1);
+ assert.deepEqual(Object.keys(control).sort(),['backfill_after','backfill_complete','enrollment_locked','singleton']);
  assert.deepEqual((await rows('trial_retention')).map(row=>row.subject),['active']);
  assert.equal(JSON.stringify(await Promise.all(['licenses','play_purchases','identity_policy'].map(rows))),protectedBefore);
  await assert.rejects(db.prepare("UPDATE trial_retention SET retention_until=retention_until+1 WHERE subject='active'").run(),/immutable/);
@@ -82,7 +86,26 @@ test('after-insert classification handles rows behind the cursor and repeated cl
  assert.equal((await db.prepare("SELECT retention_until FROM trial_retention WHERE subject='aaa-new-block'").first()).retention_until,0);
  await cleanTrialHistory(db,Date.now());await cleanTrialHistory(db,Date.now());
  assert.deepEqual((await rows('trials')).map(row=>row.subject),['active']);
+ assert.equal((await db.prepare('SELECT backfill_after FROM trial_retention_control WHERE singleton=1').first()).backfill_after,'');
  await assert.rejects(db.prepare('UPDATE trial_retention_control SET enrollment_locked=0').run());
+});
+test('cursor migration removes an old completed UID cursor without changing admission or trial data',async()=>{
+ let fixture;
+ if(process.env.ABM_LOCAL_SQLITE==='1')fixture=await (await import('./local-d1-sqlite.mjs')).localD1SQLite();
+ else{
+  const engine=new Miniflare(convertV4MiniflareOptions({modules:true,script:'export default {fetch(){return new Response("fixture")}}',compatibilityDate:'2026-10-22',d1Databases:{DB:'old-cursor-fixture'}}));
+  fixture={db:await engine.getD1Database('DB'),dispose:()=>engine.dispose()};
+ }
+ try{
+  await fixture.db.prepare('CREATE TABLE trials(subject TEXT PRIMARY KEY)').run();
+  await fixture.db.prepare("INSERT INTO trials VALUES ('active')").run();
+  await fixture.db.prepare("CREATE TABLE trial_retention_control(singleton INTEGER PRIMARY KEY,enrollment_locked INTEGER NOT NULL CHECK(enrollment_locked=1),backfill_after TEXT NOT NULL)").run();
+  await fixture.db.prepare("INSERT INTO trial_retention_control VALUES (1,1,'old-processed-uid')").run();
+  const sql=(await readFile(new URL('../migrations/0006_trial_retention_cursor.sql',import.meta.url),'utf8')).replace(/--[^\n]*/g,'').trim();
+  for(const statement of sql.split(/(?<=;)\s*(?=UPDATE)/))await fixture.db.prepare(statement).run();
+  const control=await fixture.db.prepare('SELECT * FROM trial_retention_control').first();assert.equal(control.backfill_after,'');assert.equal(control.backfill_complete,1);assert.equal(control.enrollment_locked,1);
+  assert.equal((await fixture.db.prepare('SELECT * FROM trials').all()).results.length,1);
+ }finally{await fixture.dispose();}
 });
 test('flags default off, no Firebase calls or deletion processing, and scheduling is not activated',async()=>{
  const never={withSession(){throw Error('must not query');}};

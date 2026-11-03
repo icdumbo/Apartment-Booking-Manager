@@ -7,10 +7,14 @@ export async function cleanTrialHistory(database,now=Date.now()){
  const db=database.withSession('first-primary');
  // Keyset backfill: no repeated scan of previously classified rows. The primary
  // key supports the cursor; AFTER INSERT classifies all future rows atomically.
- const next="SELECT subject FROM trials WHERE subject>(SELECT backfill_after FROM trial_retention_control WHERE singleton=1) ORDER BY subject LIMIT "+TRIAL_RETENTION_BATCH;
+ const next="SELECT subject FROM trials WHERE (SELECT backfill_complete FROM trial_retention_control WHERE singleton=1)=0 AND subject>(SELECT backfill_after FROM trial_retention_control WHERE singleton=1) ORDER BY subject LIMIT "+TRIAL_RETENTION_BATCH;
+ const last='COALESCE((SELECT MAX(subject) FROM ('+next+')),backfill_after)';
+ const more='EXISTS(SELECT 1 FROM trials WHERE subject>'+last+' LIMIT 1)';
  const result=await db.batch([
   db.prepare('INSERT INTO trial_retention(subject,retention_until) SELECT subject,retention_until FROM trial_retention_source WHERE subject IN ('+next+') ON CONFLICT(subject) DO NOTHING'),
-  db.prepare('UPDATE trial_retention_control SET backfill_after=COALESCE((SELECT MAX(subject) FROM ('+next+')),backfill_after) WHERE singleton=1'),
+  // SQLite evaluates both assignments against the old cursor. Finish and clear
+  // the UID in the same batch; never restart a full scan after completion.
+  db.prepare("UPDATE trial_retention_control SET backfill_after=CASE WHEN "+more+" THEN "+last+" ELSE '' END,backfill_complete=CASE WHEN "+more+' THEN 0 ELSE 1 END WHERE singleton=1 AND backfill_complete=0'),
   db.prepare('DELETE FROM trials WHERE subject IN (SELECT subject FROM trial_retention WHERE retention_until<=? ORDER BY retention_until,subject LIMIT '+TRIAL_RETENTION_BATCH+')').bind(Math.floor(now/1000)*1000)
  ]);
  // Counts only; no UID, token or raw database error is emitted or persisted.
