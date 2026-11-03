@@ -3,9 +3,12 @@ import {createFirebaseVerifier,createCertificateResolver} from './firebase-token
 import {createDeletionHandler,createDeletionRepository} from './deletion-requests.js';
 import {createDeletionExecutor,createExecutionRepository,deletionExecutionReady} from './deletion-executor.js';
 import {createFirebaseDeletionApi} from './firebase-deletion.js';
+import {runTrialRetention} from './trial-retention.js';
 const resolveKey=createCertificateResolver();
 export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFirebaseVerifier,clock=Date.now}={}){
  return {async scheduled(controller,env){
+  // Separate invocation budget; retention never starts the deletion executor.
+  if(env.TRIAL_RETENTION_ENABLED==='true')return runTrialRetention(env,{clock});
   // No cron is configured. Production activation needs a separate reviewed deployment.
   if(!env.DB||!deletionExecutionReady(env))return {disabled:true};
   const firebase=createFirebaseDeletionApi({serviceAccount:env.DELETION_FIREBASE_SERVICE_ACCOUNT_JSON,clock});
