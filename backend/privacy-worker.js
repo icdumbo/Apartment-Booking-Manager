@@ -1,9 +1,16 @@
 import accessWorker from './index.js';
 import {createFirebaseVerifier,createCertificateResolver} from './firebase-token.js';
 import {createDeletionHandler,createDeletionRepository} from './deletion-requests.js';
+import {createDeletionExecutor,createExecutionRepository,deletionExecutionReady} from './deletion-executor.js';
+import {createFirebaseDeletionApi} from './firebase-deletion.js';
 const resolveKey=createCertificateResolver();
 export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFirebaseVerifier,clock=Date.now}={}){
- return {async fetch(request,env,context){
+ return {async scheduled(controller,env){
+  // No cron is configured. Production activation needs a separate reviewed deployment.
+  if(!env.DB||!deletionExecutionReady(env))return {disabled:true};
+  const firebase=createFirebaseDeletionApi({serviceAccount:env.DELETION_FIREBASE_SERVICE_ACCOUNT_JSON,clock});
+  return createDeletionExecutor({repository:createExecutionRepository(env.DB),firebase,clock})(env);
+ },async fetch(request,env,context){
   if(new URL(request.url).pathname!=='/account-deletion')return worker.fetch(request,env,context);
   const headers={'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Vary':'Origin'};
   const reply=(status,body)=>new Response(JSON.stringify(body),{status,headers});
