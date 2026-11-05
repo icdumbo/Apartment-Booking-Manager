@@ -1,6 +1,6 @@
 # Account deletion processor — NOT activated or production-verified
 
-> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 supersedes the historical permanent anti-abuse/admission lock and trial-based deletion blocker described below. No production activation has occurred.
+> Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 removes the historical permanent anti-abuse/admission lock. The current trial history is eligible for deletion; security-policy and purchase blockers remain. No production activation has occurred.
 
 
 The authenticated intake remains `/account-deletion`. Only a recently authenticated
@@ -13,10 +13,11 @@ only these existing requests. There is no public execution/admin HTTP route.
 - Any purchase row, including revoked/pending purchases, or purchase-backed license
   blocks execution. Firebase and purchase evidence remain intact. Safe recovery
   across a deleted/recreated Firebase UID is not implemented; Billing is unchanged.
-- Any trial or identity-policy row blocks execution. Existing immutable history
-  is not purged or reset. A stable anti-abuse identity and an approved retention
-  procedure are still required. Permanent prevention of repeat trials is NOT
-  guaranteed by retaining a former Firebase UID.
+- An identity-policy/security restriction blocks execution and needs administrative
+  resolution. A trial row alone does not block deletion; approved processing
+  deletes it with eligible D1 records. Trial history has a maximum six-calendar-
+  month deadline; repetition after removal/account recreation is accepted.
+  No permanent identity or extra anti-abuse marker is required.
 - OWNER requires separate removal of its server configuration; the processor
   does not alter OWNER configuration or delete its Firebase identity.
 - An identity created after the original request, or an unexpected provider,
@@ -36,9 +37,9 @@ creation time. After deletion a second lookup must confirm absence. An ambiguous
 network failure is retried; absence on retry is safe and idempotent.
 
 D1 cleanup and a receipt commit atomically, guarded by the processing lease and
-rechecking trial/identity/purchase blockers. It removes the account's non-purchase
-licenses, request and execution state. It never deletes Google Play rights,
-purchase rows or trial history. Completion receipts hold only a random request
+rechecking identity/purchase blockers. It removes the account's trial history,
+non-purchase licenses, request and execution state. It never deletes Google Play
+rights or purchase rows. Completion receipts hold only a random request
 reference, completion and expiry times; they expire by the approved configured TTL.
 UID-containing failed jobs remain pending until resolved: no finite retention for
 these jobs has been approved. Do not publish a retention promise for them.
@@ -78,8 +79,8 @@ Do not claim this physical-device behavior verified from mock tests alone.
    There is no default TTL; 30 in tests is fictional, not an approved policy.
 6. Configure a scheduled trigger only after approval. None is added here. Without
    these flags, secret and trigger the processor does not run in production.
-7. Test lookup/delete/confirmation, retries, D1 atomic cleanup, purchase/trial/OWNER
-   blockers, local BASIC access and backups with controlled accounts. Check provider
+7. Test lookup/delete/confirmation, retries, D1 atomic cleanup, purchase/security/OWNER
+   blockers, eligible trial-history cleanup, local BASIC access and backups with controlled accounts. Check provider
    backup retention separately; active-store deletion is not immediate backup erasure.
 
 The request UI and web page share explicit RO/EN warnings. Their existing legal

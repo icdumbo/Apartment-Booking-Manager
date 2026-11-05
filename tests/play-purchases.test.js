@@ -72,3 +72,16 @@ test('server proof still passes through native signature acceptance before the c
  const secure=createSecureAccess({bridge,plugin:{beginVerification:async()=>({nonce}),acceptProof:async({proof})=>{assert.equal(proof,'fixture-signed-proof');accepted++;},getAccess:async()=>({subject:uid,state:'PREMIUM',premiumSource:'GOOGLE_PLAY_PURCHASE'})},endpoint:'https://fixture.invalid/access',fetchImpl:async(url,options)=>{assert.equal(url,'https://fixture.invalid/purchase');assert.deepEqual(JSON.parse(options.body),{action:'verifyPurchase',nonce,purchaseToken:'fixture-receipt'});return Response.json({version:1,proof:'fixture-signed-proof'});}});
  assert.equal((await secure.verifyPurchase('fixture-receipt')).state,'PREMIUM');assert.equal(accepted,1);
 });
+
+
+test('restore recognizes only a native-verified purchased entitlement when Play returns no receipt',async()=>{
+ let account={uid},proof=null,refreshes=0;const billing=createPlayBilling({auth:{getCurrentUser:()=>account},plugin:{restore:async()=>({purchases:[]})},secure:{configured:true,refresh:async()=>{refreshes++;return proof;}}});
+ for(const [value,status] of [[{state:'BASIC'},'notFound'],[{state:'PREMIUM',premiumSource:'OWNER'},'notFound'],[{state:'PREMIUM',premiumSource:'ADMIN_GIFT'},'notFound'],[{state:'PREMIUM',premiumSource:'GOOGLE_PLAY_PURCHASE'},'verified']]){proof=value;assert.equal((await billing.restore()).status,status);}
+ assert.equal(refreshes,4);
+ const switched=createPlayBilling({auth:{getCurrentUser:()=>account},plugin:{restore:async()=>({purchases:[]})},secure:{configured:true,refresh:async()=>{account={uid:'another-account'};return {state:'PREMIUM',premiumSource:'GOOGLE_PLAY_PURCHASE'};}}});
+ await assert.rejects(switched.restore(),/authenticationRequired/);
+});
+
+test('definitively missing/refunded receipt is revoked without acknowledging again; outage never impersonates a refund',async()=>{
+ const f=await fixture();try{await f.service.verifyPurchase(uid,'fixture-receipt');f.outage(true);await assert.rejects(f.service.readVerifiedPurchase(uid));assert.equal(f.sql.prepare('SELECT status FROM play_purchases').get().status,'active');f.outage(false);f.setPurchase(null);assert.equal(await f.service.readVerifiedPurchase(uid),null);assert.equal(f.sql.prepare('SELECT status FROM play_purchases').get().status,'revoked');assert.equal(f.acknowledged(),1);assert.equal(await f.service.readVerifiedPurchase(uid),null);}finally{f.sql.close();}
+});

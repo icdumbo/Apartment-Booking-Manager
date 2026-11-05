@@ -1,8 +1,30 @@
 # Commercial foundation — current status
 
-This is a source implementation, not a production certification. Android stays
-`ro.icdapps.apartmentbookingmanager`, version 1.0.20/code 21. No APK is built in
-this stage, no Play products are published and no purchase is performed.
+This is a source implementation, not a production certification. Android package
+remains `ro.icdapps.apartmentbookingmanager`; Android version and signing settings
+are not changed in this stage. No APK/AAB is built, no Play product is published
+and no purchase is performed.
+
+## Approved launch model — 5 November 2026
+
+- BASIC: free, anonymous and offline, at most three managed apartments. Returning
+  from PREMIUM preserves every apartment, reservation, photo and local record.
+- PREMIUM trial: voluntary 15 days without a card, Google sign-in and advance
+  confirmation. Server time and signed proofs determine access and expiry;
+  expiry returns to BASIC without deleting data.
+- PREMIUM purchase: one non-consumable, lifetime buy option, no subscription;
+  unlimited apartments and all PREMIUM features. Approved launch price: **99 RON**,
+  to be configured in Play Console and changeable there later. The app must
+  display Google Play's localized price, never a hardcoded 99 RON or a fallback
+  price while Billing is unavailable. Other countries/currencies require owner
+  approval of the actual Console price/tax configuration.
+- OWNER: permanently free PREMIUM for the sole server-authorized owner identity,
+  without an email allowlist or inheritance to other accounts.
+- Discreet banner ads remain part of BASIC and PREMIUM when configured and
+  consent permits. AdMob is currently disabled; PREMIUM does not promise ad removal.
+
+The code preparation below does not activate any commercial service. See
+[google-play-launch-readiness.md](google-play-launch-readiness.md) for release blockers.
 
 ## Audit of the existing implementation
 
@@ -10,7 +32,7 @@ this stage, no Play products are published and no purchase is performed.
 | --- | --- | --- |
 | BASIC | Anonymous/offline, three managed apartments; overflow stays visible/read-only, never deleted. Existing booking/calendar guards are reused. | Confirm the same guards on the Fold after a separately approved build. |
 | Google/Firebase | Native Credential Manager Google sign-in exchanges credentials with Firebase Auth. BASIC never requires login. Public endpoint and verification key are already configured. | Google provider, OAuth client and signing certificates must match the Play/test distribution. Authenticated live verification was not performed here. |
-| Trial | Explicit confirmation, 15 server-timed days, immutable D1 account record, signed native proof, encrypted cache and monotonic expiry. New enrolment is disabled. | Reconcile legacy local trials and enable server enrolment deliberately; exercise real Firebase accounts and device reboot. |
+| Trial | Explicit confirmation, 15 server-timed days, fixed deadline while the D1 history exists, signed native proof, encrypted cache and monotonic expiry. New enrolment is disabled. | Verify six-calendar-month cleanup and approved enrolment separately; exercise real Firebase accounts and device reboot. Local legacy history no longer vetoes the server decision. |
 | OWNER | The sole Firebase UID is read from the server secret OWNER_SUBJECT; no email comparison or family inheritance. Native signature/account binding protects offline evidence. | Confirm the actual owner secret and live signed proof without revealing either in logs. |
 | Billing | Previously only an unavailable adapter and server purchase flags, without Google validation. | New implementation below requires Play Console/API configuration and Play test-track verification. |
 | Ads | Previously only adsEligible=true and explanatory text; no ad delivery. | New optional SDK/UMP banner is disabled until AdMob is configured. |
@@ -38,6 +60,9 @@ Google sign-in, OWNER, trial enrolment or production purchase verification works
   AES-256-GCM and a separate server-only key; no plaintext tokens are stored.
 - Only a signed, nonce-bound proof accepted by BookingAccess grants PREMIUM.
   Native purchase results, local flags and backup files cannot grant rights.
+- If Play returns no current receipt, a successful server/native refresh of a
+  GOOGLE_PLAY_PURCHASE entitlement is reported as restored. OWNER/gift proofs
+  do not count as a restored purchase, and an account change aborts the result.
 - Restore is available explicitly and queried again for authenticated accounts
   on account refresh/resume/purchase changes, so delayed payments can be verified
   without another charge. Repeated verification/acknowledgement is idempotent.
@@ -61,7 +86,9 @@ No production product ID has been invented.
 
 1. In Play Console, complete the app/payment profile setup as applicable. Create
    exactly one **one-time product / buy option**, not a subscription or rental.
-   Choose its real product ID, localized title/description, price and countries;
+   Choose its real product ID, localized title/description and countries; set the
+   approved launch price to **99 RON** in Romania and review Google's localized
+   prices/taxes for other markets;
    keep it inactive until the owner approves activation/testing/publication.
    The current client selects the standard single buy offer; do not configure
    multiple rental/preorder/quantity offers for this lifetime entitlement.
@@ -117,12 +144,17 @@ ads plugin or Mobile Ads/UMP dependencies. There are no fake production IDs.
 
 ## Trial, offline access and data-retention limits
 
-`NEW_TRIALS_ENABLED=false` remains unchanged. Before enabling it, reconcile old
-anonymous/local trial histories into server-owned used/blocked records. Never
-delete those records or add a TTL: clearing history would permit another trial.
+`NEW_TRIALS_ENABLED=false` remains unchanged. The approved policy retains
+trial history for at most six calendar months from trial start, computed in UTC;
+the existing migrations/cleanup implementation prepares this deadline. Do not
+reinstate a permanent history or a local legacy-history veto. Before enabling
+enrolment, verify remote schema/configuration and cleanup in an approved stage.
 Activation remains voluntary, with Google sign-in and confirmation, no card.
 
-The anti-reset guarantee is per retained Firebase identity. Reinstalling, clearing
+The protection is limited to the retained Firebase identity/history. Repeating
+a trial after history removal or account recreation is explicitly accepted. No
+permanent identifiers, fingerprinting or extra anti-abuse marker is introduced.
+Reinstalling, clearing
 local data, restoring an app backup or changing the phone clock cannot recreate
 that account's server trial. It is not a claim to recognize a person across
 arbitrary new Google/Firebase accounts or deletion/recreation of the identity.
@@ -132,7 +164,10 @@ wall clock. After a reboot, online time validation is required; without it the
 app conservatively uses BASIC, retaining data. Rooted/modified operating systems
 are outside this assurance. Permanent OWNER/purchased evidence can remain offline
 after a first signed verification; offline devices learn refunds/revocations on
-their next successful online check. Real-time refund notification (RTDN) is not
+their next successful online check. Refund with revocation/cancellation or a
+definitively missing receipt invalidates purchased access on revalidation;
+a refund without revocation must not be described as automatically removing
+entitlement. API/network failures never masquerade as refunds. Real-time refund notification (RTDN) is not
 configured here; do not describe online polling as instantaneous revocation.
 
 Uninstalling normally removes Android local app data. Purchase restoration restores
