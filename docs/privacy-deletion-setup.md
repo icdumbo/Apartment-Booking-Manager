@@ -192,3 +192,17 @@ separat, după completarea numelui legal, retenției, cadrului prelucrării și 
 `publicationApproved`, `deletionBackendVerified` și comutatorul server
 `DELETION_REQUESTS_ENABLED` rămân false. Confirmarea unui contact public nu
 activează solicitări, trialuri, achiziții, reclame sau publicarea paginilor.
+
+## Corecții locale pentru pregătirea lansării — 5 noiembrie 2026
+
+- Configurația centrală rămâne în src/privacy-settings.js. Contactul confirmat este reutilizat; numele legal al persoanei fizice, URL-ul HTTPS, retențiile non-trial și cadrul prelucrării/transferurilor rămân neconfirmate. Nu se publică politica înaintea completării și aprobării lor.
+- Politica RO/EN descrie separat retenția trialului: maximum șase luni calendaristice de la început, calculată pe server în UTC. Curățarea remote nu este confirmată sau activată prin aceste modificări. Retenția contului Firebase, licențelor, dovezilor achizițiilor, restricțiilor de securitate, cererilor/încercărilor și confirmărilor de ștergere necesită decizii explicite; nu se presupune termenul trialului pentru ele.
+- Butonul de trial nu mai respinge un istoric local vechi sau corupt. Confirmarea explicită, autentificarea Google, termenii serverului, verificarea dovezii semnate și refuzul serverului rămân obligatorii. Nu se șterge istoricul local, nu se acordă acces local și nu se resetează trialul serverului. Repetarea după eliminarea istoricului ori recrearea contului este limita aprobată; nu se promite protecție permanentă.
+
+### Testare fără producție
+
+Verificările din checks/privacy.spec.mjs folosesc exclusiv identități fictive și interceptări ale rețelei. Ele verifică confirmarea/anularea trialului cu istoric local vechi, apelarea serverului și păstrarea BASIC după refuz; pentru ștergere verifică implicit dezactivarea, reautentificarea, eroarea de rețea, reluarea și confirmarea exclusiv a înregistrării. tests/privacy.test.js verifică inclusiv anularea reautentificării și reluarea fără cerere prematură. Niciun test nu activează configurația reală.
+
+Înaintea testului real de ștergere, într-un mediu separat cu conturi fictive: completați configurația juridică și URL-urile, verificați Google/Firebase și endpointul HTTPS, apoi verificați cererea autentificată, identitatea recentă și procesorul administrativ. Numai după verificare și aprobare separată se pot modifica porțile de activare. Procesarea conturilor cu achiziții, OWNER sau restricții rămâne blocată până la rezolvarea administrativă necesară. Pentru conturile eligibile verificați ștergerea Firebase și D1, reluarea după eroare și accesul BASIC la aceleași date locale; nu folosiți contul proprietarului sau date reale. Înregistrarea cererii nu dovedește executarea ștergerii.
+
+În această etapă nu se schimbă Workerul, Firebase, D1, Cron, Billing, endpointul Android ori comutatoarele de producție.

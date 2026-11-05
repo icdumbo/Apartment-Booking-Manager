@@ -234,8 +234,6 @@ if(androidAuth.available){
   trial.disabled=true;
   try{
    if(!androidAuth.configured)throw Error('licenseBackendUnavailable');
-   // Legacy records cannot authorize a new server trial. Reconcile administratively first.
-   if(globalThis.localStorage.getItem('apartment-booking-manager:access:v1')!==null)throw Error('legacyTrialReview');
    if(!androidAuth.bridge.getCurrentUser())await androidAuth.signIn();
    const verified=await androidAuth.secure.activateTrial();if(!verified||!['TRIAL','PREMIUM'].includes(verified.state))throw Error('licenseBackendUnavailable');render();
   }catch(error){accountStatus(error.message==='legacyTrialReview'?'legacyTrialReview':error.message==='licenseBackendUnavailable'?'licenseBackendUnavailable':'secureTrialError');}

@@ -51,3 +51,13 @@ test('public URLs are derived for both languages; malformed URLs and incomplete 
  assert.equal(isDeletionWebReady({...config,deletionBackendVerified:false}),false);assert.equal(isDeletionWebReady({...config,deletionEndpoint:'https://api.fixture.invalid/access'}),false);assert.equal(isDeletionWebReady({...config,deletionEndpoint:'https://api.fixture.invalid/account-deletion?token=x'}),false);
  assert.equal(isDeletionBackendReady({...config,webClientId:null,firebaseApiKey:null}),true);assert.equal(isDeletionWebReady({...config,webClientId:null}),false);
 });
+
+test('confirmed trial retention does not silently approve unrelated periods or publication',()=>{
+ for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.ok(text.includes(lang==='ro'?'șase luni calendaristice':'six calendar months'));assert.ok(text.includes('UTC'));assert.ok(text.includes(lang==='ro'?'hash-uri și tokenuri criptate':'hashes and encrypted tokens'));assert.ok(text.includes(lang==='ro'?'nu sunt încă aprobate':'not yet been approved'));assert.ok(text.includes(lang==='ro'?'înregistrarea și executarea sunt dezactivate':'registration and execution are disabled'));}
+ assert.equal(privacySettings.operator,null);assert.deepEqual(privacySettings.retentionPolicy,{ro:null,en:null});assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionBackendReady(),false);
+});
+
+test('cancelled reauthentication sends no deletion request and retry remains possible',async()=>{
+ let cancel=true,calls=0;const client=createDeletionClient({endpoint:'https://fixture.invalid/account-deletion',getUser:()=>({uid:'fictional-a'}),getIdToken:async()=> 'fixture',reauthenticate:async()=>{if(cancel)throw Error('authCancelled');},fetchImpl:async()=>{calls++;return Response.json({version:1,status:'pending_review',deleted:false,requestId:'fixture',createdAt:now});}});
+ await assert.rejects(client.request({confirmed:true}),/authCancelled/);assert.equal(calls,0);cancel=false;assert.equal((await client.request({confirmed:true})).deleted,false);assert.equal(calls,1);
+});
