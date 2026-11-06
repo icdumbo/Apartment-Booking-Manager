@@ -20,6 +20,8 @@ test('real IndexedDB restores reuse photos; live views protect staged images unt
  const other=await context.newPage();await other.goto('/src/legal/privacy.html');
  expect(await other.evaluate(async()=>{const {apartmentPhotos:photos}=await import('/src/apartment-photo.js');const {beginPhotoSession}=await import('/src/photo-lifecycle.js');window.releasePhotoSession=await beginPhotoSession({photos});return (await photos.ids()).length;})).toBe(2);
  await page.evaluate(()=>window.releasePhotoSession());await other.close();
+ // Closing a page resolves before Chromium necessarily releases its Web Locks.
+ await page.evaluate(()=>navigator.locks.request('apartment-booking-manager:photo-use',()=>{}));
  const result=await page.evaluate(async()=>{const {apartmentPhotos:photos}=await import('/src/apartment-photo.js');const {beginPhotoSession}=await import('/src/photo-lifecycle.js');window.releasePhotoSession=await beginPhotoSession({photos});const ids=await photos.ids();return {ids,expected:window.testPhotoIds.photoId,bytes:(await photos.read(window.testPhotoIds.photoId)).size};});
  expect(result.ids).toEqual([result.expected]);expect(result.bytes).toBeGreaterThan(100);
  await page.evaluate(()=>window.releasePhotoSession());
