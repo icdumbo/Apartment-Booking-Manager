@@ -16,7 +16,7 @@ export function renderLegalPages({configuration=privacySettings,preview=true}={}
  if(!preview){
   if(!isPrivacyPublicationReady(configuration))throw Error('Publication blocked: '+privacyConfigurationIssues(configuration).join(', '));
   // Approving configuration alone cannot turn unresolved editorial statements into final policy.
-  const unresolved=/NECONFIRMAT|UNCONFIRMED|nu sunt încă aprobate|not yet been approved|trebuie confirmate înainte de publicare|must be confirmed before publication/;
+  const unresolved=/NECONFIRMAT|UNCONFIRMED|nu sunt încă aprobate|not yet been approved|trebuie confirmate înainte de publicare|must be confirmed before publication|PLAN PROPUS — NEIMPLEMENTAT|PROPOSED PLAN — NOT IMPLEMENTED/;
   if(Object.values(sections).some(items=>unresolved.test(items.flat().join(' '))))throw Error('Publication blocked: unresolved statements in shared RO/EN policy');
  }
  // The verified interactive request flow remains in src/legal/. Do not pretend a
@@ -26,7 +26,7 @@ export function renderLegalPages({configuration=privacySettings,preview=true}={}
  for(const lang of ['ro','en'])for(const deletion of [false,true]){
   const c=privacyCopy[lang],name=(deletion?'delete-account-':'privacy-')+lang+'.html';
   const title=deletion?c.deletion:c.title;
-  const body=deletion?'<p>'+escape(c.scope)+'</p><p role="status">'+escape(c.unconfigured)+'</p>'+section(sections[lang][10]):sections[lang].map(section).join('');
+  const body=deletion?'<p>'+escape(c.scope)+'</p><p role="status">'+escape(c.unconfigured)+'</p>'+sections[lang].slice(9).map(section).join(''):sections[lang].map(section).join('');
   const warning=preview?'<p class="draft" role="note">'+escape(c.draft)+'</p>':'';
   const support=configuration.contact;
   if(typeof support!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(support))throw Error('Invalid public contact');

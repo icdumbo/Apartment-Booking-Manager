@@ -1,5 +1,12 @@
 # Pregătire GitHub Pages — adăugare juridică fără înlocuirea aplicației
 
+## Aprobarea metodei — fără autorizație de publicare acum
+
+Operatorul a aprobat metoda limitată la cele patru HTML în main, fără merge BUSINESS.
+A cerut explicit să nu se publice încă. Aprobarea conținutului final și o instrucțiune
+ulterioară de publicare rămân necesare înaintea oricărei modificări main.
+Vezi legal-final-review.md pentru deciziile și limitele rămase.
+
 ## Configurația confirmată și sursa actuală
 
 Operatorul a confirmat Source: Deploy from a branch; Branch: main; Folder: /(root); HTTPS activ. Nu se schimbă aceste setări.
