@@ -2,7 +2,8 @@
 // Publication remains blocked until these owner-supplied details are approved.
 export const privacySettings=Object.freeze({
  controllerType:'individual',
- operator:null, // Legal name; never add a home address.
+ brand:'ICD Apps', // Confirmed public brand; not a separate legal entity.
+ operator:'Crăciun Ionuț Liviu', // Confirmed individual controller; no home address.
  contact:'support.apartmentbookingmanager@gmail.com', // Confirmed public support/privacy contact; single source.
  retentionPolicy:{ro:null,en:null}, // Approved periods, purposes and retention exceptions.
  processingPolicy:{ro:null,en:null}, // Approved legal roles/bases and international-transfer arrangements.

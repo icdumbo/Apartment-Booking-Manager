@@ -31,7 +31,7 @@ test('approved Android policy excludes all backup domains in legacy, cloud and D
 
 const approvedConfiguration=()=>({...privacySettings,operator:'Fictional Controller',contact:'privacy@example.invalid',retentionPolicy:{ro:'Retenție fictivă RO',en:'Fictional EN retention'},processingPolicy:{ro:'Cadru fictiv RO',en:'Fictional EN framework'},publicBaseUrl:'https://legal.fixture.invalid/legal/',publicationApproved:true,webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://api.fixture.invalid/account-deletion',deletionBackendVerified:true});
 test('default configuration reports all missing fields and keeps publication and deletion disabled',()=>{
- assert.deepEqual(privacyConfigurationIssues(),['operator','retentionPolicy.ro','retentionPolicy.en','processingPolicy.ro','processingPolicy.en','publicBaseUrl','publicationApproved']);
+ assert.deepEqual(privacyConfigurationIssues(),['retentionPolicy.ro','retentionPolicy.en','processingPolicy.ro','processingPolicy.en','publicBaseUrl','publicationApproved']);
  assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionWebReady(),false);assert.equal(publicLegalUrls(),null);assert.equal(privacySettings.controllerType,'individual');assert.equal(Object.hasOwn(privacySettings,'address'),false);
 });
 test('confirmed public contact is reused in RO/EN without enabling publication or requests',()=>{
@@ -54,10 +54,17 @@ test('public URLs are derived for both languages; malformed URLs and incomplete 
 
 test('confirmed trial retention does not silently approve unrelated periods or publication',()=>{
  for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.ok(text.includes(lang==='ro'?'șase luni calendaristice':'six calendar months'));assert.ok(text.includes('UTC'));assert.ok(text.includes(lang==='ro'?'hash-uri și tokenuri criptate':'hashes and encrypted tokens'));assert.ok(text.includes(lang==='ro'?'nu sunt încă aprobate':'not yet been approved'));assert.ok(text.includes(lang==='ro'?'înregistrarea și executarea sunt dezactivate':'registration and execution are disabled'));}
- assert.equal(privacySettings.operator,null);assert.deepEqual(privacySettings.retentionPolicy,{ro:null,en:null});assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionBackendReady(),false);
+ assert.equal(typeof privacySettings.operator,'string');assert.ok(privacySettings.operator.trim());assert.deepEqual(privacySettings.retentionPolicy,{ro:null,en:null});assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionBackendReady(),false);
 });
 
 test('cancelled reauthentication sends no deletion request and retry remains possible',async()=>{
  let cancel=true,calls=0;const client=createDeletionClient({endpoint:'https://fixture.invalid/account-deletion',getUser:()=>({uid:'fictional-a'}),getIdToken:async()=> 'fixture',reauthenticate:async()=>{if(cancel)throw Error('authCancelled');},fetchImpl:async()=>{calls++;return Response.json({version:1,status:'pending_review',deleted:false,requestId:'fixture',createdAt:now});}});
  await assert.rejects(client.request({confirmed:true}),/authCancelled/);assert.equal(calls,0);cancel=false;assert.equal((await client.request({confirmed:true})).deleted,false);assert.equal(calls,1);
+});
+
+
+test('confirmed individual controller and brand are shared by RO/EN without approving missing legal fields',()=>{
+ for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.ok(text.includes(privacySettings.operator));assert.ok(text.includes(privacySettings.brand));assert.ok(text.includes(privacySettings.contact));assert.ok(text.includes('180'));assert.ok(text.includes(lang==='ro'?'SUA':'US'));assert.ok(text.includes(lang==='ro'?'înainte de publicare':'before publication'));assert.ok(!text.includes('{brand}'));}
+ const fictional={...privacySettings,brand:'Fictional brand',operator:'Fictional individual'};for(const lang of ['ro','en']){const text=policySections(lang,fictional).flat().join(' ');assert.ok(text.includes(fictional.brand));assert.ok(text.includes(fictional.operator));assert.ok(!text.includes(privacySettings.operator));}
+ assert.equal(isPrivacyPublicationReady(),false);assert.equal(isDeletionWebReady(),false);assert.equal(privacySettings.publicationApproved,false);
 });

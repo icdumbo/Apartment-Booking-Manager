@@ -23,8 +23,8 @@ produsul/configurația reală lipsesc.
 
 ## Informații încă obligatorii, care trebuie confirmate de operator
 
-- Numele legal al persoanei fizice titulare a contului Play Console. Nu se solicită
-  introducerea domiciliului în cod. Contactul confirmat rămâne
+- Numele legal și brandul sunt confirmate și completate în configurația centrală
+  la 6 noiembrie 2026. Nu se introduce domiciliul în cod. Contactul confirmat rămâne
   support.apartmentbookingmanager@gmail.com, definit în configurația centrală.
 - Retenția separată pentru contul/UID-ul Firebase, licențe, dovezi de achiziție
   (hash-uri/tokenuri criptate), restricții de securitate, cereri de ștergere,

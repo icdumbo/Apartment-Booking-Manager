@@ -38,7 +38,7 @@ cea din aplicație folosesc aceeași configurație și același conținut.
 | Câmp | Ce trebuie completat / verificat |
 | --- | --- |
 | `controllerType` | `individual`, deja confirmat; nu se introduce domiciliul |
-| `operator` | Numele legal real al titularului Play, încă necompletat |
+| `operator` | Numele legal al persoanei fizice, confirmat și completat în configurația centrală |
 | `contact` | Adresa oficială de suport/confidențialitate confirmată, definită o singură dată în acest fișier |
 | `retentionPolicy.ro`, `.en` | Aceleași perioade și excepții aprobate, în cele două limbi; nu o singură frază RO în politica EN |
 | `processingPolicy.ro`, `.en` | Rolurile/temeiurile și condițiile transferurilor menționate în proiectul politicii, confirmate de operator |
@@ -187,7 +187,7 @@ Acesta nu este un URL de politică/ștergere funcțional. `publicBaseUrl` rămâ
 necompletat; nu am presupus că un alt domeniu neconfirmat există. Nu se modifică
 sursa/deploymentul GitHub Pages pentru a publica implicit branch-ul BUSINESS.
 Structura de hosting descrisă mai sus este pregătită pentru o etapă aprobată
-separat, după completarea numelui legal, retenției, cadrului prelucrării și URL-urilor.
+separat, după confirmarea retenției, cadrului prelucrării și URL-urilor; numele legal este acum completat în configurația centrală.
 
 `publicationApproved`, `deletionBackendVerified` și comutatorul server
 `DELETION_REQUESTS_ENABLED` rămân false. Confirmarea unui contact public nu
@@ -195,7 +195,7 @@ activează solicitări, trialuri, achiziții, reclame sau publicarea paginilor.
 
 ## Corecții locale pentru pregătirea lansării — 5 noiembrie 2026
 
-- Configurația centrală rămâne în src/privacy-settings.js. Contactul confirmat este reutilizat; numele legal al persoanei fizice, URL-ul HTTPS, retențiile non-trial și cadrul prelucrării/transferurilor rămân neconfirmate. Nu se publică politica înaintea completării și aprobării lor.
+- Configurația centrală rămâne în src/privacy-settings.js. Contactul confirmat este reutilizat; numele legal al persoanei fizice este confirmat în configurația centrală; URL-ul HTTPS, retențiile non-trial și cadrul prelucrării/transferurilor rămân neconfirmate. Nu se publică politica înaintea completării și aprobării lor.
 - Politica RO/EN descrie separat retenția trialului: maximum șase luni calendaristice de la început, calculată pe server în UTC. Curățarea remote nu este confirmată sau activată prin aceste modificări. Retenția contului Firebase, licențelor, dovezilor achizițiilor, restricțiilor de securitate, cererilor/încercărilor și confirmărilor de ștergere necesită decizii explicite; nu se presupune termenul trialului pentru ele.
 - Butonul de trial nu mai respinge un istoric local vechi sau corupt. Confirmarea explicită, autentificarea Google, termenii serverului, verificarea dovezii semnate și refuzul serverului rămân obligatorii. Nu se șterge istoricul local, nu se acordă acces local și nu se resetează trialul serverului. Repetarea după eliminarea istoricului ori recrearea contului este limita aprobată; nu se promite protecție permanentă.
 
