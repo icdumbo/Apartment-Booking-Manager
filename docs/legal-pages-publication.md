@@ -33,7 +33,7 @@ Verificările locale HTTP folosesc un server temporar pe 127.0.0.1 și confirmă
 
 ## Blocaje înainte de generarea versiunii publicabile
 
-retentionPolicy.ro/en, processingPolicy.ro/en, adresa publică și aprobarea sunt încă necompletate. Recomandările de retenție nu sunt considerate aprobate. Trebuie revizuite și afirmațiile editoriale neconfirmate din politica comună; simpla completare a configurației nu le transformă în politică finală. Ștergerea pentru conturi cu achiziții și serviciile reale rămân probleme separate înainte de lansarea Google Play.
+Retenția efectivă și temeiurile identificate sunt documentate în RO/EN. Evaluarea interesului legitim este marcată explicit ca necesitând validare juridică; aplicabilitatea exactă a acordurilor de transfer nu este declarată verificată. Adresa publică din configurația pentru aplicație și aprobarea publicării rămân necompletate/false. Recomandările de retenție sunt numai în documentația internă și nu sunt exportate. Simpla completare a metadatelor nu aprobă evaluarea juridică. Ștergerea pentru conturi cu achiziții și serviciile reale rămân probleme separate înainte de lansarea Google Play.
 
     node scripts/prepare-legal-pages.mjs --release
 

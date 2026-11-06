@@ -16,7 +16,7 @@ export function renderLegalPages({configuration=privacySettings,preview=true}={}
  if(!preview){
   if(!isPrivacyPublicationReady(configuration))throw Error('Publication blocked: '+privacyConfigurationIssues(configuration).join(', '));
   // Approving configuration alone cannot turn unresolved editorial statements into final policy.
-  const unresolved=/NECONFIRMAT|UNCONFIRMED|nu sunt încă aprobate|not yet been approved|trebuie confirmate înainte de publicare|must be confirmed before publication|PLAN PROPUS — NEIMPLEMENTAT|PROPOSED PLAN — NOT IMPLEMENTED/;
+  const unresolved=/NECONFIRMAT|UNCONFIRMED|nu sunt încă aprobate|not yet been approved|trebuie confirmate înainte de publicare|must be confirmed before publication|PLAN PROPUS — NEIMPLEMENTAT|PROPOSED PLAN — NOT IMPLEMENTED|VALIDARE JURIDICĂ NECESARĂ|LEGAL VALIDATION REQUIRED|Nu declarăm aceste verificări finalizate|Those checks are not claimed as completed/;
   if(Object.values(sections).some(items=>unresolved.test(items.flat().join(' '))))throw Error('Publication blocked: unresolved statements in shared RO/EN policy');
  }
  // The verified interactive request flow remains in src/legal/. Do not pretend a

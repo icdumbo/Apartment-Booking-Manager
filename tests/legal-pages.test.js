@@ -16,7 +16,7 @@ test('static export is restricted to four legal HTML files and reuses every shar
   assert.ok(html.includes('lang="'+lang+'"'));assert.ok(html.includes('width=device-width'));
   assert.ok(html.includes(escape(privacyCopy[lang].draft)));assert.ok(html.includes('noindex,nofollow'));
   const deletion=pages['legal/delete-account-'+lang+'.html'];
-  assert.ok(deletion.includes(escape(privacyCopy[lang].scope)));assert.ok(deletion.includes(escape(privacyCopy[lang].unconfigured)));
+  assert.ok(deletion.includes(escape(privacyCopy[lang].scope)));assert.ok(deletion.includes(escape(privacyCopy[lang].unconfigured)));assert.ok(deletion.includes('mailto:'+fixture.contact));assert.ok(deletion.includes(lang==='ro'?'Gestionarea este manuală':'Handling is manual'));for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days'])assert.ok(!html.includes(future)&&!deletion.includes(future));
  }
  for(const html of Object.values(pages)){
   assert.ok(!/<script|<iframe|<form|\son\w+\s*=/i.test(html));

@@ -1,3 +1,5 @@
+> Actualizare: recomandările au fost scoase din sursa publică și păstrate în internal-privacy-recommendations.json. Cele patru HTML folosesc numai situația actuală, procedura manuală prin suport și precizările de validare juridică. Această notă înlocuiește descrierile istorice de mai jos despre includerea planului în pagini.
+
 # Revizuirea documentelor juridice înainte de publicare
 
 ## Autorizație primită
