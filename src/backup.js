@@ -4,6 +4,7 @@ import {validateState} from './storage.js?v=0.2.1';
 import {validateMaintenance,emptyMaintenance} from './maintenance.js';
 import {createMaintenanceDraftRepository} from './maintenance-drafts.js';
 import {apartmentPhotos} from './apartment-photo.js';
+import {withPhotoUse} from './photo-lifecycle.js';
 import {BACKUP_KEYS,BACKUP_JOURNAL,captureBackupKeys,assertBackupIdle,recoverBackupUnlocked,backupLock} from './backup-transaction.js';
 const prepared=new WeakMap();
 const APARTMENT=['id','name','owner','address','city','photoId'];
@@ -75,7 +76,8 @@ export async function parseBackup(source,{verifyPhoto=verifyJPEG,stage=createBac
 }
 export async function disposeBackup(doc){const p=prepared.get(doc);if(p){prepared.delete(doc);await p.clear().catch(()=>{});}}
 export function backupCounts(doc){const d=doc.data;return {apartments:d.business.apartments.length,photos:d.photos.length,bookings:d.business.bookings.length,payments:d.business.bookings.reduce((n,b)=>n+(b.payments?.length??0),0),expenses:d.maintenance.expenses.length,works:d.maintenance.works.length,reviews:d.maintenance.reviews.length,drafts:Object.keys(d.drafts?.drafts??{}).length};}
-export async function prepareBackupExport({storage=globalThis.localStorage,photos=apartmentPhotos,verifyPhoto=verifyJPEG}={}){
+export function prepareBackupExport(options){return withPhotoUse(()=>prepareBackupExportUnlocked(options));}
+async function prepareBackupExportUnlocked({storage=globalThis.localStorage,photos=apartmentPhotos,verifyPhoto=verifyJPEG}={}){
  try{
   assertBackupIdle(storage);const before=captureBackupKeys(storage);
   const source={business:before[BACKUP_KEYS[0]]?JSON.parse(before[BACKUP_KEYS[0]]):{version:1,apartments:[],bookings:[]},maintenance:before[BACKUP_KEYS[1]]?JSON.parse(before[BACKUP_KEYS[1]]):emptyMaintenance(),drafts:before[BACKUP_KEYS[2]]?JSON.parse(before[BACKUP_KEYS[2]]):null,preferences:{language:before[BACKUP_KEYS[3]],welcomeDismissed:before[BACKUP_KEYS[4]]==='dismissed'},photos:[]};
@@ -94,14 +96,32 @@ export async function prepareBackupExport({storage=globalThis.localStorage,photo
 // Compatibility helper for callers needing bytes. Android UI uses chunks(), never this aggregate.
 export async function createBackup(options){const snapshot=await prepareBackupExport(options),parts=[];for await(const chunk of snapshot.chunks())parts.push(chunk);return new Uint8Array(await new Blob(parts).arrayBuffer());}
 export async function ensureBackupSpace(required,{estimate=()=>globalThis.navigator?.storage?.estimate?.()}={}){const space=await estimate();if(space&&Number.isFinite(space.quota)&&Number.isFinite(space.usage)&&space.quota-space.usage<required)throw Error('backupSpace');}
+async function existingPhoto(blob,candidates,photos){
+ if(typeof photos.read!=='function')return null;
+ let bytes;
+ for(const id of candidates){
+  let saved;try{saved=await photos.read(id);}catch{continue;}
+  if(!(saved instanceof Blob)||saved.size!==blob.size||saved.type!==blob.type)continue;
+  bytes??=new Uint8Array(await blob.arrayBuffer());
+  const other=new Uint8Array(await saved.arrayBuffer());
+  if(bytes.every((value,index)=>value===other[index]))return id;
+ }
+ return null;
+}
 export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=apartmentPhotos,locks=globalThis.navigator?.locks,estimateSpace=()=>globalThis.navigator?.storage?.estimate?.()}={}){
  if(!prepared.has(doc))throw Error('backupInvalid');
- return backupLock(async()=>{
+ return withPhotoUse(()=>backupLock(async()=>{
   const staged=[];let committed=false,journalWritten=false;
   try{
    recoverBackupUnlocked(storage);const before=captureBackupKeys(storage),data=structuredClone(doc.data),ids=new Map();
    const required=[...prepared.get(doc).photos.values()].reduce((n,b)=>n+b.size,0)+2*JSON.stringify(before).length+2*JSON.stringify(data).length;await ensureBackupSpace(required,{estimate:estimateSpace});
-   for(const [id,entry] of prepared.get(doc).photos){const next=await photos.write(await entry.read());staged.push(next);ids.set(id,next);}
+   let previous=[];try{previous=validateState(JSON.parse(before[BACKUP_KEYS[0]])).apartments;}catch{}
+   for(const [id,entry] of prepared.get(doc).photos){
+    const blob=await entry.read(),candidates=new Set();
+    for(const apartment of data.business.apartments)if(apartment.photoId===id){const saved=previous.find(a=>a.id===apartment.id);if(saved?.photoId)candidates.add(saved.photoId);}
+    const reused=await existingPhoto(blob,candidates,photos);
+    const next=reused??await photos.write(blob);if(reused===null)staged.push(next);ids.set(id,next);
+   }
    for(const a of data.business.apartments)if(a.photoId)a.photoId=ids.get(a.photoId);
    if(JSON.stringify(before)!==JSON.stringify(captureBackupKeys(storage)))throw Error('backupChanged');
    const after=[JSON.stringify(data.business),JSON.stringify(data.maintenance),data.drafts?JSON.stringify(data.drafts):null,data.preferences.language,data.preferences.welcomeDismissed?'dismissed':null];
@@ -109,11 +129,12 @@ export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=
    BACKUP_KEYS.forEach((key,i)=>{if(after[i]===null)storage.removeItem(key);else storage.setItem(key,after[i]);});
    storage.setItem(BACKUP_JOURNAL,JSON.stringify({...journal,phase:'committed'}));committed=true;
    try{storage.removeItem(BACKUP_JOURNAL);}catch{/* Startup safely finishes committed cleanup. */}
-   // Keep old photos: they remain a safe fallback and cannot break other open views.
+   // Old images stay available to live views/rollback. Startup collects only
+   // unreferenced images after recovery and when no photo-use lease is active.
    return backupCounts(doc);
   }catch(error){
    if(journalWritten&&!committed){try{recoverBackupUnlocked(storage);}catch{throw Error('backupRecoveryFailed');}}
    throw Error(['backupChanged','backupSpace'].includes(error.message)?error.message:'backupRestoreFailed');
   }finally{if(!committed)for(const id of staged)await photos.remove(id).catch(()=>{});}
- },locks);
+ },locks));
 }

@@ -39,7 +39,13 @@ export function createSecureAccess({bridge,plugin,endpoint=null,fetchImpl=global
  }
  return {configured:Boolean(url&&plugin),provider:{requiresVerifiedTrial:true,getVerifiedAccess,getVerifiedEntitlement:()=>null},
   async sessionChanged(){clearMemory();await read();},
-  async refresh(){if(pending)return pending;pending=verify().finally(()=>{pending=null;});return pending;},
+  async refresh(){
+   const account=subject(),revision=generation;
+   if(pending?.account===account&&pending.revision===revision)return pending.promise;
+   const request={account,revision};
+   request.promise=verify().finally(()=>{if(pending===request)pending=null;});
+   pending=request;return request.promise;
+  },
   async activateTrial(){return verify('startTrial');},
   async verifyPurchase(purchaseToken){if(typeof purchaseToken!=='string'||!purchaseToken||purchaseToken.length>4096)throw Error('purchaseRejected');return verify('verifyPurchase',purchaseToken);},
   suspend:clearMemory,read,

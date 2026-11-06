@@ -25,6 +25,7 @@ async function operation(mode,action){
  }catch{throw Error('photoStorageFailed');}
 }
 export const apartmentPhotos={
+ ids:()=>operation('readonly',store=>store.getAllKeys()),
  read:id=>operation('readonly',store=>store.get(id)),
  write:blob=>{const id=crypto.randomUUID();return operation('readwrite',store=>store.put(blob,id)).then(()=>id);},
  remove:id=>id?operation('readwrite',store=>store.delete(id)):Promise.resolve()

@@ -1,4 +1,5 @@
 import {cleanupBackupStages} from './backup-stage.js';
+import {beginPhotoSession} from './photo-lifecycle.js';
 import {createBackupScreen} from './backup-screen.js';
 import {recoverLocalBackup} from './backup-transaction.js';
 import {createMaintenanceScreen} from './maintenance-screen.js';
@@ -33,6 +34,7 @@ initializeLanguage();
 let repository,state,blocked=false;
 try {
  await recoverLocalBackup();await cleanupBackupStages();
+ await beginPhotoSession({photos:apartmentPhotos});
  repository=createLocalRepository();state=repository.load();
  if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}
  const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
