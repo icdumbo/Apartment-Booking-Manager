@@ -7,7 +7,7 @@ test('real IndexedDB restores reuse photos; live views protect staged images unt
   const {beginPhotoSession}=await import('/src/photo-lifecycle.js');
   const {createBackup,parseBackup,restoreBackup,disposeBackup}=await import('/src/backup.js');
   const photoId=await photos.write(new Blob([Uint8Array.from(atob(photo64),c=>c.charCodeAt(0))],{type:'image/jpeg'}));
-  const business={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'fictional-a',name:'Fictional apartment',photoId}],bookings:[{id:'fictional-b',apartmentId:'fictional-a',guest:'Fictional guest',phone:'0700000000',checkIn:'2026-11-01',checkOut:'2026-11-02',totalAmountCents:10000,paidAmountCents:1000}]};
+  const business={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'fictional-a',name:'Fictional apartment',address:'Fictional street',city:'Fictional city',photoId}],bookings:[{id:'fictional-b',apartmentId:'fictional-a',guest:'Fictional guest',phone:'0700000000',checkIn:'2026-11-01',checkOut:'2026-11-02',totalAmountCents:10000,paidAmountCents:1000}]};
   localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(business));
   window.releasePhotoSession=await beginPhotoSession({photos});
   const bytes=await createBackup();
