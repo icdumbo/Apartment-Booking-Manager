@@ -42,7 +42,7 @@ try {
 // Start only after business storage has loaded successfully; existing trials are never renewed.
 // Secure activation is explicit and server-backed. Never mint a local trial on startup.
 let activeScreen='calendar';
-let start=dayNumber(today())-2,days=30,editing;
+let start=dayNumber(today().slice(0,7)+'-01'),days=30,editing;
 let selectorYear=calendarYear(start);
 const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 const statisticsScreen=createStatisticsScreen({root:$('statistics-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});

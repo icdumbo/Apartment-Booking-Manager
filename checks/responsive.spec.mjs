@@ -4,6 +4,7 @@ for(const [name,width,height] of [['narrow portrait',320,800],['Fold folded',360
  test(name,async({page})=>{
   await page.setViewportSize({width,height});await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});
   await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),state);await page.goto('/');
+  await page.locator('#today').click(); // Exercise the cross-month geometry after jumping to today.
   await expect(page.locator('.day-heading')).toHaveCount(30);await expect(page.locator('.month-option')).toHaveCount(12);await expect(page.locator('.booking')).toHaveCount(2);
   const metrics=await page.evaluate(()=>{
    const r=e=>{const x=e.getBoundingClientRect();return {left:x.left,right:x.right,top:x.top,bottom:x.bottom,width:x.width}};
@@ -54,7 +55,7 @@ for(const width of [360,390,430]){
   await page.locator('.timeline-scroll').evaluate(el=>{el.scrollLeft=100;el.scrollTop=110});
   await expect.poll(async()=>(await measure()).scrollLeft).toBeGreaterThan(90);
   const after=await measure();expect(after.label.left).toBeCloseTo(before.label.left,1);expect(after.corner.left).toBeCloseTo(before.corner.left,1);expect(after.head.top).toBeCloseTo(after.viewport.top,1);expect(after.label.top).toBeCloseTo(after.track.top,1);expect(after.date.left).toBeCloseTo(after.cell.left,1);expect(before.date.left-after.date.left).toBeCloseTo(after.scrollLeft,1);expect(after.scrollTop).toBeGreaterThan(100);expect(after.monthLabel.left).toBeGreaterThanOrEqual(after.corner.right-.5);expect(after.monthLabel.right).toBeLessThanOrEqual(after.viewport.right+.5);
-  const geometry=await page.evaluate(()=>{const days=[...document.querySelectorAll('.day-heading')],d=days[6].getBoundingClientRect(),bars=[...document.querySelectorAll('.booking')].map(e=>e.getBoundingClientRect()),line=document.querySelector('.handover').getBoundingClientRect();return {center:(d.left+d.right)/2,end:bars[0].right,start:bars[1].left,line:(line.left+line.right)/2}});for(const edge of [geometry.end,geometry.start,geometry.line])expect(edge).toBeCloseTo(geometry.center,1);
+  const geometry=await page.evaluate(()=>{const days=[...document.querySelectorAll('.day-heading')],d=days[9].getBoundingClientRect(),bars=[...document.querySelectorAll('.booking')].map(e=>e.getBoundingClientRect()),line=document.querySelector('.handover').getBoundingClientRect();return {center:(d.left+d.right)/2,end:bars[0].right,start:bars[1].left,line:(line.left+line.right)/2}});for(const edge of [geometry.end,geometry.start,geometry.line])expect(edge).toBeCloseTo(geometry.center,1);
   await page.screenshot({path:`test-results/phone-${width}-scrolled.png`,fullPage:true});
   await page.locator('.timeline-scroll').evaluate(el=>{el.scrollLeft=el.scrollWidth;el.scrollTop=0});const last=await page.locator('.day-heading').last().boundingBox();const viewport=(await measure()).viewport;expect(last.x+last.width).toBeLessThanOrEqual(viewport.right+.5);
  });
