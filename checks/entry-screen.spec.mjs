@@ -64,5 +64,5 @@ test('standalone welcome preview embeds its image and needs no external assets',
  await native(page);const external=[];page.on('request',request=>{if(/^https?:/.test(request.url())&&!request.url().startsWith('http://127.0.0.1:8080/'))external.push(request.url());});
  await page.goto('/ui-preview/Apartment-Booking-Manager-UI.html');await expect(page.locator('#entry-screen')).toBeVisible();
  expect(await page.locator('.entry-photo').evaluate(el=>getComputedStyle(el).backgroundImage.startsWith('url("data:image/jpeg;base64,'))).toBe(true);
- expect(external).toEqual([]);await page.locator('#entry-start').click();await expect(page.locator('.day-heading')).toHaveCount(30);
+ expect(external).toEqual([]);await page.locator('#entry-start').click();await expect(page.locator('.day-heading').nth(27)).toBeVisible();
 });

@@ -15,7 +15,7 @@ for(const width of [390,1440])test(`PREMIUM reference captures and navigation ${
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:`test-results/Premium-${name}-${width}.png`,fullPage});
  };
- await expect(page.locator('.day-heading')).toHaveCount(30);await capture('calendar');
+ await expect(page.locator('.day-heading')).toHaveCount(31);await capture('calendar');
  await page.locator('.booking.confirmed').filter({hasText:'Client Test A'}).click();await expect(page.locator('#editor')).toBeVisible();await capture('reservation',false);await page.locator('#cancel').click();
  await page.locator('.app-navigation [data-screen=apartments]').click();await expect(page.locator('.apartment-card')).toHaveCount(2);await expect(page.locator('.apartment-photo')).toHaveText(['Fără fotografie','Fără fotografie']);await capture('apartments');
  await page.locator('.apartment-card').first().click();await expect(page.locator('#editor')).toBeVisible();await capture('apartment-details',false);await page.locator('#cancel').click();

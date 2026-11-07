@@ -23,19 +23,19 @@ for(const [name,width,height] of [['narrow portrait',320,800],['Fold folded',360
  });
 }
 test('new installation remains empty after reload',async({page})=>{await page.goto('/');await expect(page.locator('.booking')).toHaveCount(0);await expect(page.locator('.timeline-row')).toHaveCount(0);await page.reload();await expect(page.locator('.timeline-row')).toHaveCount(0);});
-test('desktop keeps thirty days visible and the calendar header sticky in its own viewport',async({page})=>{
- await page.setViewportSize({width:1440,height:900});
+test('desktop keeps day widths and the calendar header sticky in its own viewport',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});await page.clock.setFixedTime(new Date('2026-10-06T12:00:00Z'));
  await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),{...state,apartments:Array.from({length:20},(_,i)=>({...state.apartments[0],id:i?'desktop-'+i:'fixture-a'}))});
  await page.goto('/');
  const viewport=page.locator('.timeline-scroll');
  await expect(page.locator('.timeline-row')).toHaveCount(20);
- expect(await viewport.evaluate(el=>el.scrollWidth<=el.clientWidth)).toBe(true);
+ expect(await viewport.evaluate(el=>el.scrollWidth>el.clientWidth)).toBe(true);
  await viewport.evaluate(el=>el.scrollTop=160);
  const metrics=await page.evaluate(()=>{const v=document.querySelector('.timeline-scroll').getBoundingClientRect(),h=document.querySelector('.timeline-head').getBoundingClientRect();return {top:v.top,head:h.top,scroll:document.querySelector('.timeline-scroll').scrollTop};});
  expect(metrics.scroll).toBeGreaterThan(150);expect(metrics.head).toBeCloseTo(metrics.top,1);
- await expect(page.locator('.day-heading')).toHaveCount(30);
+ await expect(page.locator('.day-heading')).toHaveCount(31);
 });
-test('layout adapts when folding and rotating without a reload',async({page})=>{await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),state);await page.goto('/');for(const width of [360,840,740,320,1440]){await page.setViewportSize({width,height:800});await expect(page.locator('.day-heading')).toHaveCount(30);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);}});
+test('layout adapts when folding and rotating without a reload',async({page})=>{await page.clock.setFixedTime(new Date('2026-11-07T12:00:00Z'));await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),state);await page.goto('/');for(const width of [360,840,740,320,1440]){await page.setViewportSize({width,height:800});await expect(page.locator('.day-heading')).toHaveCount(30);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);}});
 
 for(const width of [360,390,430]){
  test(`phone sticky timeline ${width}`,async({page})=>{
@@ -43,7 +43,7 @@ for(const width of [360,390,430]){
   const fixtures={...state,apartments:Array.from({length:10},(_,i)=>({...state.apartments[0],id:i?'fixture-'+i:'fixture-a',name:'Apartamentul cu un nume foarte lung pentru verificarea trunchierii '+i}))};
   await page.addInitScript(s=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(s)),fixtures);await page.goto('/');
   // App startup awaits local recovery; measure sticky geometry only after its actual rows exist.
-  await expect(page.locator('.timeline-row')).toHaveCount(10);await expect(page.locator('.day-heading')).toHaveCount(30);
+  await expect(page.locator('.timeline-row')).toHaveCount(10);await expect(page.locator('.day-heading')).toHaveCount(31);
   const measure=()=>page.evaluate(()=>{
    const r=e=>{const b=e.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,width:b.width,height:b.height}};
    const viewport=document.querySelector('.timeline-scroll'),label=document.querySelector('.timeline-row .apartment-label');

@@ -677,3 +677,47 @@ body .legend .free{background:#729b80;border-color:#8fba9e}
  body{padding-bottom:var(--business-bottom-clearance)}
  :is(#apartments-panel,#statistics-panel,#reports-panel,#payments-panel,#maintenance-panel) :is(button,input,select,textarea,summary,article){scroll-margin-bottom:var(--business-bottom-clearance)}
 }
+
+/* Keep the existing visible day count as the number of days in the month changes. */
+@media(min-width:1100px){
+ .timeline-scroll{overflow-x:auto}
+ .timeline-head,.timeline-row{width:calc(var(--apartment-width) + (100% - var(--apartment-width)) * var(--days) / 30)}
+}
+@media(max-width:1099px){
+ .timeline{width:calc(var(--apartment-width) + (100% - var(--apartment-width)) * var(--days) / var(--visible-days));--visible-days:15}
+}
+@media(max-width:600px){.timeline{--visible-days:10}}
+@media(max-width:359px){.timeline{--visible-days:9}}
+
+.timeline-row .apartment-address{
+ display:-webkit-box;
+ -webkit-box-orient:vertical;
+ -webkit-line-clamp:2;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ line-height:1.25;
+}
+.timeline-row .track{height:auto;min-height:64px}
+@media(max-width:600px){.timeline-row .track{min-height:70px}}
+
+#editor.apartment-editor .dialog-heading{margin-bottom:10px;gap:4px 12px}
+#editor.apartment-editor #fields{gap:8px}
+#editor.apartment-editor #fields label{gap:4px}
+#editor.apartment-editor .apartment-photo-editor{gap:8px;padding:10px}
+#editor.apartment-editor .apartment-photo-preview{height:135px}
+@media(min-width:700px){#editor.apartment-editor .apartment-photo-preview{height:165px}}
+#editor.apartment-editor .dialog-actions{margin-top:12px}
+#editor.apartment-editor #form-error:empty{display:none}
+#editor.apartment-editor textarea[name="address"]{
+ field-sizing:content;
+ width:100%;
+ min-width:0;
+ min-height:44px;
+ font:inherit;
+ line-height:1.35;
+ padding:10px 11px;
+ border:1px solid var(--business-line);
+ border-radius:8px;
+ overflow-wrap:anywhere;
+ resize:vertical;
+}

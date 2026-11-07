@@ -14,7 +14,7 @@ import {assertCurrencyChange} from './currency.js';
 import {canEditPayments,assertPaymentHistoryAccess} from './payments.js';
 import {BOOKING_EXTRA_FIELDS,readBookingExtras} from './booking-values.js';
 import {renderBookingFields,updateBookingSummary} from './booking-editor.js';
-import {calendarYear,monthStart} from './month-navigation.js?v=0.2.4';
+import {calendarYear,monthStart,monthLength} from './month-navigation.js?v=0.2.4';
 import {dayNumber,isoDay,today,validateApartment,validateBooking} from './domain.js?v=0.2.1';
 import {createLocalRepository} from './storage.js?v=0.2.1';
 import {removeOriginalDemo} from './demo-migration.js?v=0.2.5';
@@ -42,7 +42,7 @@ try {
 // Start only after business storage has loaded successfully; existing trials are never renewed.
 // Secure activation is explicit and server-backed. Never mint a local trial on startup.
 let activeScreen='calendar';
-let start=dayNumber(today().slice(0,7)+'-01'),days=30,editing;
+let start=dayNumber(today().slice(0,7)+'-01'),monthView=true,editing;
 let selectorYear=calendarYear(start);
 const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 const statisticsScreen=createStatisticsScreen({root:$('statistics-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
@@ -61,11 +61,30 @@ function renderMonthSelector(){
   const nextDate=new Date(currentDate);nextDate.setUTCMonth(nextDate.getUTCMonth()+1,1);
   const upcoming=nextDate.getUTCFullYear()===selectorYear&&nextDate.getUTCMonth()===month;
   button.className='month-option'+(active?' active':upcoming?' upcoming':'');button.setAttribute('aria-pressed',String(active));
-  button.onclick=()=>{start=monthStart(selectorYear,month);render();};$('month-options').append(button);
+  button.onclick=()=>{showMonth(selectorYear,month);};$('month-options').append(button);
  });
 }
 function policy(){return accessPolicy(access.snapshot(),state.apartments);}
+function showMonth(year,month){
+ start=monthStart(year,month);
+ selectorYear=calendarYear(start);
+ monthView=true;
+ $('timeline').parentElement.scrollLeft=0;
+ render();
+}
+function moveCalendar(direction){
+ if(monthView){
+  const date=new Date(start*86400000);
+  date.setUTCMonth(date.getUTCMonth()+direction);
+  showMonth(date.getUTCFullYear(),date.getUTCMonth());
+ }else{
+  start+=direction*30;
+  selectorYear=calendarYear(start);
+  render();
+ }
+}
 function render(){
+ const days=monthView?monthLength(calendarYear(start),new Date(start*86400000).getUTCMonth()):30;
  renderAccessStatus();renderApartments();if(activeScreen==='maintenance')maintenanceScreen.render();if(activeScreen==='reports')reportsScreen.render();if(activeScreen==='payments')collectionsScreen.render();if(activeScreen==='statistics')statisticsScreen.render();if(editing?.payments)editing.payments.refresh();
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>openSavedBooking(b.id),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
@@ -129,7 +148,7 @@ function selectScreen(screen){
 for(const link of document.querySelectorAll('[data-screen]'))link.onclick=e=>{e.preventDefault();if($('app-menu').open)$('app-menu').close();selectScreen(link.dataset.screen);};
 function textLabel(key){const label=document.createElement('label'),text=document.createElement('span');text.dataset.i18n=key;text.textContent=t(key);label.append(text);return label;}
 function field(key,name,value='',type='text'){
- const label=textLabel(key),input=document.createElement('input');input.name=name;input.type=type==='date'?'text':type;input.value=type==='date'?displayDate(value):value;
+ const label=textLabel(key),input=document.createElement(type==='textarea'?'textarea':'input');input.name=name;if(type==='textarea')input.rows=1;else input.type=type==='date'?'text':type;input.value=type==='date'?displayDate(value):value;
  if(type==='date'){configureDateInput(input);input.dataset.dateLabel=key;input.setAttribute('aria-label',t(key)+' (DD/MM/YYYY)');}
  input.required=true;input.maxLength=type==='date'?10:name==='phone'?30:150;label.append(input);$('fields').append(label);return input;
 }
@@ -138,7 +157,7 @@ function titleKey(){return editing.kind==='apartment'?(editing.id?'apartmentDeta
 function formError(error){const source=error?.message??error;$('form-error').dataset.source=source;$('form-error').textContent=source?translateError(source):'';}
 function open(kind,item=null,defaults={}){
  if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing?.photo?.dispose();editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
- if(kind==='apartment'){field('apartmentName','name',item?.name);const owner=field('apartmentOwner','owner',item?.owner??'');owner.required=false;owner.maxLength=200;owner.setAttribute('list','apartment-owner-options');const choices=document.createElement('datalist');choices.id='apartment-owner-options';for(const entry of owners(state.apartments)){const option=document.createElement('option');option.value=entry.name;choices.append(option);}$('fields').append(choices);field('address','address',item?.address);field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
+ if(kind==='apartment'){field('apartmentName','name',item?.name);const owner=field('apartmentOwner','owner',item?.owner??'');owner.required=false;owner.maxLength=200;owner.setAttribute('list','apartment-owner-options');const choices=document.createElement('datalist');choices.id='apartment-owner-options';for(const entry of owners(state.apartments)){const option=document.createElement('option');option.value=entry.name;choices.append(option);}$('fields').append(choices);field('address','address',item?.address,'textarea');field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
  else editing.payments=renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel,canManagePayments:()=>!blocked&&canEditPayments(access.snapshot())&&policy().canManageApartment($('fields').querySelector('[name=apartmentId]').value)});
  $('editor').classList.toggle('booking-editor',kind==='booking');$('editor').classList.toggle('apartment-editor',kind==='apartment');$('editor-form').querySelector('[type=submit]').disabled=false;
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
@@ -214,8 +233,8 @@ $('editor').addEventListener('cancel',event=>{if(editing?.saving)event.preventDe
 $('editor').addEventListener('close',()=>{if(!$('editor').open)editing?.photo?.dispose();});
 $('close').onclick=$('cancel').onclick=()=>{if(!editing?.saving)$('editor').close();};$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
 $('year-prev').onclick=()=>{selectorYear--;renderMonthSelector();};$('year-next').onclick=()=>{selectorYear++;renderMonthSelector();};
-$('prev').onclick=()=>{start-=days;selectorYear=calendarYear(start);render();};$('next').onclick=()=>{start+=days;selectorYear=calendarYear(start);render();};
-$('today').onclick=()=>{start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
+$('prev').onclick=()=>moveCalendar(-1);$('next').onclick=()=>moveCalendar(1);
+$('today').onclick=()=>{monthView=false;$('timeline').parentElement.scrollLeft=0;start=dayNumber(today())-2;selectorYear=calendarYear(start);render();};refreshLanguage();
 
 const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
 commerce=mountCommerce({root:$('menu-account-content'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});

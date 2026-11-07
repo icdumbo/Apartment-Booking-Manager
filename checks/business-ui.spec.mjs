@@ -13,7 +13,7 @@ fixture.state.bookings.push({id:'business-handover',apartmentId:'a',guest:'Clien
 async function setup(page){
  await page.clock.install({time:new Date('2026-10-06T09:00:00Z')});await page.goto('/');
  await page.evaluate(({state,data})=>{localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(state));localStorage.setItem('apartment-booking-manager:maintenance:v1',JSON.stringify(data));},fixture);
- await seedBrowserTrial(page);await page.reload();await expect(page.locator('.timeline-row')).toHaveCount(4);await expect(page.locator('.day-heading')).toHaveCount(30);
+ await seedBrowserTrial(page);await page.reload();await expect(page.locator('.timeline-row')).toHaveCount(4);await expect(page.locator('.day-heading')).toHaveCount(31);
 }
 async function contrast(page,selectors){
  const values=await page.evaluate(selectors=>{

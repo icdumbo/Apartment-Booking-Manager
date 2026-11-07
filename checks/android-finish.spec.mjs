@@ -24,7 +24,7 @@ for(const [name,width,height] of profiles)test(`Android final design ${name}`,as
   if(!screen.endsWith('-charts')&&!screen.endsWith('-list')&&!['reservation','menu'].includes(screen))await page.evaluate(()=>scrollTo(0,0));
   await page.screenshot({path:`test-results/Android-${name}-${screen}.png`,fullPage:false});
  };
- await expect(page.locator('.day-heading')).toHaveCount(30);
+ await expect(page.locator('.day-heading')).toHaveCount(31);
  const metrics=await page.evaluate(()=>{
   const box=s=>document.querySelector(s).getBoundingClientRect();
   const viewport=box('.timeline-scroll'),day=box('.day-heading'),label=box('.corner');
