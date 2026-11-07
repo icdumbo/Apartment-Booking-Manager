@@ -684,10 +684,13 @@ body .legend .free{background:#729b80;border-color:#8fba9e}
  .timeline-head,.timeline-row{width:calc(var(--apartment-width) + (100% - var(--apartment-width)) * var(--days) / 30)}
 }
 @media(max-width:1099px){
- .timeline{width:calc(var(--apartment-width) + (100% - var(--apartment-width)) * var(--days) / var(--visible-days));--visible-days:15}
+ .timeline{
+  --calendar-width-for-30-days:calc(200% - var(--apartment-width));
+  width:calc(var(--calendar-width-for-30-days) + (var(--calendar-width-for-30-days) - var(--apartment-width)) * (var(--days) - 30) / 30);
+ }
 }
-@media(max-width:600px){.timeline{--visible-days:10}}
-@media(max-width:359px){.timeline{--visible-days:9}}
+@media(max-width:600px){.timeline{--calendar-width-for-30-days:calc(300% - 2 * var(--apartment-width))}}
+@media(max-width:359px){.timeline{--calendar-width-for-30-days:calc(333.333333% - 2.33333333 * var(--apartment-width))}}
 
 .timeline-row .apartment-address{
  display:-webkit-box;
