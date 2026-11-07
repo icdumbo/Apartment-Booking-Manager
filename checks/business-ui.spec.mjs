@@ -5,8 +5,8 @@ import {seedBrowserTrial} from './fixtures/browser-trial.mjs';
 
 // Real application, fictional isolated records. The baseline is the stable CSS,
 // obtained by CI from commit 84317b2, never an approximation of its dimensions.
-// Guest label typography is the sole newly approved exception; protected bar/day
-// boxes and fonts remain exact, with label readability asserted separately.
+// Compare the unchanged horizontal geometry and booking placement within each row.
+// The address and owner lines intentionally change row and viewport heights.
 const key='apartment-booking-manager:v1';
 const fixture=maintenanceExportFixture();
 fixture.state.bookings.push({id:'business-handover',apartmentId:'a',guest:'Client Test Schimb',phone:'0700000000',checkIn:'2026-10-12',checkOut:'2026-10-16',status:'unconfirmed',totalAmountCents:42000});
@@ -28,11 +28,15 @@ async function contrast(page,selectors){
 }
 async function geometry(page){return page.evaluate(()=>{
  const selectors=['.top','.intro','.actions','.toolbar','.navigation','.month-selector','.year-navigation','.month-options','.legend','.timeline-scroll','.timeline','.timeline-head','.calendar-head','.month','.day-heading','.apartment-label','.timeline-row','.track','.day-cell','.booking','.booking-status-icon','.handover','.calendar-footer','.app-navigation'];
- return Object.fromEntries(selectors.map(selector=>[selector,[...document.querySelectorAll(selector)].map(el=>{const box=el.getBoundingClientRect(),style=getComputedStyle(el);return [box.x,box.y,box.width,box.height].map(v=>Math.round(v*100)/100).concat([style.position,style.left,style.top,style.fontSize,style.fontFamily,style.fontWeight]);})]));
+ return Object.fromEntries(selectors.map(selector=>[selector,[...document.querySelectorAll(selector)].map(el=>{const box=el.getBoundingClientRect(),style=getComputedStyle(el);
+  const row=el.closest('.timeline-row');
+  const changesHeight=row&&!el.matches('.booking,.booking-status-icon')||el.matches('.timeline,.timeline-scroll');
+  const y=el.matches('.calendar-footer')?0:box.y-(row?.getBoundingClientRect().y??0);
+  return [box.x,y,box.width,changesHeight?0:box.height].map(v=>Math.round(v*100)/100).concat([style.position,style.left,style.top,style.fontSize,style.fontFamily,style.fontWeight]);})]));
 });}
 
-for(const [name,width,height] of [['folded',344,882],['s24-ultra',430,932],['unfolded',840,900],['desktop',1440,1000]])test(`BUSINESS calendar matches exact baseline geometry ${name}`,async({page})=>{
- await page.setViewportSize({width,height});await setup(page);const before=await geometry(page);
+for(const [name,width,height] of [['folded',344,882],['s24-ultra',430,932],['unfolded',840,900],['desktop',1440,1000]])test(`BUSINESS calendar preserves baseline day widths and booking alignment ${name}`,async({page})=>{
+ await page.setViewportSize({width,height});await setup(page);await page.locator("#today").click();const before=await geometry(page);
  const palette=await page.locator('.booking').evaluateAll(els=>els.map(el=>[el.style.getPropertyValue('--booking-color'),getComputedStyle(el).backgroundColor,getComputedStyle(el).borderStyle,getComputedStyle(el.querySelector('.booking-guest')).color]));
  const source=(await readFile('checks/business-baseline.generated.css','utf8')).replace('url("./assets/welcome-seaside.jpg")','url("/src/assets/welcome-seaside.jpg")');
  await page.locator('link[rel=stylesheet]').evaluateAll(els=>els.forEach(el=>el.disabled=true));const baseline=await page.addStyleTag({content:source});

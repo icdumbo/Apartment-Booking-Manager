@@ -721,3 +721,14 @@ body .legend .free{background:#729b80;border-color:#8fba9e}
  overflow-wrap:anywhere;
  resize:vertical;
 }
+
+#editor.apartment-editor{padding:14px}
+#editor.apartment-editor #fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+#editor.apartment-editor #fields > *{grid-column:1 / -1;min-width:0}
+#editor.apartment-editor #fields > label:has(input:is([name="name"],[name="owner"])){grid-column:auto}
+#editor.apartment-editor .photo-commands button{padding-inline:8px}
+@media(min-width:601px){
+ #editor.apartment-editor .dialog-heading{grid-template-columns:minmax(0,1fr) auto 44px;align-items:center}
+ #editor.apartment-editor .dialog-heading .language-selector{grid-column:2;grid-row:1}
+ #editor.apartment-editor #close{grid-column:3}
+}
