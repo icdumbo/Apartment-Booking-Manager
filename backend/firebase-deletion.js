@@ -2,10 +2,10 @@ import {createPrivateKey,sign} from 'node:crypto';
 import {FIREBASE_PROJECT} from './firebase-token.js';
 
 // Dedicated server-only credential, never the Google Play service account.
-export function createFirebaseDeletionApi({serviceAccount,fetchImpl=fetch,clock=Date.now}){
+export function createFirebaseDeletionApi({project=FIREBASE_PROJECT,serviceAccount,fetchImpl=fetch,clock=Date.now}){
  let account;
  try{account=JSON.parse(serviceAccount);}catch{throw Error('Deletion credential unavailable');}
- if(!account||account.type!=='service_account'||account.project_id!==FIREBASE_PROJECT||typeof account.private_key!=='string'||typeof account.client_email!=='string')throw Error('Deletion credential unavailable');
+ if(!account||account.type!=='service_account'||account.project_id!==project||typeof account.private_key!=='string'||typeof account.client_email!=='string')throw Error('Deletion credential unavailable');
  let cached,expires=0;
  async function accessToken(){
   if(cached&&clock()<expires)return cached;
@@ -20,7 +20,7 @@ export function createFirebaseDeletionApi({serviceAccount,fetchImpl=fetch,clock=
  }
  async function call(action,uid){
   if(typeof uid!=='string'||!uid||uid.length>128)throw Error('Invalid identity');
-  const response=await fetchImpl('https://identitytoolkit.googleapis.com/v1/projects/'+FIREBASE_PROJECT+'/accounts:'+action,{method:'POST',headers:{Authorization:'Bearer '+await accessToken(),'Content-Type':'application/json'},body:JSON.stringify({localId:action==='lookup'?[uid]:uid}),redirect:'error',signal:AbortSignal.timeout(10000)});
+  const response=await fetchImpl('https://identitytoolkit.googleapis.com/v1/projects/'+project+'/accounts:'+action,{method:'POST',headers:{Authorization:'Bearer '+await accessToken(),'Content-Type':'application/json'},body:JSON.stringify({localId:action==='lookup'?[uid]:uid}),redirect:'error',signal:AbortSignal.timeout(10000)});
   const data=await response.json();
   if(!response.ok){if(response.status===400&&data.error?.message==='USER_NOT_FOUND')return null;throw Error('Deletion provider unavailable');}
   if(!data||typeof data!=='object'||Array.isArray(data)||data.error)throw Error('Deletion provider response invalid');

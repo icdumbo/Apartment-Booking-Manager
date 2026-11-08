@@ -5,13 +5,13 @@ import {createDeletionExecutor,createExecutionRepository,deletionExecutionReady}
 import {createFirebaseDeletionApi} from './firebase-deletion.js';
 import {runTrialRetention} from './trial-retention.js';
 const resolveKey=createCertificateResolver();
-export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFirebaseVerifier,clock=Date.now}={}){
+export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFirebaseVerifier,project,clock=Date.now}={}){
  return {async scheduled(controller,env){
   // Separate invocation budget; retention never starts the deletion executor.
   if(env.TRIAL_RETENTION_ENABLED==='true')return runTrialRetention(env,{clock});
   // No cron is configured. Production activation needs a separate reviewed deployment.
   if(!env.DB||!deletionExecutionReady(env))return {disabled:true};
-  const firebase=createFirebaseDeletionApi({serviceAccount:env.DELETION_FIREBASE_SERVICE_ACCOUNT_JSON,clock});
+  const firebase=createFirebaseDeletionApi({project,serviceAccount:env.DELETION_FIREBASE_SERVICE_ACCOUNT_JSON,clock});
   return createDeletionExecutor({repository:createExecutionRepository(env.DB),firebase,clock})(env);
  },async fetch(request,env,context){
   if(new URL(request.url).pathname!=='/account-deletion')return worker.fetch(request,env,context);
@@ -43,7 +43,7 @@ export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFire
    if(env.FIREBASE_API_KEY&&env.FIREBASE_WEB_API_KEY&&env.FIREBASE_API_KEY!==env.FIREBASE_WEB_API_KEY)throw Error();
    const apiKey=env.FIREBASE_API_KEY??env.FIREBASE_WEB_API_KEY;if(!apiKey)throw Error();
    const db=env.DB.withSession('first-primary');
-   const verifyIdToken=makeVerifier({apiKey,resolveKey,clock,readIdentityPolicy:uid=>db.prepare('SELECT blocked,tokens_valid_after FROM identity_policy WHERE subject=?').bind(uid).first()});
+   const verifyIdToken=makeVerifier({project,apiKey,resolveKey,clock,readIdentityPolicy:uid=>db.prepare('SELECT blocked,tokens_valid_after FROM identity_policy WHERE subject=?').bind(uid).first()});
    const result=await createDeletionHandler({verifyIdToken,repository,clock})({authorization:request.headers.get('Authorization'),body});
    return reply(result.status,result.body);
   }catch{return reply(503,{error:'deletionRequestUnavailable'});}

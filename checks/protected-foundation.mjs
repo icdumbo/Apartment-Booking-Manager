@@ -3,9 +3,9 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const base='84317b27fc2106c1e0406f4cfe36ff5f3c1fc425';
-const additions=['src/local-data-deletion.js','backend/checks/deletion-receipt.check.mjs','src/privacy-settings.js','src/privacy-content.js','src/privacy-screen.js','src/account-deletion.js','src/legal','backend/privacy-worker.js','backend/deletion-requests.js','backend/checks/deletion.check.mjs','backend/migrations/0003_deletion_requests.sql','android/app/src/main/res/xml/backup_rules.xml','android/app/src/main/res/xml/data_extraction_rules.xml'];
+const additions=['backend/deletion-staging-worker.js','backend/checks/deletion-staging.check.mjs','src/local-data-deletion.js','backend/checks/deletion-receipt.check.mjs','src/privacy-settings.js','src/privacy-content.js','src/privacy-screen.js','src/account-deletion.js','src/legal','backend/privacy-worker.js','backend/deletion-requests.js','backend/checks/deletion.check.mjs','backend/migrations/0003_deletion_requests.sql','android/app/src/main/res/xml/backup_rules.xml','android/app/src/main/res/xml/data_extraction_rules.xml'];
 additions.push('src/photo-lifecycle.js');
-const integrations=['src/month-navigation.js','src/timeline.js','src/secure-access.js','src/backup.js','src/apartment-photo.js','backend/checks/worker-access.check.mjs','src/play-billing.js','src/app.js','backend/wrangler.jsonc','android/app/src/main/AndroidManifest.xml','android/app/build.gradle'];
+const integrations=['backend/firebase-token.js','src/month-navigation.js','src/timeline.js','src/secure-access.js','src/backup.js','src/apartment-photo.js','backend/checks/worker-access.check.mjs','src/play-billing.js','src/app.js','backend/wrangler.jsonc','android/app/src/main/AndroidManifest.xml','android/app/build.gradle'];
 // Explicit deletion-only additions; commercial/authentication/data sources remain protected.
 additions.push('backend/deletion-executor.js','backend/firebase-deletion.js','backend/checks/deletion-execution.check.mjs','backend/checks/local-d1-sqlite.mjs','backend/migrations/0004_deletion_execution.sql');
 additions.push('backend/trial-retention.js','backend/checks/trial-retention.check.mjs','backend/migrations/0005_trial_retention.sql');
@@ -47,3 +47,5 @@ for(const [path,hash] of Object.entries(stabilitySources))assert.equal(createHas
 assert.equal(createHash('sha256').update(current("src/app.js")).digest('hex'), '0618a0c6384010e4d9701bb770c5e6feab5632b5469b1e5509f7d7145606fe5d');
 assert.equal(createHash('sha256').update(current("src/month-navigation.js")).digest('hex'), 'e46dbe22fabf1c7c2e79a5091aa963b88008a23ce189ee68dfbd13f9d0850eec');
 assert.equal(createHash('sha256').update(current("src/timeline.js")).digest('hex'), 'c9173b93b26834214331df5df8ccc7befef07a8c73c1edbce99b3ce901f5d0ca');
+
+assert.equal(createHash('sha256').update(current('backend/firebase-token.js')).digest('hex'), 'a96273e12b2e7ed7cd7e1171ac89f57aba60a199df33433f2555dabbcfc22a43','Only the reviewed explicit Firebase project parameter may change');

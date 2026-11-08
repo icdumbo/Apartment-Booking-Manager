@@ -22,7 +22,7 @@ jobs:
       - run: npm ci
       - run: npm ci --prefix backend --ignore-scripts
       - run: node --test tests/stability-regressions.test.js tests/legal-pages.test.js tests/play-purchases.test.js tests/privacy.test.js tests/access.test.js tests/secure-trial.test.js tests/backup.test.js tests/backup-resources.test.js
-      - run: node --test backend/checks/deletion.check.mjs backend/checks/deletion-receipt.check.mjs backend/checks/deletion-execution.check.mjs backend/checks/trial-retention.check.mjs
+      - run: node --test backend/checks/deletion.check.mjs backend/checks/deletion-receipt.check.mjs backend/checks/deletion-staging.check.mjs backend/checks/deletion-execution.check.mjs backend/checks/trial-retention.check.mjs
       - run: npm run check --prefix backend
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test checks/photo-lifecycle.spec.mjs checks/legal-pages.spec.mjs checks/privacy.spec.mjs checks/access.spec.mjs checks/backup.spec.mjs checks/menu-layout.spec.mjs

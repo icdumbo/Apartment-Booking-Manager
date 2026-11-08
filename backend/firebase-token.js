@@ -28,14 +28,14 @@ export function createCertificateResolver({fetchImpl=fetch,clock=Date.now,import
   return keys.get(header.kid);
  };
 }
-export function createFirebaseVerifier({apiKey,resolveKey=createCertificateResolver(),fetchImpl=fetch,clock=Date.now,readIdentityPolicy=async()=>null}){
+export function createFirebaseVerifier({project=FIREBASE_PROJECT,apiKey,resolveKey=createCertificateResolver(),fetchImpl=fetch,clock=Date.now,readIdentityPolicy=async()=>null}){
  return async(token,checkRevoked=true)=>{
   if(typeof token!=='string'||token.length>16384)throw rejected();
   let payload;
-  try{({payload}=await jwtVerify(token,resolveKey,{algorithms:['RS256'],issuer:`https://securetoken.google.com/${FIREBASE_PROJECT}`,audience:FIREBASE_PROJECT,currentDate:new Date(clock()),clockTolerance:0,requiredClaims:['exp','iat','sub','auth_time']}));}
+  try{({payload}=await jwtVerify(token,resolveKey,{algorithms:['RS256'],issuer:`https://securetoken.google.com/${project}`,audience:project,currentDate:new Date(clock()),clockTolerance:0,requiredClaims:['exp','iat','sub','auth_time']}));}
   catch(error){if(error.status===503)throw error;throw rejected();}
   const now=Math.floor(clock()/1000);
-  if(typeof payload.sub!=='string'||!payload.sub||payload.sub.length>128||payload.aud!==FIREBASE_PROJECT||!Number.isSafeInteger(payload.exp)||!Number.isSafeInteger(payload.iat)||!Number.isSafeInteger(payload.auth_time)||payload.auth_time<0||payload.iat>now||payload.auth_time>now||payload.auth_time>payload.iat||payload.firebase?.sign_in_provider!=='google.com'||payload.firebase?.tenant!==undefined)throw rejected();
+  if(typeof payload.sub!=='string'||!payload.sub||payload.sub.length>128||payload.aud!==project||!Number.isSafeInteger(payload.exp)||!Number.isSafeInteger(payload.iat)||!Number.isSafeInteger(payload.auth_time)||payload.auth_time<0||payload.iat>now||payload.auth_time>now||payload.auth_time>payload.iat||payload.firebase?.sign_in_provider!=='google.com'||payload.firebase?.tenant!==undefined)throw rejected();
   if(checkRevoked){
    if(typeof apiKey!=='string'||!apiKey)throw unavailable();
    // Firebase Auth REST end-user lookup: no service-account key, Functions or Blaze.
