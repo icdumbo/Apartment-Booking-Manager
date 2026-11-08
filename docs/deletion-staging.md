@@ -1,3 +1,5 @@
+> **Procedură istorică.** Fluxul automat a fost retras. Pentru configurarea curentă, vezi [Solicitări de ștergere prin suport](manual-account-deletion.md). Nu folosi pașii istorici pentru activare.
+
 # Mediu izolat pentru verificarea ștergerii contului
 
 Configurația generată este locală, în backend/build/deletion-stage, ignorată de Git. Nu conține credențiale de serviciu. Workerul de test acceptă numai ruta /account-deletion, un proiect Firebase cu prefix abm-delete-test-, originea exactă a site-ului de test și propriul D1. Nu expune acces, trial nou sau achiziții. Configurația de producție păstrează proiectul Firebase implicit.

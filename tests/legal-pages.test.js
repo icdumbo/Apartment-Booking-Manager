@@ -16,7 +16,7 @@ test('static export is restricted to four legal HTML files and reuses every shar
   assert.ok(html.includes('lang="'+lang+'"'));assert.ok(html.includes('width=device-width'));
   assert.ok(html.includes(escape(privacyCopy[lang].draft)));assert.ok(html.includes('noindex,nofollow'));
   const deletion=pages['legal/delete-account-'+lang+'.html'];
-  assert.ok(deletion.includes(escape(privacyCopy[lang].scope)));assert.ok(deletion.includes(escape(privacyCopy[lang].unconfigured)));assert.ok(deletion.includes('mailto:'+fixture.contact));assert.ok(deletion.includes(lang==='ro'?'Gestionarea este manuală':'Handling is manual'));for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days'])assert.ok(!html.includes(future)&&!deletion.includes(future));
+  assert.ok(deletion.includes(escape(privacyCopy[lang].scope)));assert.ok(deletion.includes(escape(privacyCopy[lang].emailNotice)));assert.ok(deletion.includes('mailto:'+fixture.contact));assert.ok(deletion.includes(lang==='ro'?'Suportul verifică manual':'Support checks your identity manually'));for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days'])assert.ok(!html.includes(future)&&!deletion.includes(future));
  }
  for(const html of Object.values(pages)){
   assert.ok(!/<script|<iframe|<form|\son\w+\s*=/i.test(html));
@@ -27,12 +27,14 @@ test('static export is restricted to four legal HTML files and reuses every shar
 test('release fails closed for missing approvals and unresolved policy even when configuration is filled',()=>{
  assert.throws(()=>renderLegalPages({preview:false}),/Publication blocked/);
  const filled={...fixture,retentionPolicy:{ro:'Fictional retention RO',en:'Fictional retention EN'},processingPolicy:{ro:'Fictional processing RO',en:'Fictional processing EN'},publicBaseUrl:'https://fixture.invalid/legal/',legalReviewApproved:true,publicationApproved:true};
- assert.throws(()=>renderLegalPages({configuration:filled,preview:false}),/interactive deletion/);
- const approved={...filled,webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://fixture.invalid/account-deletion',deletionBackendVerified:true};
- const pages=renderLegalPages({configuration:approved,preview:false});
- assert.match(pages['legal/delete-account-ro.html'],/request\/delete-account\.html\?lang=ro/);
- assert.match(pages['legal/delete-account-en.html'],/request\/delete-account\.html\?lang=en/);
- assert.ok(!pages['legal/privacy-ro.html'].includes('noindex'));
+ const pages=renderLegalPages({configuration:filled,preview:false});
+ for(const lang of ['ro','en']){
+  assert.ok(!pages['legal/privacy-'+lang+'.html'].includes('noindex'));
+  const html=pages['legal/delete-account-'+lang+'.html'];
+  assert.match(html,/mailto:privacy@example\.invalid\?subject=/);
+  assert.doesNotMatch(html,/accounts\.google|identitytoolkit|<script/i);
+ }
+ assert.throws(()=>renderLegalPages({configuration:{...filled,processingPolicy:{ro:'NECONFIRMAT',en:'UNCONFIRMED'}},preview:false}),/unresolved statements/);
 });
 
 test('public text is escaped and the exporter cannot introduce executable controller content',()=>{

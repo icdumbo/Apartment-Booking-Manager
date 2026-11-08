@@ -1,3 +1,5 @@
+> **Procedură istorică.** Fluxul automat a fost retras. Pentru configurarea curentă, vezi [Solicitări de ștergere prin suport](manual-account-deletion.md). Nu folosi pașii istorici pentru activare.
+
 # Revizuire înainte de activarea ștergerii contului
 
 - Setări cont → Șterge contul cere confirmare și autentificare Google recentă. Workerul derivă UID-ul din tokenul Firebase. Cererea rămâne în așteptare până la confirmarea absenței utilizatorului din Firebase și la tranzacția D1 completă.

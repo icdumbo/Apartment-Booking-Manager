@@ -48,7 +48,9 @@ jobs:
         run: |
           node scripts/prepare-legal-pages.mjs --release
           mkdir _site/legal
-          cp -R build/legal-pages-release/legal/. _site/legal/
+          for page in privacy-ro privacy-en delete-account-ro delete-account-en; do
+            install -m 644 "build/legal-pages-release/legal/$page.html" "_site/legal/$page.html"
+          done
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

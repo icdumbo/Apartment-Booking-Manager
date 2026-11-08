@@ -1,3 +1,5 @@
+> **Procedură istorică.** Fluxul automat a fost retras. Pentru configurarea curentă, vezi [Solicitări de ștergere prin suport](manual-account-deletion.md). Nu folosi pașii istorici pentru activare.
+
 # Account deletion processor — NOT activated or production-verified
 
 > Current approved policy and activation instructions: [backend-android-test.md](backend-android-test.md). Migration 0007 removes the historical permanent anti-abuse/admission lock. The current trial history is eligible for deletion; security-policy and purchase blockers remain. No production activation has occurred.

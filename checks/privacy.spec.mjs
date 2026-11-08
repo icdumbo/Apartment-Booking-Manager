@@ -1,49 +1,71 @@
 import {test,expect} from '@playwright/test';
-import {readFile} from 'node:fs/promises';
 import {privacySettings} from '../src/privacy-settings.js';
-async function mockLegalConfiguration(page,changes={}){
- const source=await readFile('src/privacy-settings.js','utf8');
- const fixture={controllerType:'individual',operator:'Fictional Controller',contact:'privacy@example.invalid',retentionPolicy:{ro:'Retenție fictivă RO',en:'Fictional EN retention'},processingPolicy:{ro:'Cadru fictiv RO',en:'Fictional EN framework'},publicBaseUrl:'https://legal.fixture.invalid/legal/',legalReviewApproved:true,publicationApproved:true,automaticBackup:'excluded',webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://api.fixture.invalid/account-deletion',deletionBackendVerified:true,...changes};
- await page.route('**/src/privacy-settings.js',route=>route.fulfill({contentType:'text/javascript',body:source.replace(/export const privacySettings=Object\.freeze\(\{[\s\S]*?\}\);/,'export const privacySettings=Object.freeze('+JSON.stringify(fixture)+');')}));
+
+const fixture={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'manual-a',name:'Fictional apartment',address:'Fictional street',city:'Fictional city'}],bookings:[]};
+async function verifyDraft(root,language){
+ const link=root.locator('form a');
+ const url=new URL(await link.getAttribute('href'));
+ expect(url.protocol).toBe('mailto:');
+ expect(url.pathname).toBe(privacySettings.contact);
+ expect(url.searchParams.get('subject')).toBe(language==='ro'?'Solicită ștergerea contului':'Request account deletion');
+ expect(url.searchParams.get('body')).not.toContain('fictional-user@example.invalid');
+ await expect(root.locator('form textarea')).toHaveJSProperty('readOnly',true);
+ await expect(root.locator('form')).toContainText(language==='ro'?'Mesajul nu este trimis automat':'The message is not sent automatically');
 }
-test('offline anonymous BASIC can read both policy languages without touching business data',async({page,context})=>{
- const fixture={version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'privacy-a',name:'Fictional apartment',address:'Test street',city:'Test city'}],bookings:[{id:'privacy-b',apartmentId:'privacy-a',guest:'Fictional guest',phone:'0700000000',checkIn:'2026-10-10',checkOut:'2026-10-12',status:'confirmed'}]};
- await page.addInitScript(value=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(value)),fixture);
- await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(1);await expect(page.locator('#open-privacy')).toHaveCount(1);const original=JSON.stringify(fixture);await context.setOffline(true);
- for(const lang of ['ro','en']){await page.locator('.top [data-language='+lang+']').click();await page.locator('#open-menu').click();await expect(page.locator('#open-account-deletion')).toBeHidden();await page.locator('#open-privacy').click();await expect(page.locator('#privacy-dialog')).toContainText('Cloudflare');await expect(page.locator('#privacy-dialog [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);await page.locator('#privacy-dialog .dialog-heading button').click();}
- expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toEqual(original);
-});
-test('authenticated deletion asks confirmation, reauthenticates and never claims deletion after network failure',async({page})=>{
- await page.addInitScript(()=>{window.__reauth=0;window.__signedOut=false;localStorage.setItem('apartment-booking-manager:v1',JSON.stringify({version:1,migrations:{originalDemoRemoved:true},apartments:[{id:'erase-a',name:'Fixture',address:'Fixture',city:'Fixture'}],bookings:[]}));window.Capacitor={getPlatform:()=> 'android',Plugins:{BookingAuth:{addListener:()=>({remove:async()=>{}}),getCurrentUser:async()=>({user:window.__signedOut?null:{uid:'fictional-a'}}),signOut:async()=>{window.__signedOut=true;},getIdToken:async()=>({token:'fixture-token'}),signInWithGoogle:async()=>{window.__reauth++;return {user:{uid:'fictional-a'}};}},BookingAccess:{clear:async()=>{},getAccess:async()=>({state:'BASIC',subject:'fictional-a'}),beginVerification:async()=>{throw Error('fixture offline');}}}};});
- let submissions=0,fail=true,completed=false;
- await page.route('**/account-deletion',async route=>{if(route.request().postDataJSON().action==='receipt')return route.fulfill({headers:{'Access-Control-Allow-Origin':'*'},json:{version:1,deleted:completed}});submissions++;expect(route.request().postDataJSON()).not.toHaveProperty('subject');await route.fulfill({status:fail?503:200,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify(fail?{error:'deletionRequestUnavailable'}:{version:1,status:'pending_review',deleted:false,requestId:'fictional-reference',createdAt:1800000000000})});});
- await page.goto('/');await page.locator('#open-menu').click();await page.locator('#menu-account summary').click();await page.locator('#open-account-deletion').click();await expect(page.locator('#privacy-dialog [type=submit]')).toHaveCount(0);await expect(page.locator('#privacy-dialog [role=status]')).toContainText('nu sunt încă activate');await expect(page.locator('#privacy-dialog [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);expect(submissions).toBe(0);expect(await page.evaluate(()=>window.__reauth)).toBe(0);
- await mockLegalConfiguration(page);await page.reload();await page.locator('#open-menu').click();await page.locator('#menu-account summary').click();await page.locator('#open-account-deletion').click();await expect(page.locator('#privacy-dialog [type=submit]')).toBeDisabled();expect(submissions).toBe(0);
- await page.locator('#deletion-confirm').check();await page.locator('#privacy-dialog [type=submit]').click();await expect(page.locator('#deletion-message')).toContainText('nu a putut');expect(await page.evaluate(()=>window.__reauth)).toBe(1);
- fail=false;await page.locator('#privacy-dialog [type=submit]').click();await expect(page.locator('#deletion-message')).toContainText('fictional-reference');await expect(page.locator('#deletion-message')).toContainText('nu au fost încă șterse');
+
+test('anonymous BASIC can read RO/EN policy offline; account request is hidden',async({page,context})=>{
+ await page.addInitScript(data=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data)),fixture);
+ await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(1);
  const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));
- completed=true;await page.locator('#privacy-dialog form button[type=button]').click();
- await expect(page.locator('#privacy-dialog')).not.toBeVisible();
- expect(await page.evaluate(()=>window.__signedOut)).toBe(true);
+ await context.setOffline(true);
+ for(const language of ['ro','en']){
+  await page.locator('.top [data-language='+language+']').click();
+  await page.locator('#open-menu').click();await expect(page.locator('#open-account-deletion')).toBeHidden();
+  await page.locator('#open-privacy').click();
+  await expect(page.locator('#privacy-dialog')).toContainText('Cloudflare');
+  await page.locator('#privacy-dialog .dialog-heading button').click();
+ }
  expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(before);
 });
-test('public legal pages work without app authentication and unconfigured web requests are visibly unavailable',async({page})=>{
- for(const lang of ['ro','en']){await page.goto('/src/legal/privacy.html?lang='+lang);await expect(page.locator('#legal-content')).toContainText('Firebase');await expect(page.locator('#legal-content [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);await expect(page.locator('#legal-content')).toContainText('Cloudflare');await page.locator('main>p>a').click();await expect(page).toHaveURL(new RegExp('delete-account.html\\?lang='+lang+'$'));await expect(page.locator('html')).toHaveAttribute('lang',lang);await expect(page.locator('#legal-content')).toContainText(lang==='ro'?'Formularul web automat nu este activ':'The automated web form is inactive');await expect(page.locator('#legal-content input')).toHaveCount(0);await expect(page.locator('#legal-content [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);await page.locator('main>p>a').click();await expect(page).toHaveURL(new RegExp('privacy.html\\?lang='+lang+'$'));}
+
+test('signed-in account request prepares email only and leaves local business data intact',async({page})=>{
+ await page.addInitScript(data=>{
+  localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data));
+  window.Capacitor={getPlatform:()=> 'android',Plugins:{BookingAuth:{
+   addListener:()=>({remove:async()=>{}}),
+   getCurrentUser:async()=>({user:{uid:'fictional-a',email:'fictional-user@example.invalid'}}),
+   signInWithGoogle:async()=>{throw Error('Must not reauthenticate for email');},
+   signOut:async()=>{throw Error('Must not sign out');}
+  },BookingAccess:{getAccess:async()=>({state:'BASIC',subject:'fictional-a'}),beginVerification:async()=>{throw Error('offline fixture');}}}};
+ },fixture);
+ let requests=0;
+ await page.route('**/account-deletion',route=>{requests++;return route.abort();});
+ await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(1);
+ const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));
+ for(const language of ['ro','en']){
+  await page.locator('.top [data-language='+language+']').click();
+  await page.locator('#open-menu').click();
+  const details=page.locator('#menu-account');
+  if(await details.getAttribute('open')===null)await details.locator('summary').click();
+  await page.locator('#open-account-deletion').click();
+  const dialog=page.locator('#privacy-dialog');
+  await verifyDraft(dialog,language);
+  await expect(dialog.locator('button[type=submit]')).toHaveCount(0);
+  await dialog.locator('.dialog-heading button').click();
+ }
+ expect(requests).toBe(0);
+ expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(before);
 });
-test('configured public web flow retains the receipt across languages and confirms deletion',async({page})=>{
- await mockLegalConfiguration(page);
- await page.route('https://accounts.google.com/gsi/client',route=>route.fulfill({contentType:'text/javascript',body:'window.google={accounts:{id:{initialize(o){this.cb=o.callback;},renderButton(el){const b=document.createElement("button");b.textContent="Fixture Google";b.onclick=()=>this.cb({credential:"fixture-google"});el.append(b);}}}};'}));
- await page.route('https://identitytoolkit.googleapis.com/**',route=>route.fulfill({headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify({localId:'fictional-a',idToken:'fixture-token'})}));
- await page.route('https://api.fixture.invalid/account-deletion',route=>route.fulfill({headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify(route.request().postDataJSON().action==='receipt'?{version:1,deleted:true}:{version:1,status:'pending_review',deleted:false,requestId:'web-fixture',createdAt:1800000000000})}));
- await page.goto('/src/legal/delete-account.html?lang=en');await page.getByRole('button',{name:'Google sign-in for your request'}).click();await page.getByRole('button',{name:'Fixture Google'}).click();await page.locator('input[type=checkbox]').check();await page.getByRole('button',{name:'Confirm request and verify identity'}).click();await expect(page.getByRole('status')).toContainText('web-fixture');await expect(page.getByRole('status')).toContainText('not yet been deleted');
- await page.getByRole('button',{name:'RO',exact:true}).click();
- await page.locator('#legal-content form button[type=button]').click();
- await expect(page.getByRole('status')).toContainText('a fost confirmată');
- await expect(page.locator('#legal-content form')).toHaveCount(0);
-});
-test('publication-ready policy renders the correct language; an unverified backend cannot start sign-in or intake',async({page})=>{
- await mockLegalConfiguration(page,{deletionBackendVerified:false});
- for(const lang of ['ro','en']){await page.goto('/src/legal/privacy.html?lang='+lang);await expect(page.locator('#legal-content')).toContainText(lang==='ro'?'Retenție fictivă RO':'Fictional EN retention');await expect(page.locator('#legal-content [role=note]')).toHaveCount(0);await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href','https://legal.fixture.invalid/legal/privacy-'+lang+'.html');await page.goto('/src/legal/delete-account.html?lang='+lang);await expect(page.locator('#legal-content')).toContainText(lang==='ro'?'Formularul web automat nu este activ':'The automated web form is inactive');await expect(page.locator('#legal-content button')).toHaveCount(0);await expect(page.locator('script[src="https://accounts.google.com/gsi/client"]')).toHaveCount(0);}
+
+test('public request page works in RO/EN without Google authentication or deletion API',async({page})=>{
+ const external=[];
+ page.on('request',request=>{if(/accounts\.google|identitytoolkit|\/account-deletion(?:$|\?)/.test(request.url()))external.push(request.url());});
+ await page.goto('/src/legal/delete-account.html?lang=ro');
+ await verifyDraft(page.locator('#legal-content'),'ro');
+ await page.getByRole('button',{name:'EN',exact:true}).click();
+ await expect(page.locator('html')).toHaveAttribute('lang','en');
+ await verifyDraft(page.locator('#legal-content'),'en');
+ expect(external).toEqual([]);
 });
 
 for(const history of ['broken',JSON.stringify({version:1,startedAt:0,lastSeen:0})])test('legacy local history reaches server trial decision without local grant: '+history,async({page})=>{

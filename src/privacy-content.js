@@ -4,27 +4,18 @@ export const privacyCopy={
  "ro": {
   "supportLabel": "Suport și confidențialitate: ",
   "deletionSupportLabel": "Suport pentru solicitările de ștergere a contului: ",
-  "backendUnavailable": "Solicitările automate nu sunt încă activate. Trimite solicitarea prin e-mail la adresa de suport afișată. Mesajele sunt gestionate manual; trimiterea unui e-mail nu confirmă ștergerea.",
   "title": "Confidențialitate",
   "deletion": "Solicită ștergerea contului",
   "eraseLocal": "Șterge separat datele locale",
   "eraseLocalConfirm": "Ștergi apartamentele, rezervările și celelalte date de lucru din această instalare? Fotografiile nereferențiate se curăță la o pornire sigură, după închiderea celorlalte ferestre. Copiile exportate rămân la tine.",
-  "startOnlineDeletion": "Deschide formularul securizat de ștergere",
-  "onlineDeletionScope": "După verificarea identității, solicitarea poate elimina contul Firebase, istoricul trialului și evidențele online eligibile. Apartamentele, rezervările, fotografiile locale și copiile exportate rămân pe dispozitiv sau la furnizorul ales. Achizițiile Google Play nu sunt revocate. Conturile cu achiziții, OWNER sau restricții de securitate necesită analiză manuală. Solicitarea înregistrată nu înseamnă ștergere finalizată.",
-  "deletionCompleted": "Ștergerea contului și a datelor online eligibile a fost confirmată.",
   "close": "Închide",
-  "signIn": "Autentificare Google pentru solicitare",
-  "confirm": "Confirm că solicit ștergerea contului aplicației și a datelor online asociate, după verificarea identității și a obligațiilor de retenție.",
-  "submit": "Confirmă solicitarea și verifică identitatea",
-  "status": "Verifică starea solicitării",
-  "pending": "Cerere înregistrată, în așteptarea verificării administrative. Contul și datele nu au fost încă șterse. Număr de referință: ",
-  "none": "Nu există o cerere înregistrată pentru acest cont.",
-  "busy": "Se verifică identitatea și înregistrarea cererii…",
-  "error": "Solicitarea nu a putut fi confirmată. Nu afișăm o ștergere finalizată. Reîncearcă verificarea stării; o cerere deja înregistrată nu se dublează.",
-  "session": "Identitatea s-a schimbat sau necesită autentificare recentă. Reia operațiunea cu același cont.",
-  "unconfigured": "Formularul web automat nu este activ. Pentru ștergerea contului și a datelor online, scrie la adresa de suport afișată. Nu trimite parole, tokenuri, cheia de semnare sau backupul datelor tale.",
   "draft": "DOCUMENT ÎN PREGĂTIRE — informațiile obligatorii și aprobarea publicării nu sunt încă complete.",
-  "scope": "Pentru a solicita ștergerea contului Apartment Booking Manager și a datelor online asociate, scrie la adresa de suport afișată și precizează solicitarea și adresa contului folosit în aplicație. Gestionarea este manuală. Pentru protejarea contului, verificarea identității trebuie să se limiteze la informațiile necesare; nu trimite parole, tokenuri sau backupuri. Un e-mail sau o referință confirmă comunicarea/înregistrarea, nu executarea ștergerii. Formularul automat și procesarea automată sunt dezactivate în configurația verificată. Solicitarea nu șterge contul Google sau datele de afaceri locale și nu anulează ori rambursează automat o achiziție Google Play. Deconectarea nu este ștergere. Cazurile cu achiziții, drepturi OWNER sau restricții de securitate necesită analiză manuală; nu declarăm că acestea sunt soluționate automat. Orice date păstrate și justificarea lor trebuie comunicate în răspuns. Pentru solicitările GDPR se aplică termenul legal de răspuns, nu un termen tehnic automat de ștergere.",
+  "scope": "Pentru a solicita ștergerea contului Apartment Booking Manager și a datelor online asociate, deschide mesajul pregătit și trimite-l la suport. Completează în mesaj adresa contului folosit în aplicație. Suportul verifică manual identitatea înainte de procesare și solicită numai informațiile necesare. Nu trimite parole, tokenuri, documente de identitate sau backupuri prin acest formular. Rezervările, apartamentele, fotografiile și copiile locale rămân pe dispozitiv sau la furnizorul ales. Achizițiile Google Play nu sunt revocate, anulate sau rambursate automat. Evidențele tranzacțiilor necesare potrivit legii se tratează separat. Conturile cu achiziții, drepturi OWNER sau restricții necesită verificare individuală. Dacă anumite date trebuie păstrate, suportul explică ce date rămân și temeiul păstrării.",
+  "requestTemplateLabel": "Mesajul pe care îl vei completa în aplicația de e-mail",
+  "requestTemplate": "Solicit ștergerea contului meu Apartment Booking Manager și a datelor online asociate.\r\nAdresa contului folosit în aplicație: [completează aici]",
+  "openEmail": "Deschide mesajul către suport",
+  "emailNotice": "Dacă nu se deschide aplicația de e-mail, copiază mesajul și trimite-l la adresa de mai sus. Mesajul nu este trimis automat și trimiterea lui nu confirmă ștergerea.",
+  "localEraseError": "Datele locale nu au putut fi șterse.",
   "sections": [
    [
     "Aplicație și operator",
@@ -40,7 +31,7 @@ export const privacyCopy={
    ],
    [
     "Cloudflare, licențe și trialuri",
-    "Backendul de licențiere folosește UID-ul Firebase, datele trialului, starea licenței și restricții de securitate. Evidențele de achiziție includ produsul, hash-ul tokenului și tokenul criptat, acolo unde există o achiziție înregistrată. Jurnalul tehnic de solicitări poate conține UID, referință, dată, limbă și stare; înregistrarea automată a cererilor este dezactivată în configurația verificată. Solicitările transmise prin suport sunt gestionate manual. Drepturile OWNER sunt acordate server-side unei identități autorizate. Baza locală de rezervări și fotografiile nu sunt trimise pentru licențiere. Furnizorii pot procesa metadate tehnice de rețea conform propriilor reguli."
+    "Backendul de licențiere folosește UID-ul Firebase, datele trialului, starea licenței și restricții de securitate. Evidențele de achiziție includ produsul, hash-ul tokenului și tokenul criptat, acolo unde există o achiziție înregistrată. Înregistrările istorice ale solicitărilor, dacă există, pot conține UID, referință, dată, limbă și stare. Cererile noi sunt primite prin e-mail și gestionate manual. Drepturile OWNER sunt acordate server-side unei identități autorizate. Baza locală de rezervări și fotografiile nu sunt trimise pentru licențiere. Furnizorii pot procesa metadate tehnice de rețea conform propriilor reguli."
    ],
    [
     "Achiziții Google Play",
@@ -68,7 +59,7 @@ export const privacyCopy={
    ],
    [
     "Solicitarea ștergerii și drepturile tale",
-    "Pentru acces, rectificare, ștergere, restricționare, portabilitate sau opoziție, în condițiile GDPR, contactează operatorul la {contact}. Pentru ștergere, precizează că soliciți eliminarea contului aplicației și a datelor online asociate. Solicitările prin e-mail sunt gestionate manual; formularul și procesarea automată sunt dezactivate. Nu trimite parole, tokenuri sau backupuri. Verificarea identității trebuie limitată la informațiile necesare. Datele locale și copiile exportate nu sunt șterse de această solicitare. Un mesaj trimis sau o referință nu înseamnă ștergere finalizată. Cazurile cu achiziții, OWNER sau restricții nu sunt declarate soluționate automat; motivele și datele păstrate trebuie explicate individual. GDPR impune informarea privind măsurile luate fără întârziere nejustificată, în principiu în o lună; o prelungire justificată de cel mult două luni suplimentare se comunică motivat în prima lună. Acesta este termenul legal de răspuns, nu o promisiune de ștergere tehnică a tuturor copiilor în aceeași perioadă. Te poți adresa autorității de supraveghere competente."
+    "Pentru acces, rectificare, ștergere, restricționare, portabilitate sau opoziție, în condițiile GDPR, contactează operatorul la {contact}. Pentru ștergere, precizează că soliciți eliminarea contului aplicației și a datelor online asociate. Suportul primește solicitările prin e-mail și verifică identitatea înainte de procesare. Dacă legea sau o altă excepție aplicabilă impune păstrarea unor date, se păstrează numai evidențele necesare și se comunică motivul. Evidențele tranzacțiilor Google Play sunt tratate separat de datele personale eligibile pentru ștergere. Nu trimite parole, tokenuri sau backupuri. Verificarea identității trebuie limitată la informațiile necesare. Datele locale și copiile exportate nu sunt șterse de această solicitare. Un mesaj trimis sau o referință nu înseamnă ștergere finalizată. Cazurile cu achiziții, OWNER sau restricții nu sunt declarate soluționate automat; motivele și datele păstrate trebuie explicate individual. GDPR impune informarea privind măsurile luate fără întârziere nejustificată, în principiu în o lună; o prelungire justificată de cel mult două luni suplimentare se comunică motivat în prima lună. Acesta este termenul legal de răspuns, nu o promisiune de ștergere tehnică a tuturor copiilor în aceeași perioadă. Te poți adresa autorității de supraveghere competente."
    ],
    [
     "Securitate și modificări",
@@ -83,27 +74,18 @@ export const privacyCopy={
  "en": {
   "supportLabel": "Support and privacy contact: ",
   "deletionSupportLabel": "Support for account deletion requests: ",
-  "backendUnavailable": "Automatic requests are not enabled yet. Send your request to the displayed support email address. Messages are handled manually; sending an email does not confirm deletion.",
   "title": "Privacy",
   "deletion": "Request account deletion",
   "eraseLocal": "Delete local data separately",
   "eraseLocalConfirm": "Delete apartments, reservations and other business data in this installation? Unreferenced photos are removed at a safe startup after other windows close. Exported copies remain under your control.",
-  "startOnlineDeletion": "Open the secure account deletion form",
-  "onlineDeletionScope": "After identity verification, the request can remove the Firebase account, trial history and eligible online records. Apartments, reservations, local photos and exported copies remain on the device or with the chosen provider. Google Play purchases are not revoked. Accounts with purchases, OWNER access or security restrictions require manual review. A registered request is not completed deletion.",
-  "deletionCompleted": "Deletion of the account and eligible online data was confirmed.",
   "close": "Close",
-  "signIn": "Google sign-in for your request",
-  "confirm": "I confirm that I request deletion of my app account and associated online data, subject to identity verification and retention requirements.",
-  "submit": "Confirm request and verify identity",
-  "status": "Check request status",
-  "pending": "Request recorded, awaiting administrative review. The account and data have not yet been deleted. Reference: ",
-  "none": "No request is recorded for this account.",
-  "busy": "Verifying identity and request registration…",
-  "error": "The request could not be confirmed. We do not claim deletion was completed. Check the status again; an already recorded request will not be duplicated.",
-  "session": "The identity changed or requires recent authentication. Restart with the same account.",
-  "unconfigured": "The automated web form is inactive. To request deletion of your app account and associated online data, write to the displayed support address. Do not send passwords, tokens, signing keys or your data backup.",
   "draft": "DRAFT — required information and publication approval are not yet complete.",
-  "scope": "To request deletion of your Apartment Booking Manager account and associated online data, write to the displayed support address and state your request and the email address used for the app account. Handling is manual. Identity checks must be limited to information necessary to protect the account; do not send passwords, tokens or backups. An email or reference confirms communication/registration, not completed deletion. The automated form and automated processing are disabled in the checked configuration. This request does not delete your Google account or local business data, and does not automatically cancel or refund a Google Play purchase. Signing out is not deletion. Accounts with purchases, OWNER rights or security restrictions require manual assessment; they are not described as automatically resolved. Any retained data and reasons must be explained in the response. GDPR response deadlines apply, not an automated technical deletion deadline.",
+  "scope": "To request deletion of your Apartment Booking Manager account and associated online data, open the prepared message and send it to support. Enter the email address of the account you use in the app in the message. Support checks your identity manually before processing and asks only for necessary information. Do not send passwords, tokens, identity documents or backups through this form. Reservations, apartments, photos and local copies stay on the device or with the provider you chose. Google Play purchases are not automatically revoked, cancelled or refunded. Transaction records required by law are handled separately. Accounts with purchases, OWNER access or restrictions require individual review. If some data must be retained, support explains what remains and the basis for retention.",
+  "requestTemplateLabel": "Message to complete in your email application",
+  "requestTemplate": "I request deletion of my Apartment Booking Manager account and associated online data.\r\nEmail address of the account used in the app: [fill in here]",
+  "openEmail": "Open email to support",
+  "emailNotice": "If your email application does not open, copy the message and send it to the address above. The message is not sent automatically and sending it does not confirm deletion.",
+  "localEraseError": "Local data could not be deleted.",
   "sections": [
    [
     "App and controller",
@@ -119,7 +101,7 @@ export const privacyCopy={
    ],
    [
     "Cloudflare, licenses and trials",
-    "The licensing backend uses the Firebase UID, trial dates, license status and security restrictions. Purchase records include the product, token hash and encrypted token where a purchase is recorded. The technical request journal can contain a UID, reference, date, language and status; automated request registration is disabled in the checked configuration. Requests sent to support are handled manually. OWNER rights are granted server-side to an authorized identity. The local reservation database and photos are not sent for licensing. Providers may process network metadata under their own rules."
+    "The licensing backend uses the Firebase UID, trial dates, license status and security restrictions. Purchase records include the product, token hash and encrypted token where a purchase is recorded. Historical request records, where present, can contain a UID, reference, date, language and status. New requests are received by email and handled manually. OWNER rights are granted server-side to an authorized identity. The local reservation database and photos are not sent for licensing. Providers may process network metadata under their own rules."
    ],
    [
     "Google Play purchases",
@@ -147,7 +129,7 @@ export const privacyCopy={
    ],
    [
     "Deletion requests and your rights",
-    "For access, rectification, erasure, restriction, portability or objection, where applicable under GDPR, contact the controller at {contact}. For deletion, specify that you request removal of your app account and associated online data. Email requests are handled manually; the automated form and processing are disabled. Do not send passwords, tokens or backups. Identity verification must be limited to necessary information. Local data and exported copies are not erased by this request. Sending a message or receiving a reference is not completed deletion. Purchase, OWNER or restricted-account cases are not described as automatically resolved; retained data and reasons must be explained individually. GDPR requires information on action taken without undue delay and normally within one month; a justified extension of up to two further months must be explained within the first month. This is a legal response deadline, not a promise to technically erase all copies within that period. You may complain to the competent supervisory authority."
+    "For access, rectification, erasure, restriction, portability or objection, where applicable under GDPR, contact the controller at {contact}. For deletion, specify that you request removal of your app account and associated online data. Support handles requests by email and verifies identity before processing. Where retention is required by law or another applicable exception, only necessary records are retained and the reason is communicated. Google Play transaction records are handled separately from personal data eligible for deletion. Do not send passwords, tokens or backups. Identity verification must be limited to necessary information. Local data and exported copies are not erased by this request. Sending a message or receiving a reference is not completed deletion. Purchase, OWNER or restricted-account cases are not described as automatically resolved; retained data and reasons must be explained individually. GDPR requires information on action taken without undue delay and normally within one month; a justified extension of up to two further months must be explained within the first month. This is a legal response deadline, not a promise to technically erase all copies within that period. You may complain to the competent supervisory authority."
    ],
    [
     "Security and changes",

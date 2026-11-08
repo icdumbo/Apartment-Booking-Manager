@@ -1,28 +1,17 @@
-const CONFIRMATION='request-account-deletion-v1';
-export function createDeletionClient({getUser,getIdToken,reauthenticate,endpoint,fetchImpl=globalThis.fetch}){
- const url=new URL(endpoint);if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw Error('deletionUnavailable');
- let busy=false;
- async function call(action,{confirmed=false,language='en'}={}){
-  if(busy)throw Error('deletionBusy');const uid=getUser()?.uid;if(!uid)throw Error('authenticationRequired');
-  if(action==='request'&&!confirmed)throw Error('confirmationRequired');
-  busy=true;
-  const same=()=>{if(getUser()?.uid!==uid)throw Error('identityChanged');};
-  try{
-   if(action==='request')await reauthenticate();same();
-   const token=await getIdToken({uid});same();
-   const response=await fetchImpl(url.href,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,...(action==='request'?{confirmation:CONFIRMATION,language}:{})}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
-   same();if(!response.ok)throw Error(response.status===401?'recentAuthenticationRequired':'deletionUnavailable');
-   const result=await response.json();same();
-   if(result.version!==1||result.deleted!==false||!['pending_review','not_requested'].includes(result.status)||result.status==='pending_review'&&(typeof result.requestId!=='string'||!Number.isSafeInteger(result.createdAt))||action==='request'&&result.status!=='pending_review')throw Error('invalidDeletionResult');
-   return result;
-  }finally{busy=false;}
- }
- async function receipt(requestId){
-  const response=await fetchImpl(url.href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receipt',requestId}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
-  if(!response.ok)throw Error('deletionUnavailable');
-  const result=await response.json();
-  if(result.version!==1||typeof result.deleted!=='boolean')throw Error('invalidDeletionResult');
-  return result.deleted;
- }
- return {request:options=>call('request',options),status:()=>call('status'),receipt};
+// Prepare an email draft. The user sends it from their email application.
+export function deletionMailto(contact,copy){
+ if(typeof contact!=='string'||!/^[a-z0-9._+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(contact))throw Error('Invalid support address');
+ return 'mailto:'+contact+'?subject='+encodeURIComponent(copy.deletion)+'&body='+encodeURIComponent(copy.requestTemplate);
+}
+
+export function renderDeletionRequest(root,contact,copy){
+ const form=document.createElement('form');
+ const intro=document.createElement('p');intro.textContent=copy.scope;
+ const label=document.createElement('label');label.textContent=copy.requestTemplateLabel;
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=4;preview.style.cssText='display:block;width:100%;margin-block:8px;resize:vertical;font:inherit;';preview.value=copy.requestTemplate;label.append(preview);
+ const open=document.createElement('a');open.href=deletionMailto(contact,copy);open.textContent=copy.openEmail;
+ const support=document.createElement('p');support.textContent=copy.deletionSupportLabel+contact;
+ const note=document.createElement('p');note.textContent=copy.emailNotice;
+ form.addEventListener('submit',event=>event.preventDefault());
+ form.append(intro,label,open,support,note);root.append(form);
 }

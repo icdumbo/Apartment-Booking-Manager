@@ -1,9 +1,10 @@
-import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {resolve,dirname} from 'node:path';
-import {privacySettings,isPrivacyPublicationReady,privacyConfigurationIssues,isDeletionWebReady} from '../src/privacy-settings.js';
+import {privacySettings,isPrivacyPublicationReady,privacyConfigurationIssues} from '../src/privacy-settings.js';
 import {privacyCopy,policySections} from '../src/privacy-content.js';
+import {deletionMailto} from '../src/account-deletion.js';
 
 const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export const legalFiles=['privacy-ro.html','privacy-en.html','delete-account-ro.html','delete-account-en.html'];
@@ -19,14 +20,11 @@ export function renderLegalPages({configuration=privacySettings,preview=true}={}
   const unresolved=/NECONFIRMAT|UNCONFIRMED|nu sunt încă aprobate|not yet been approved|trebuie confirmate înainte de publicare|must be confirmed before publication|PLAN PROPUS — NEIMPLEMENTAT|PROPOSED PLAN — NOT IMPLEMENTED|VALIDARE JURIDICĂ NECESARĂ|LEGAL VALIDATION REQUIRED|Nu declarăm aceste verificări finalizate|Those checks are not claimed as completed/;
   if(Object.values(sections).some(items=>unresolved.test(items.flat().join(' '))))throw Error('Publication blocked: unresolved statements in shared RO/EN policy');
  }
- const interactive=!preview&&isDeletionWebReady(configuration);
- if(!preview&&!interactive)throw Error('Publication blocked: interactive deletion requires verified Google/Firebase and backend configuration');
  const pages={};
  for(const lang of ['ro','en'])for(const deletion of [false,true]){
   const c=privacyCopy[lang],name=(deletion?'delete-account-':'privacy-')+lang+'.html';
   const title=deletion?c.deletion:c.title;
-  const requestLink='<p><a href="request/delete-account.html?lang='+lang+'">'+escape(c.startOnlineDeletion)+'</a></p>';
-  const body=deletion?(interactive?'<p>'+escape(c.onlineDeletionScope)+'</p>'+requestLink:'<p>'+escape(c.scope)+'</p><p role="status">'+escape(c.unconfigured)+'</p>')+sections[lang].slice(9).map(section).join(''):sections[lang].map(section).join('');
+  const body=deletion?'<p>'+escape(c.scope)+'</p><p>'+escape(c.requestTemplateLabel)+'</p><blockquote>'+escape(c.requestTemplate).replace(/\r?\n/g,'<br>')+'</blockquote><p><a href="'+escape(deletionMailto(configuration.contact,c))+'">'+escape(c.openEmail)+'</a></p><p>'+escape(c.emailNotice)+'</p>':sections[lang].map(section).join('');
   const warning=preview?'<p class="draft" role="note">'+escape(c.draft)+'</p>':'';
   const support=configuration.contact;
   if(typeof support!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(support))throw Error('Invalid public contact');
@@ -45,25 +43,6 @@ export async function prepareLegalPages({preview=true}={}){
  for(const [path,content] of Object.entries(pages)){
   await writeFile(resolve(output,path),content,'utf8');
   manifest.files.push({path,sha256:createHash('sha256').update(content).digest('hex')});
- }
- if(!preview){
-  const runtime={
-   'legal/request/delete-account.html':'src/legal/delete-account.html',
-   'legal/request/privacy.html':'src/legal/privacy.html',
-   'legal/request/public.js':'src/legal/public.js',
-   'legal/privacy-content.js':'src/privacy-content.js',
-   'legal/privacy-settings.js':'src/privacy-settings.js',
-   'legal/account-deletion.js':'src/account-deletion.js'
-  };
-  await mkdir(resolve(output,'legal','request'),{recursive:true});
-  for(const [path,source] of Object.entries(runtime)){
-   const content=await readFile(resolve(root,source));
-   await writeFile(resolve(output,path),content);
-   manifest.files.push({path,sha256:createHash('sha256').update(content).digest('hex')});
-  }
-  const stylesheet='legal/styles.css';
-  await writeFile(resolve(output,stylesheet),css);
-  manifest.files.push({path:stylesheet,sha256:createHash('sha256').update(css).digest('hex')});
  }
  await writeFile(resolve(output,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
  return {output,manifest};

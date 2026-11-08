@@ -10,9 +10,7 @@ export const privacySettings=Object.freeze({
  publicBaseUrl:null, // HTTPS directory containing privacy.html and delete-account.html.
  legalReviewApproved:false,
  publicationApproved:false,
- automaticBackup:'excluded',
- webClientId:null,firebaseApiKey:null,deletionEndpoint:null,
- deletionBackendVerified:false // Only after real backend checks; never enables the server flag.
+ automaticBackup:'excluded'
 });
 const text=value=>typeof value==='string'&&value.trim().length>0;
 function secureUrl(value){try{if(!text(value))return null;const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&!url.hash?url:null;}catch{return null;}}
@@ -31,8 +29,3 @@ export function publicLegalUrls(config=privacySettings){
  const base=secureUrl(config.publicBaseUrl);if(!base||!base.pathname.endsWith('/'))return null;
  return Object.fromEntries(['privacy','deletion'].map(page=>[page,Object.fromEntries(['ro','en'].map(language=>{const url=new URL((page==='privacy'?'privacy-':'delete-account-')+language+'.html',base);return [language,url.href];}))]));
 }
-export function isDeletionBackendReady(config=privacySettings){
- const endpoint=secureUrl(config.deletionEndpoint);
- return isPrivacyPublicationReady(config)&&config.deletionBackendVerified===true&&Boolean(endpoint&&endpoint.pathname==='/account-deletion');
-}
-export function isDeletionWebReady(config=privacySettings){return isDeletionBackendReady(config)&&text(config.webClientId)&&text(config.firebaseApiKey);}

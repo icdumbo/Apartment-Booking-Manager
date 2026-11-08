@@ -1,3 +1,5 @@
+> **Procedură istorică.** Fluxul automat a fost retras. Pentru configurarea curentă, vezi [Solicitări de ștergere prin suport](manual-account-deletion.md). Nu folosi pașii istorici pentru activare.
+
 # Confidențialitate, solicitări de ștergere și backup Android
 
 Stadiu: implementare sigură, **nepublicată și incompletă operațional**. Nu s-au
