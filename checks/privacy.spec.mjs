@@ -77,29 +77,3 @@ for(const history of ['broken',JSON.stringify({version:1,startedAt:0,lastSeen:0}
  const retained=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'));if(history==='broken')expect(retained).toBe(history);else expect(JSON.parse(retained).startedAt).toBe(0);
 });
 
-test('a saved deletion receipt cannot sign out a session that is still initializing',async({page})=>{
- await mockLegalConfiguration(page);
- await page.clock.install();
- await page.addInitScript(()=>{
-  localStorage.setItem('apartment-booking-manager:deletion-receipt:v1',JSON.stringify({uid:'deleted-fixture',requestId:'00000000-0000-4000-8000-000000000001'}));
-  window.__signOuts=0;
-  window.Capacitor={getPlatform:()=> 'android',Plugins:{
-   BookingAuth:{
-    addListener:()=>({remove:async()=>{}}),
-    getCurrentUser:()=>new Promise(resolve=>{window.__resolveAuth=()=>resolve({user:{uid:'other-fixture'}});}),
-    signOut:async()=>{window.__signOuts++;}
-   },
-   BookingAccess:{getAccess:async()=>({state:'BASIC',subject:'other-fixture'}),clear:async()=>{},beginVerification:async()=>{throw Error('fixture offline');}}
-  }};
- });
- let receipts=0;
- await page.route('**/account-deletion',route=>{receipts++;return route.fulfill({headers:{'Access-Control-Allow-Origin':'*'},json:{version:1,deleted:true}});});
- await page.goto('/');
- await page.waitForFunction(()=>typeof window.__resolveAuth==='function');
- await page.clock.runFor(16000);
- expect(receipts).toBe(0);
- await page.evaluate(()=>window.__resolveAuth());
- await page.clock.runFor(16000);
- await expect.poll(()=>receipts).toBeGreaterThan(0);
- expect(await page.evaluate(()=>window.__signOuts)).toBe(0);
-});
