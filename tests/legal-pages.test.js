@@ -26,9 +26,13 @@ test('static export is restricted to four legal HTML files and reuses every shar
 
 test('release fails closed for missing approvals and unresolved policy even when configuration is filled',()=>{
  assert.throws(()=>renderLegalPages({preview:false}),/Publication blocked/);
- const filled={...fixture,retentionPolicy:{ro:'Fictional retention RO',en:'Fictional retention EN'},processingPolicy:{ro:'Fictional processing RO',en:'Fictional processing EN'},publicBaseUrl:'https://fixture.invalid/legal/',publicationApproved:true};
- assert.throws(()=>renderLegalPages({configuration:filled,preview:false}),/unresolved statements/);
- assert.throws(()=>renderLegalPages({configuration:{...filled,webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://fixture.invalid/account-deletion',deletionBackendVerified:true}}),/interactive deletion/);
+ const filled={...fixture,retentionPolicy:{ro:'Fictional retention RO',en:'Fictional retention EN'},processingPolicy:{ro:'Fictional processing RO',en:'Fictional processing EN'},publicBaseUrl:'https://fixture.invalid/legal/',legalReviewApproved:true,publicationApproved:true};
+ assert.throws(()=>renderLegalPages({configuration:filled,preview:false}),/interactive deletion/);
+ const approved={...filled,webClientId:'fixture-client',firebaseApiKey:'fixture-key',deletionEndpoint:'https://fixture.invalid/account-deletion',deletionBackendVerified:true};
+ const pages=renderLegalPages({configuration:approved,preview:false});
+ assert.match(pages['legal/delete-account-ro.html'],/request\/delete-account\.html\?lang=ro/);
+ assert.match(pages['legal/delete-account-en.html'],/request\/delete-account\.html\?lang=en/);
+ assert.ok(!pages['legal/privacy-ro.html'].includes('noindex'));
 });
 
 test('public text is escaped and the exporter cannot introduce executable controller content',()=>{

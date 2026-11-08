@@ -17,5 +17,12 @@ export function createDeletionClient({getUser,getIdToken,reauthenticate,endpoint
    return result;
   }finally{busy=false;}
  }
- return {request:options=>call('request',options),status:()=>call('status')};
+ async function receipt(requestId){
+  const response=await fetchImpl(url.href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'receipt',requestId}),credentials:'omit',redirect:'error',cache:'no-store',signal:AbortSignal.timeout(10000)});
+  if(!response.ok)throw Error('deletionUnavailable');
+  const result=await response.json();
+  if(result.version!==1||typeof result.deleted!=='boolean')throw Error('invalidDeletionResult');
+  return result.deleted;
+ }
+ return {request:options=>call('request',options),status:()=>call('status'),receipt};
 }

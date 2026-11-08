@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const base='84317b27fc2106c1e0406f4cfe36ff5f3c1fc425';
-const additions=['src/privacy-settings.js','src/privacy-content.js','src/privacy-screen.js','src/account-deletion.js','src/legal','backend/privacy-worker.js','backend/deletion-requests.js','backend/checks/deletion.check.mjs','backend/migrations/0003_deletion_requests.sql','android/app/src/main/res/xml/backup_rules.xml','android/app/src/main/res/xml/data_extraction_rules.xml'];
+const additions=['src/local-data-deletion.js','backend/checks/deletion-receipt.check.mjs','src/privacy-settings.js','src/privacy-content.js','src/privacy-screen.js','src/account-deletion.js','src/legal','backend/privacy-worker.js','backend/deletion-requests.js','backend/checks/deletion.check.mjs','backend/migrations/0003_deletion_requests.sql','android/app/src/main/res/xml/backup_rules.xml','android/app/src/main/res/xml/data_extraction_rules.xml'];
 additions.push('src/photo-lifecycle.js');
 const integrations=['src/month-navigation.js','src/timeline.js','src/secure-access.js','src/backup.js','src/apartment-photo.js','backend/checks/worker-access.check.mjs','src/play-billing.js','src/app.js','backend/wrangler.jsonc','android/app/src/main/AndroidManifest.xml','android/app/build.gradle'];
 // Explicit deletion-only additions; commercial/authentication/data sources remain protected.

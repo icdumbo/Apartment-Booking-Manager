@@ -14,7 +14,10 @@ concurrency:
 
 jobs:
   package:
+    if: contains(github.event.head_commit.message, '[publish-pages]')
     runs-on: ubuntu-latest
+    env:
+      INCLUDE_APPROVED_LEGAL: 'false'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,6 +39,16 @@ jobs:
             -e "s|src=\"src/app.js|src=\"$release/src/app.js|" _site/index.html
           grep -F "$release/src/app.js" _site/index.html
           grep -F "$release/src/styles.css" _site/index.html
+      - uses: actions/setup-node@v4
+        if: env.INCLUDE_APPROVED_LEGAL == 'true'
+        with:
+          node-version: '22'
+      - name: Include approved bilingual legal pages
+        if: env.INCLUDE_APPROVED_LEGAL == 'true'
+        run: |
+          node scripts/prepare-legal-pages.mjs --release
+          mkdir _site/legal
+          cp -R build/legal-pages-release/legal/. _site/legal/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

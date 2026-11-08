@@ -7,6 +7,11 @@ export const privacyCopy={
   "backendUnavailable": "Solicitările automate nu sunt încă activate. Trimite solicitarea prin e-mail la adresa de suport afișată. Mesajele sunt gestionate manual; trimiterea unui e-mail nu confirmă ștergerea.",
   "title": "Confidențialitate",
   "deletion": "Solicită ștergerea contului",
+  "eraseLocal": "Șterge separat datele locale",
+  "eraseLocalConfirm": "Ștergi apartamentele, rezervările și celelalte date de lucru din această instalare? Fotografiile nereferențiate se curăță la o pornire sigură, după închiderea celorlalte ferestre. Copiile exportate rămân la tine.",
+  "startOnlineDeletion": "Deschide formularul securizat de ștergere",
+  "onlineDeletionScope": "După verificarea identității, solicitarea poate elimina contul Firebase, istoricul trialului și evidențele online eligibile. Apartamentele, rezervările, fotografiile locale și copiile exportate rămân pe dispozitiv sau la furnizorul ales. Achizițiile Google Play nu sunt revocate. Conturile cu achiziții, OWNER sau restricții de securitate necesită analiză manuală. Solicitarea înregistrată nu înseamnă ștergere finalizată.",
+  "deletionCompleted": "Ștergerea contului și a datelor online eligibile a fost confirmată.",
   "close": "Închide",
   "signIn": "Autentificare Google pentru solicitare",
   "confirm": "Confirm că solicit ștergerea contului aplicației și a datelor online asociate, după verificarea identității și a obligațiilor de retenție.",
@@ -27,7 +32,7 @@ export const privacyCopy={
    ],
    [
     "Datele de afaceri de pe dispozitiv",
-    "Numele și adresele apartamentelor, proprietarii, fotografiile, numele și telefonul oaspeților, rezervările, notele, sumele, monedele, încasările, întreținerea și ciornele sunt salvate local în WebView (localStorage și IndexedDB). Aplicația nu le sincronizează cu propriul server și nu le trimite pentru acordarea licenței. Utilizatorul trebuie să introducă numai date pe care are dreptul să le prelucreze."
+    "Numele și adresele apartamentelor, proprietarii, fotografiile, numele și telefonul oaspeților, rezervările, notele, sumele, monedele, încasările, întreținerea și ciornele sunt salvate local în WebView (localStorage și IndexedDB). Aplicația nu le sincronizează cu propriul server și nu le trimite pentru acordarea licenței. Proprietarul sau administratorul care introduce datele oaspeților stabilește scopul și temeiul prelucrării lor și răspunde de informare, minimizare, securitate și soluționarea drepturilor oaspeților. Operatorul aplicației răspunde separat pentru prelucrările online pe care le controlează."
    ],
    [
     "Google și Firebase Authentication",
@@ -71,7 +76,7 @@ export const privacyCopy={
    ],
    [
     "Transferuri internaționale",
-    "Google documentează procesarea Firebase Authentication în SUA. Termenii Firebase Data Processing and Security Terms, secțiunea 10, prevăd soluții de transfer, inclusiv Data Privacy Framework pentru entitățile certificate acoperite și clauze contractuale standard, în condițiile de aplicabilitate prevăzute acolo. Cloudflare Customer DPA, secțiunea 6, descrie procesarea internațională, DPF și SCC pentru transferurile relevante. Existența acestor documente nu confirmă singură entitatea contractuală, acoperirea sau mecanismul aplicabil contului operatorului. Nu declarăm aceste verificări finalizate și nu promitem stocare exclusiv în UE. Surse oficiale: https://firebase.google.com/terms/data-processing-terms și https://www.cloudflare.com/cloudflare-customer-dpa/. Pentru e-mailul de suport se aplică regulile serviciului Google folosit, inclusiv politica https://policies.google.com/privacy; nu presupunem că acordul Firebase acoperă căsuța de e-mail."
+    "Google documentează procesarea Firebase Authentication în SUA. Termenii Firebase Data Processing and Security Terms, secțiunea 10, prevăd soluții de transfer, inclusiv Data Privacy Framework pentru entitățile certificate acoperite și clauze contractuale standard, în condițiile de aplicabilitate prevăzute acolo. Cloudflare Customer DPA, secțiunea 6, descrie procesarea internațională, DPF și SCC pentru transferurile relevante. Poți solicita informații despre garanțiile aplicabile transferurilor prin adresa de contact. Surse oficiale: https://firebase.google.com/terms/data-processing-terms și https://www.cloudflare.com/cloudflare-customer-dpa/. Pentru e-mailul de suport se aplică regulile serviciului Google folosit, inclusiv politica https://policies.google.com/privacy; nu presupunem că acordul Firebase acoperă căsuța de e-mail."
    ]
   ]
  },
@@ -81,6 +86,11 @@ export const privacyCopy={
   "backendUnavailable": "Automatic requests are not enabled yet. Send your request to the displayed support email address. Messages are handled manually; sending an email does not confirm deletion.",
   "title": "Privacy",
   "deletion": "Request account deletion",
+  "eraseLocal": "Delete local data separately",
+  "eraseLocalConfirm": "Delete apartments, reservations and other business data in this installation? Unreferenced photos are removed at a safe startup after other windows close. Exported copies remain under your control.",
+  "startOnlineDeletion": "Open the secure account deletion form",
+  "onlineDeletionScope": "After identity verification, the request can remove the Firebase account, trial history and eligible online records. Apartments, reservations, local photos and exported copies remain on the device or with the chosen provider. Google Play purchases are not revoked. Accounts with purchases, OWNER access or security restrictions require manual review. A registered request is not completed deletion.",
+  "deletionCompleted": "Deletion of the account and eligible online data was confirmed.",
   "close": "Close",
   "signIn": "Google sign-in for your request",
   "confirm": "I confirm that I request deletion of my app account and associated online data, subject to identity verification and retention requirements.",
@@ -101,7 +111,7 @@ export const privacyCopy={
    ],
    [
     "Business data on your device",
-    "Apartment names and addresses, owners, photos, guest names and phone numbers, reservations, notes, amounts, currencies, receipts, maintenance and drafts are stored locally in WebView localStorage and IndexedDB. The app does not synchronize them with its own server or send them for licensing. Only enter data you are entitled to process."
+    "Apartment names and addresses, owners, photos, guest names and phone numbers, reservations, notes, amounts, currencies, receipts, maintenance and drafts are stored locally in WebView localStorage and IndexedDB. The app does not synchronize them with its own server or send them for licensing. The owner or manager entering guest data determines its purpose and legal basis and is responsible for notice, minimization, security and handling guest rights. The app controller is separately responsible for the online processing it controls."
    ],
    [
     "Google and Firebase Authentication",
@@ -145,7 +155,7 @@ export const privacyCopy={
    ],
    [
     "International transfers",
-    "Google documents US processing for Firebase Authentication. Section 10 of the Firebase Data Processing and Security Terms provides transfer solutions, including the Data Privacy Framework for covered certified entities and standard contractual clauses under the conditions stated there. Section 6 of the Cloudflare Customer DPA describes international processing, DPF and SCCs for relevant transfers. These documents alone do not verify the contracting entity, coverage or transfer mechanism applicable to the controller account. Those checks are not claimed as completed, and EU-only storage is not promised. Official sources: https://firebase.google.com/terms/data-processing-terms and https://www.cloudflare.com/cloudflare-customer-dpa/. Support email is subject to the Google service rules, including https://policies.google.com/privacy; the Firebase agreement is not assumed to cover the mailbox."
+    "Google documents US processing for Firebase Authentication. Section 10 of the Firebase Data Processing and Security Terms provides transfer solutions, including the Data Privacy Framework for covered certified entities and standard contractual clauses under the conditions stated there. Section 6 of the Cloudflare Customer DPA describes international processing, DPF and SCCs for relevant transfers. You can ask about the safeguards applicable to transfers using the contact address. Official sources: https://firebase.google.com/terms/data-processing-terms and https://www.cloudflare.com/cloudflare-customer-dpa/. Support email is subject to the Google service rules, including https://policies.google.com/privacy; the Firebase agreement is not assumed to cover the mailbox."
    ]
   ]
  }

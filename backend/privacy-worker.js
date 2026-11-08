@@ -24,7 +24,6 @@ export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFire
   if(origin)headers['Access-Control-Allow-Origin']=origin;
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{...headers,'Access-Control-Allow-Methods':'POST','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
   if(request.method!=='POST')return reply(405,{error:'methodNotAllowed'});
-  if(!/^Bearer \S+$/.test(request.headers.get('Authorization')||''))return reply(401,{error:'authenticationRequired'});
   if(env.DELETION_REQUESTS_ENABLED!=='true'||!env.DB)return reply(503,{error:'deletionRequestUnavailable'});
   if(request.headers.get('Content-Type')?.split(';')[0].trim()!=='application/json')return reply(400,{error:'invalidRequest'});
   let body;
@@ -35,11 +34,17 @@ export function createPrivacyWorker({worker=accessWorker,makeVerifier=createFire
    body=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
   }catch{return reply(400,{error:'invalidRequest'});}
   try{
+   const repository=createDeletionRepository(env.DB);
+   if(body?.action==='receipt'){
+    const result=await createDeletionHandler({repository,clock})({body});
+    return reply(result.status,result.body);
+   }
+   if(!/^Bearer \S+$/.test(request.headers.get('Authorization')||''))return reply(401,{error:'authenticationRequired'});
    if(env.FIREBASE_API_KEY&&env.FIREBASE_WEB_API_KEY&&env.FIREBASE_API_KEY!==env.FIREBASE_WEB_API_KEY)throw Error();
    const apiKey=env.FIREBASE_API_KEY??env.FIREBASE_WEB_API_KEY;if(!apiKey)throw Error();
    const db=env.DB.withSession('first-primary');
    const verifyIdToken=makeVerifier({apiKey,resolveKey,clock,readIdentityPolicy:uid=>db.prepare('SELECT blocked,tokens_valid_after FROM identity_policy WHERE subject=?').bind(uid).first()});
-   const result=await createDeletionHandler({verifyIdToken,repository:createDeletionRepository(env.DB),clock})({authorization:request.headers.get('Authorization'),body});
+   const result=await createDeletionHandler({verifyIdToken,repository,clock})({authorization:request.headers.get('Authorization'),body});
    return reply(result.status,result.body);
   }catch{return reply(503,{error:'deletionRequestUnavailable'});}
  }};

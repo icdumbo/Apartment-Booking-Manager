@@ -3,7 +3,7 @@ import {randomUUID} from 'node:crypto';
 export const DELETION_CONFIRMATION='request-account-deletion-v1';
 export function createDeletionRepository(database){
  const db=database.withSession('first-primary');
- return {async read(subject){return db.prepare('SELECT request_id, status, created_at FROM account_deletion_requests WHERE subject=?').bind(subject).first();},
+ return {async receipt(requestId,now){return db.prepare('SELECT completed_at FROM deletion_receipts WHERE request_id=? AND expires_at>?').bind(requestId,now).first();},async read(subject){return db.prepare('SELECT request_id, status, created_at FROM account_deletion_requests WHERE subject=?').bind(subject).first();},
   async submit(subject,language,now){
    await db.prepare('INSERT INTO account_deletion_requests(subject,request_id,status,created_at,language) VALUES (?,?,\'pending_review\',?,?) ON CONFLICT(subject) DO NOTHING').bind(subject,randomUUID(),now,language).run();
    return this.read(subject);
@@ -12,6 +12,14 @@ export function createDeletionRepository(database){
 export function createDeletionHandler({verifyIdToken,repository,clock=Date.now}){
  return async({authorization,body})=>{
   const reply=(status,value)=>({status,body:value});
+  // The random request reference can reveal only completion, never an identity.
+  if(body?.action==='receipt'){
+   if(Object.keys(body).length!==2||typeof body.requestId!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(body.requestId))return reply(400,{error:'invalidRequest'});
+   try{
+    const record=await repository.receipt(body.requestId,clock());
+    return reply(200,{version:1,deleted:Boolean(record)});
+   }catch{return reply(503,{error:'deletionRequestUnavailable'});}
+  }
   const bearer=typeof authorization==='string'&&/^Bearer (\S+)$/.exec(authorization);
   if(!bearer)return reply(401,{error:'authenticationRequired'});
   try{
@@ -27,7 +35,7 @@ export function createDeletionHandler({verifyIdToken,repository,clock=Date.now})
     if(!record)throw Error('Unconfirmed write');
    }else record=await repository.read(c.uid);
    if(!record)return reply(200,{version:1,status:'not_requested',deleted:false});
-   // No completion state exists until an approved retention/deletion executor is built.
+   // Authenticated intake status is separate from the minimal completion receipt.
    if(record.status!=='pending_review'||typeof record.request_id!=='string'||!Number.isSafeInteger(record.created_at))throw Error('Invalid intake record');
    return reply(200,{version:1,requestId:record.request_id,status:'pending_review',createdAt:record.created_at,deleted:false});
   }catch(error){return reply(error.status===401?401:503,{error:error.status===401?'authenticationRequired':'deletionRequestUnavailable'});}
