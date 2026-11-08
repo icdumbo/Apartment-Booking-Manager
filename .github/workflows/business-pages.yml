@@ -29,6 +29,13 @@ jobs:
           test -s _site/src/app.js
           test ! -e _site/src/legal
           test ! -e _site/legal
+          release="business-$(git rev-parse --short=12 HEAD)"
+          mkdir "_site/$release"
+          mv _site/src "_site/$release/src"
+          sed -i -e "s|href=\"src/styles.css|href=\"$release/src/styles.css|" \
+            -e "s|src=\"src/app.js|src=\"$release/src/app.js|" _site/index.html
+          grep -F "$release/src/app.js" _site/index.html
+          grep -F "$release/src/styles.css" _site/index.html
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
