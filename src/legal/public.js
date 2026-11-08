@@ -24,7 +24,7 @@ function googleSignIn(container,message){
  };document.head.append(script);
 }
 function render(){
- const c=privacyCopy[language];document.documentElement.lang=language;nav.replaceChildren();for(const lang of ['ro','en']){const b=document.createElement('button');b.type='button';b.textContent=lang.toUpperCase();b.disabled=busy;b.onclick=()=>{generation++;language=lang;user=null;idToken=null;pendingReference=null;render();};nav.append(b);}
+ const c=privacyCopy[language];document.documentElement.lang=language;nav.replaceChildren();for(const lang of ['ro','en']){const b=document.createElement('button');b.type='button';b.textContent=lang.toUpperCase();b.disabled=busy;b.onclick=()=>{generation++;language=lang;render();};nav.append(b);}
  const current=new URL(location.href);current.searchParams.set('lang',language);history.replaceState(null,'',current);
  const related=document.querySelector('main>p>a');related.href=(isDeletion?'privacy.html':'delete-account.html')+'?lang='+language;related.textContent=isDeletion?c.title:c.deletion;
  const urls=publicLegalUrls();if(isPrivacyPublicationReady()&&urls)related.href=urls[isDeletion?'privacy':'deletion'][language];let canonical=document.querySelector('link[rel=canonical]');if(isPrivacyPublicationReady()&&urls){if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.append(canonical);}canonical.href=urls[isDeletion?'deletion':'privacy'][language];}

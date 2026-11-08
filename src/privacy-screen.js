@@ -10,7 +10,7 @@ export function mountPrivacy({auth}){
  const heading=document.createElement('div'),title=document.createElement('h2'),close=document.createElement('button'),body=document.createElement('div');heading.className='dialog-heading';title.id='privacy-title';close.type='button';close.style.minHeight='44px';heading.append(title,close);dialog.append(heading,body);document.body.append(dialog);
  let mode='policy',busy=false,session=auth.bridge?.getCurrentUser()?.uid;
  const receiptKey='apartment-booking-manager:deletion-receipt:v1';
- let pending=null,checking=false;
+ let pending=null,checking=false,sessionKnown=Boolean(session);
  try{const saved=JSON.parse(localStorage.getItem(receiptKey));if(typeof saved?.uid==='string'&&typeof saved.requestId==='string')pending=saved;}catch{}
  function remember(ticket){
   pending=ticket;
@@ -18,14 +18,14 @@ export function mountPrivacy({auth}){
  }
  const client=auth.bridge&&isDeletionBackendReady()?createDeletionClient({endpoint:privacySettings.deletionEndpoint,getUser:()=>auth.bridge.getCurrentUser(),getIdToken:expected=>auth.bridge.getIdToken(expected),reauthenticate:()=>auth.signIn()}):null;
  async function checkCompletion(){
-  if(!pending||checking||!client)return false;
+  if(!pending||checking||!client||!sessionKnown)return false;
   checking=true;
   const ticket=pending;
   try{
    if(!await client.receipt(ticket.requestId)||pending!==ticket)return false;
    const uid=auth.bridge.getCurrentUser()?.uid;
    if(uid&&uid!==ticket.uid)return false;
-   await auth.signOut();
+   if(uid===ticket.uid)await auth.signOut();
    remember(null);
    if(mode==='deletion'&&dialog.open)dialog.close();
    return true;
@@ -62,6 +62,6 @@ export function mountPrivacy({auth}){
  }
  privacy.onclick=()=>{mode='policy';render();menu.close();dialog.showModal();dialog.scrollTop=0;};
  deletion.onclick=()=>{if(!auth.bridge?.getCurrentUser())return;mode='deletion';render();menu.close();dialog.showModal();};close.onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
- auth.bridge?.onIdTokenChanged(()=>{const next=auth.bridge.getCurrentUser()?.uid;if(next!==session){session=next;if(dialog.open)dialog.close();}labels();});
+ auth.bridge?.onIdTokenChanged(()=>{sessionKnown=true;const next=auth.bridge.getCurrentUser()?.uid;if(next!==session){session=next;if(dialog.open)dialog.close();}labels();});
  let language=getLanguage();new MutationObserver(()=>{if(language===getLanguage())return;language=getLanguage();labels();if(dialog.open&&!busy)render();}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});labels();
 }

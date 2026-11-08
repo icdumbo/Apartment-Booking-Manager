@@ -30,12 +30,16 @@ test('authenticated deletion asks confirmation, reauthenticates and never claims
 test('public legal pages work without app authentication and unconfigured web requests are visibly unavailable',async({page})=>{
  for(const lang of ['ro','en']){await page.goto('/src/legal/privacy.html?lang='+lang);await expect(page.locator('#legal-content')).toContainText('Firebase');await expect(page.locator('#legal-content [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);await expect(page.locator('#legal-content')).toContainText('Cloudflare');await page.locator('main>p>a').click();await expect(page).toHaveURL(new RegExp('delete-account.html\\?lang='+lang+'$'));await expect(page.locator('html')).toHaveAttribute('lang',lang);await expect(page.locator('#legal-content')).toContainText(lang==='ro'?'Formularul web automat nu este activ':'The automated web form is inactive');await expect(page.locator('#legal-content input')).toHaveCount(0);await expect(page.locator('#legal-content [data-privacy-contact] a')).toHaveAttribute('href','mailto:'+privacySettings.contact);await page.locator('main>p>a').click();await expect(page).toHaveURL(new RegExp('privacy.html\\?lang='+lang+'$'));}
 });
-test('configured public web flow uses Google/Firebase identity and server-confirmed intake only',async({page})=>{
+test('configured public web flow retains the receipt across languages and confirms deletion',async({page})=>{
  await mockLegalConfiguration(page);
  await page.route('https://accounts.google.com/gsi/client',route=>route.fulfill({contentType:'text/javascript',body:'window.google={accounts:{id:{initialize(o){this.cb=o.callback;},renderButton(el){const b=document.createElement("button");b.textContent="Fixture Google";b.onclick=()=>this.cb({credential:"fixture-google"});el.append(b);}}}};'}));
  await page.route('https://identitytoolkit.googleapis.com/**',route=>route.fulfill({headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify({localId:'fictional-a',idToken:'fixture-token'})}));
- await page.route('https://api.fixture.invalid/account-deletion',route=>route.fulfill({headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify({version:1,status:'pending_review',deleted:false,requestId:'web-fixture',createdAt:1800000000000})}));
+ await page.route('https://api.fixture.invalid/account-deletion',route=>route.fulfill({headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'content-type, authorization'},contentType:'application/json',body:JSON.stringify(route.request().postDataJSON().action==='receipt'?{version:1,deleted:true}:{version:1,status:'pending_review',deleted:false,requestId:'web-fixture',createdAt:1800000000000})}));
  await page.goto('/src/legal/delete-account.html?lang=en');await page.getByRole('button',{name:'Google sign-in for your request'}).click();await page.getByRole('button',{name:'Fixture Google'}).click();await page.locator('input[type=checkbox]').check();await page.getByRole('button',{name:'Confirm request and verify identity'}).click();await expect(page.getByRole('status')).toContainText('web-fixture');await expect(page.getByRole('status')).toContainText('not yet been deleted');
+ await page.getByRole('button',{name:'RO',exact:true}).click();
+ await page.locator('#legal-content form button[type=button]').click();
+ await expect(page.getByRole('status')).toContainText('a fost confirmată');
+ await expect(page.locator('#legal-content form')).toHaveCount(0);
 });
 test('publication-ready policy renders the correct language; an unverified backend cannot start sign-in or intake',async({page})=>{
  await mockLegalConfiguration(page,{deletionBackendVerified:false});
@@ -49,4 +53,31 @@ for(const history of ['broken',JSON.stringify({version:1,startedAt:0,lastSeen:0}
  page.once('dialog',dialog=>dialog.dismiss());await page.locator('#activate-secure-trial').click();expect(activations).toBe(0);
  page.once('dialog',dialog=>{expect(dialog.message()).toContain('6 luni');return dialog.accept();});await page.locator('#activate-secure-trial').click();await expect.poll(()=>activations).toBe(1);await expect(page.locator('#auth-status')).toContainText('nu a putut');await expect(page.locator('#menu-access-status')).toContainText('BASIC');
  const retained=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:access:v1'));if(history==='broken')expect(retained).toBe(history);else expect(JSON.parse(retained).startedAt).toBe(0);
+});
+
+test('a saved deletion receipt cannot sign out a session that is still initializing',async({page})=>{
+ await mockLegalConfiguration(page);
+ await page.clock.install();
+ await page.addInitScript(()=>{
+  localStorage.setItem('apartment-booking-manager:deletion-receipt:v1',JSON.stringify({uid:'deleted-fixture',requestId:'00000000-0000-4000-8000-000000000001'}));
+  window.__signOuts=0;
+  window.Capacitor={getPlatform:()=> 'android',Plugins:{
+   BookingAuth:{
+    addListener:()=>({remove:async()=>{}}),
+    getCurrentUser:()=>new Promise(resolve=>{window.__resolveAuth=()=>resolve({user:{uid:'other-fixture'}});}),
+    signOut:async()=>{window.__signOuts++;}
+   },
+   BookingAccess:{getAccess:async()=>({state:'BASIC',subject:'other-fixture'}),clear:async()=>{},beginVerification:async()=>{throw Error('fixture offline');}}
+  }};
+ });
+ let receipts=0;
+ await page.route('**/account-deletion',route=>{receipts++;return route.fulfill({headers:{'Access-Control-Allow-Origin':'*'},json:{version:1,deleted:true}});});
+ await page.goto('/');
+ await page.waitForFunction(()=>typeof window.__resolveAuth==='function');
+ await page.clock.runFor(16000);
+ expect(receipts).toBe(0);
+ await page.evaluate(()=>window.__resolveAuth());
+ await page.clock.runFor(16000);
+ await expect.poll(()=>receipts).toBeGreaterThan(0);
+ expect(await page.evaluate(()=>window.__signOuts)).toBe(0);
 });
