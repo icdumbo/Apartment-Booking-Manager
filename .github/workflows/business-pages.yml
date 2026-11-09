@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: 139518f2b98f05ff98993a4327a01aedddd1bf86
+          ref: ce51edbaf94cf7e349e8f2689ad471d6de407ab6
           persist-credentials: false
       - name: Package verified BUSINESS web files
         run: |
