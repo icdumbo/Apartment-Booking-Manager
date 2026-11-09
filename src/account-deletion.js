@@ -21,7 +21,7 @@ export function renderDeletionRequest(root,contact,copy,{enterEmail=false}={}){
   email.style.cssText='display:block;width:100%;max-width:100%;box-sizing:border-box;margin-block:8px';
   account.append(email);form.append(account);
   const send=document.createElement('button');
-  send.type='submit';send.textContent=copy.sendRequestEmail;
+  send.type='button';send.textContent=copy.sendRequestEmail;
   send.style.cssText='display:block;min-height:44px;max-width:100%;white-space:normal';
   const error=document.createElement('p');
   error.id='deletion-email-error';error.hidden=true;error.setAttribute('role','alert');
@@ -34,15 +34,16 @@ export function renderDeletionRequest(root,contact,copy,{enterEmail=false}={}){
    if(email.validity.valid){error.hidden=true;email.removeAttribute('aria-invalid');}
   }
   email.addEventListener('input',updateDraft);
-  form.addEventListener('submit',event=>{
-   event.preventDefault();
+  function prepareEmail(){
    if(!email.validity.valid){
     error.textContent=copy.invalidAccountEmail;error.hidden=false;
     email.setAttribute('aria-invalid','true');email.focus();return;
    }
    updateDraft();
    open.click();
-  });
+  }
+  send.addEventListener('click',prepareEmail);
+  form.addEventListener('submit',event=>{event.preventDefault();prepareEmail();});
   form.append(label,send,error,open,support,note);
  }else{
   form.append(label,open,support,note);
