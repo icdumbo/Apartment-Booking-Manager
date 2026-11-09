@@ -17,7 +17,7 @@ export function renderDeletionRequest(root,contact,copy,{enterEmail=false}={}){
   const account=document.createElement('label');
   account.textContent=copy.requestAccountEmail;
   const email=document.createElement('input');
-  email.type='email';email.autocomplete='email';email.required;
+  email.type='email';email.autocomplete='email';email.required=true;
   email.style.cssText='display:block;width:100%;max-width:100%;box-sizing:border-box;margin-block:8px';
   account.append(email);form.append(account);
   const send=document.createElement('button');
