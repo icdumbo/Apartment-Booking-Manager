@@ -32,7 +32,7 @@ export function mountPrivacy({auth}){
   title.textContent=mode==='policy'?copy.title:copy.deletion;
   body.replaceChildren();labels();
   if(mode==='deletion'){
-   renderDeletionRequest(body,privacySettings.contact,copy,{enterEmail:allowGuest&&!auth.bridge?.getCurrentUser()});
+   renderDeletionRequest(body,privacySettings.contact,copy,{enterEmail:allowGuest});
    return;
   }
   renderPolicy(body,getLanguage());

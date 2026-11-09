@@ -26,8 +26,26 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
   await page.locator('#open-account-deletion').click();
   const dialog=page.locator('#privacy-dialog');
   await verifyDraft(dialog,language);
-  await dialog.locator('input[type=email]').fill('fictional-user@example.invalid');
-  const draft=new URL(await dialog.locator('form a').getAttribute('href'));
+  const email=dialog.locator('input[type=email]');
+  const send=dialog.getByRole('button',{name:language==='ro'?'Trimite solicitarea prin e-mail':'Send request by email'});
+  await page.setViewportSize(language==='ro'?{width:360,height:640}:{width:1280,height:800});
+  await send.scrollIntoViewIfNeeded();
+  await expect(send).toBeInViewport({ratio:1});
+  await send.click();
+  await expect(dialog.getByRole('alert')).toHaveText(language==='ro'?'Introdu o adresă de e-mail validă pentru contul Google.':'Enter a valid email address for your Google account.');
+  await expect(email).toBeFocused();
+  await email.fill('invalid');
+  await send.click();
+  await expect(email).toHaveAttribute('aria-invalid','true');
+  await email.fill('fictional-user@example.invalid');
+  await expect(dialog.getByRole('alert')).toBeHidden();
+  await dialog.locator('form a').evaluate(link=>link.addEventListener('click',event=>{
+   event.preventDefault();
+   link.dataset.opened=link.href;
+  }));
+  await send.click();
+  await expect(dialog.locator('form a')).toHaveAttribute('data-opened',/^mailto:/);
+  const draft=new URL(await dialog.locator('form a').getAttribute('data-opened'));
   expect(draft.pathname).toBe(privacySettings.contact);
   expect(draft.searchParams.get('body')).toContain('fictional-user@example.invalid');
   await expect(dialog).toContainText(language==='ro'?'Suportul verifică manual identitatea':'Support checks your identity manually');
