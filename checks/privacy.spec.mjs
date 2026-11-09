@@ -31,7 +31,15 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
   const send=dialog.getByRole('button',{name:language==='ro'?'Trimite solicitarea prin e-mail':'Send request by email'});
   await send.scrollIntoViewIfNeeded();
   await expect(send).toBeInViewport({ratio:1});
-  await send.press('Enter');
+  await expect(email).toHaveValue('');
+  await expect(email).toHaveJSProperty('required',true);
+  await send.evaluate(button=>{
+   window.addEventListener('error',event=>{button.dataset.failure=event.message;});
+   button.addEventListener('click',()=>{button.dataset.clicked='true';});
+  });
+  await send.click();
+  await expect(send).toHaveAttribute('data-clicked','true');
+  await expect(send).not.toHaveAttribute('data-failure',/./);
   await expect(dialog.locator('#deletion-email-error')).toHaveText(language==='ro'?'Introdu o adresă de e-mail validă pentru contul Google.':'Enter a valid email address for your Google account.');
   await expect(email).toBeFocused();
   await email.fill('invalid');
