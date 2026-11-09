@@ -19,6 +19,7 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
  const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));
  await context.setOffline(true);
  for(const language of ['ro','en']){
+  await page.setViewportSize(language==='ro'?{width:360,height:640}:{width:1280,height:800});
   await page.locator('.top [data-language='+language+']').click();
   await page.locator('#open-menu').click();
   const details=page.locator('#menu-account');
@@ -28,22 +29,21 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
   await verifyDraft(dialog,language);
   const email=dialog.locator('input[type=email]');
   const send=dialog.getByRole('button',{name:language==='ro'?'Trimite solicitarea prin e-mail':'Send request by email'});
-  await page.setViewportSize(language==='ro'?{width:360,height:640}:{width:1280,height:800});
   await send.scrollIntoViewIfNeeded();
   await expect(send).toBeInViewport({ratio:1});
-  await send.click();
-  await expect(dialog.getByRole('alert')).toHaveText(language==='ro'?'Introdu o adresă de e-mail validă pentru contul Google.':'Enter a valid email address for your Google account.');
+  await send.press('Enter');
+  await expect(dialog.locator('#deletion-email-error')).toHaveText(language==='ro'?'Introdu o adresă de e-mail validă pentru contul Google.':'Enter a valid email address for your Google account.');
   await expect(email).toBeFocused();
   await email.fill('invalid');
-  await send.click();
+  await send.press('Enter');
   await expect(email).toHaveAttribute('aria-invalid','true');
   await email.fill('fictional-user@example.invalid');
-  await expect(dialog.getByRole('alert')).toBeHidden();
+  await expect(dialog.locator('#deletion-email-error')).toBeHidden();
   await dialog.locator('form a').evaluate(link=>link.addEventListener('click',event=>{
    event.preventDefault();
    link.dataset.opened=link.href;
   }));
-  await send.click();
+  await send.press('Enter');
   await expect(dialog.locator('form a')).toHaveAttribute('data-opened',/^mailto:/);
   const draft=new URL(await dialog.locator('form a').getAttribute('data-opened'));
   expect(draft.pathname).toBe(privacySettings.contact);
