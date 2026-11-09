@@ -13,14 +13,26 @@ async function verifyDraft(root,language){
  await expect(root.locator('form')).toContainText(language==='ro'?'Mesajul nu este trimis automat':'The message is not sent automatically');
 }
 
-test('anonymous BASIC can read RO/EN policy offline; account request is hidden',async({page,context})=>{
+test('anonymous BASIC can read RO/EN policy offline; account request works without sign-in',async({page,context})=>{
  await page.addInitScript(data=>localStorage.setItem('apartment-booking-manager:v1',JSON.stringify(data)),fixture);
  await page.goto('/');await expect(page.locator('.timeline-row')).toHaveCount(1);
  const before=await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'));
  await context.setOffline(true);
  for(const language of ['ro','en']){
   await page.locator('.top [data-language='+language+']').click();
-  await page.locator('#open-menu').click();await expect(page.locator('#open-account-deletion')).toBeHidden();
+  await page.locator('#open-menu').click();
+  const details=page.locator('#menu-account');
+  if(await details.getAttribute('open')===null)await details.locator('summary').click();
+  await page.locator('#open-account-deletion').click();
+  const dialog=page.locator('#privacy-dialog');
+  await verifyDraft(dialog,language);
+  await dialog.locator('input[type=email]').fill('fictional-user@example.invalid');
+  const draft=new URL(await dialog.locator('form a').getAttribute('href'));
+  expect(draft.pathname).toBe(privacySettings.contact);
+  expect(draft.searchParams.get('body')).toContain('fictional-user@example.invalid');
+  await expect(dialog).toContainText(language==='ro'?'Suportul verifică manual identitatea':'Support checks your identity manually');
+  await dialog.locator('.dialog-heading button').click();
+  await page.locator('#open-menu').click();
   await page.locator('#open-privacy').click();
   await expect(page.locator('#privacy-dialog')).toContainText('Cloudflare');
   await page.locator('#privacy-dialog .dialog-heading button').click();

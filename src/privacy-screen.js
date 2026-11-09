@@ -20,18 +20,19 @@ export function mountPrivacy({auth}){
  dialog.id='privacy-dialog';dialog.setAttribute('aria-labelledby','privacy-title');dialog.style.cssText='max-height:calc(100dvh - 24px);overflow-y:auto';
  heading.className='dialog-heading';title.id='privacy-title';close.type='button';close.style.minHeight='44px';
  heading.append(title,close);dialog.append(heading,body);document.body.append(dialog);
+ const allowGuest=!(globalThis.Capacitor?.isNativePlatform?.() ?? (globalThis.Capacitor?.getPlatform?.()==='android'));
  let mode='policy',busy=false;
  function labels(){
   const copy=privacyCopy[getLanguage()];
   privacy.textContent=copy.title;deletion.textContent=copy.deletion;
-  deletion.hidden=!auth.bridge?.getCurrentUser();close.textContent=copy.close;
+  deletion.hidden=!allowGuest&&!auth.bridge?.getCurrentUser();close.textContent=copy.close;
  }
  function render(){
   const copy=privacyCopy[getLanguage()];
   title.textContent=mode==='policy'?copy.title:copy.deletion;
   body.replaceChildren();labels();
   if(mode==='deletion'){
-   renderDeletionRequest(body,privacySettings.contact,copy);
+   renderDeletionRequest(body,privacySettings.contact,copy,{enterEmail:allowGuest&&!auth.bridge?.getCurrentUser()});
    return;
   }
   renderPolicy(body,getLanguage());
@@ -51,7 +52,7 @@ export function mountPrivacy({auth}){
   mode=next;render();menu.close();dialog.showModal();dialog.scrollTop=0;
  }
  privacy.onclick=()=>open('policy');
- deletion.onclick=()=>{if(auth.bridge?.getCurrentUser())open('deletion');};
+ deletion.onclick=()=>{if(allowGuest||auth.bridge?.getCurrentUser())open('deletion');};
  close.onclick=()=>{if(!busy)dialog.close();};
  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
  let subject=auth.bridge?.getCurrentUser()?.uid,language=getLanguage();
