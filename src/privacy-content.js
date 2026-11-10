@@ -4,7 +4,7 @@ export const privacyCopy={
  "ro": {
   "supportLabel": "Suport și confidențialitate: ",
   "deletionSupportLabel": "Suport pentru solicitările de ștergere a contului: ",
-  "title": "Confidențialitate",
+  "title": "Politica de confidențialitate",
   "deletion": "Solicită ștergerea contului",
   "eraseLocal": "Șterge separat datele locale",
   "eraseLocalConfirm": "Ștergi apartamentele, rezervările și celelalte date de lucru din această instalare? Fotografiile nereferențiate se curăță la o pornire sigură, după închiderea celorlalte ferestre. Copiile exportate rămân la tine.",
@@ -26,7 +26,7 @@ export const privacyCopy={
    ],
    [
     "Datele de afaceri de pe dispozitiv",
-    "Numele și adresele apartamentelor, proprietarii, fotografiile, numele și telefonul oaspeților, rezervările, notele, sumele, monedele, încasările, întreținerea și ciornele sunt salvate local în WebView (localStorage și IndexedDB). Aplicația nu le sincronizează cu propriul server și nu le trimite pentru acordarea licenței. Proprietarul sau administratorul care introduce datele oaspeților stabilește scopul și temeiul prelucrării lor și răspunde de informare, minimizare, securitate și soluționarea drepturilor oaspeților. Operatorul aplicației răspunde separat pentru prelucrările online pe care le controlează."
+    "Numele și adresele apartamentelor, proprietarii, fotografiile, numele și telefonul oaspeților, rezervările, notele, sumele, monedele, încasările, întreținerea și ciornele sunt salvate local în browser sau, pe Android, în WebView (localStorage și IndexedDB). Aplicația nu le sincronizează cu propriul server și nu le trimite pentru acordarea licenței. Proprietarul sau administratorul care introduce datele oaspeților stabilește scopul și temeiul prelucrării lor și răspunde de informare, minimizare, securitate și soluționarea drepturilor oaspeților. Operatorul aplicației răspunde separat pentru prelucrările online pe care le controlează."
    ],
    [
     "Google și Firebase Authentication",
@@ -34,15 +34,15 @@ export const privacyCopy={
    ],
    [
     "Cloudflare, licențe și trialuri",
-    "Backendul de licențiere folosește UID-ul Firebase, datele trialului, starea licenței și restricții de securitate. Evidențele de achiziție includ produsul, hash-ul tokenului și tokenul criptat, acolo unde există o achiziție înregistrată. Înregistrările istorice ale solicitărilor, dacă există, pot conține UID, referință, dată, limbă și stare. Cererile noi sunt primite prin e-mail și gestionate manual. Drepturile OWNER sunt acordate server-side unei identități autorizate. Baza locală de rezervări și fotografiile nu sunt trimise pentru licențiere. Furnizorii pot procesa metadate tehnice de rețea conform propriilor reguli."
+    "Aplicația trimite către backendul Cloudflare un token Firebase de autentificare pentru verificarea identității. Backendul de licențiere folosește UID-ul Firebase, datele trialului, starea licenței și restricții de securitate. Evidențele de achiziție includ produsul, hash-ul tokenului și tokenul criptat, acolo unde există o achiziție înregistrată. Înregistrările istorice ale solicitărilor, dacă există, pot conține UID, referință, dată, limbă și stare. Cererile noi sunt primite prin e-mail și gestionate manual. Drepturile OWNER sunt acordate server-side unei identități autorizate. Baza locală de rezervări și fotografiile nu sunt trimise pentru licențiere. Furnizorii pot procesa metadate tehnice de rețea conform propriilor reguli."
    ],
    [
     "Achiziții Google Play",
-    "Cumpărarea Google Play este dezactivată în configurația actuală. Aplicația nu solicită numărul cardului și nu procesează direct plăți cu cardul. Tokenurile de achiziție păstrate de sistemul de licențiere sunt criptate. Drepturile de achiziție Google Play și datele de afaceri locale sunt distincte; ștergerea contului aplicației nu anulează sau rambursează automat o achiziție. Google aplică propriile condiții datelor procesate în serviciile sale de plată."
+    "Cumpărarea Google Play este dezactivată în configurația implicită a aplicației. Aplicația nu solicită numărul cardului și nu procesează direct plăți cu cardul. Tokenurile de achiziție păstrate de sistemul de licențiere sunt criptate. Drepturile de achiziție Google Play și datele de afaceri locale sunt distincte; ștergerea contului aplicației nu anulează sau rambursează automat o achiziție. Google aplică propriile condiții datelor procesate în serviciile sale de plată."
    ],
    [
     "Reclame și consimțământ",
-    "Reclamele AdMob sunt dezactivate în configurația actuală, iar SDK-ul publicitar este exclus din buildul implicit. Nu declarăm reclame livrate sau consimțământ publicitar colectat în această configurație."
+    "Reclamele AdMob sunt dezactivate în configurația implicită, iar SDK-ul publicitar este exclus din buildul implicit. Nu declarăm reclame livrate sau consimțământ publicitar colectat în această configurație."
    ],
    [
     "Backup JSON și exporturi",
@@ -62,7 +62,7 @@ export const privacyCopy={
    ],
    [
     "Solicitarea ștergerii și drepturile tale",
-    "Pentru acces, rectificare, ștergere, restricționare, portabilitate sau opoziție, în condițiile GDPR, contactează operatorul la {contact}. Pentru ștergere, precizează că soliciți eliminarea contului aplicației și a datelor online asociate. Suportul primește solicitările prin e-mail și verifică identitatea înainte de procesare. Dacă legea sau o altă excepție aplicabilă impune păstrarea unor date, se păstrează numai evidențele necesare și se comunică motivul. Evidențele tranzacțiilor Google Play sunt tratate separat de datele personale eligibile pentru ștergere. Nu trimite parole, tokenuri sau backupuri. Verificarea identității trebuie limitată la informațiile necesare. Datele locale și copiile exportate nu sunt șterse de această solicitare. Un mesaj trimis sau o referință nu înseamnă ștergere finalizată. Cazurile cu achiziții, OWNER sau restricții nu sunt declarate soluționate automat; motivele și datele păstrate trebuie explicate individual. GDPR impune informarea privind măsurile luate fără întârziere nejustificată, în principiu în o lună; o prelungire justificată de cel mult două luni suplimentare se comunică motivat în prima lună. Acesta este termenul legal de răspuns, nu o promisiune de ștergere tehnică a tuturor copiilor în aceeași perioadă. Te poți adresa autorității de supraveghere competente."
+    "Pentru acces, rectificare, ștergere, restricționare, portabilitate sau opoziție, în condițiile GDPR, contactează operatorul la {contact}. Pentru ștergere, precizează că soliciți eliminarea contului aplicației și a datelor online asociate. Suportul primește solicitările prin e-mail și verifică identitatea înainte de procesare. Dacă legea sau o altă excepție aplicabilă impune păstrarea unor date, se păstrează numai evidențele necesare și se comunică motivul. Evidențele tranzacțiilor Google Play sunt tratate separat de datele personale eligibile pentru ștergere. Nu trimite parole, tokenuri sau backupuri. Verificarea identității trebuie limitată la informațiile necesare. Datele locale și copiile exportate nu sunt șterse de această solicitare. Un mesaj trimis sau o referință nu înseamnă ștergere finalizată. Cazurile cu achiziții, OWNER sau restricții nu sunt declarate soluționate automat; motivele și datele păstrate trebuie explicate individual. GDPR impune informarea privind măsurile luate fără întârziere nejustificată, în principiu într-o lună; o prelungire justificată de cel mult două luni suplimentare se comunică motivat în prima lună. Acesta este termenul legal de răspuns, nu o promisiune de ștergere tehnică a tuturor copiilor în aceeași perioadă. Te poți adresa autorității de supraveghere competente."
    ],
    [
     "Securitate și modificări",
@@ -77,7 +77,7 @@ export const privacyCopy={
  "en": {
   "supportLabel": "Support and privacy contact: ",
   "deletionSupportLabel": "Support for account deletion requests: ",
-  "title": "Privacy",
+  "title": "Privacy policy",
   "deletion": "Request account deletion",
   "eraseLocal": "Delete local data separately",
   "eraseLocalConfirm": "Delete apartments, reservations and other business data in this installation? Unreferenced photos are removed at a safe startup after other windows close. Exported copies remain under your control.",
@@ -99,7 +99,7 @@ export const privacyCopy={
    ],
    [
     "Business data on your device",
-    "Apartment names and addresses, owners, photos, guest names and phone numbers, reservations, notes, amounts, currencies, receipts, maintenance and drafts are stored locally in WebView localStorage and IndexedDB. The app does not synchronize them with its own server or send them for licensing. The owner or manager entering guest data determines its purpose and legal basis and is responsible for notice, minimization, security and handling guest rights. The app controller is separately responsible for the online processing it controls."
+    "Apartment names and addresses, owners, photos, guest names and phone numbers, reservations, notes, amounts, currencies, receipts, maintenance and drafts are stored locally in browser storage or, on Android, in WebView localStorage and IndexedDB. The app does not synchronize them with its own server or send them for licensing. The owner or manager entering guest data determines its purpose and legal basis and is responsible for notice, minimization, security and handling guest rights. The app controller is separately responsible for the online processing it controls."
    ],
    [
     "Google and Firebase Authentication",
@@ -107,15 +107,15 @@ export const privacyCopy={
    ],
    [
     "Cloudflare, licenses and trials",
-    "The licensing backend uses the Firebase UID, trial dates, license status and security restrictions. Purchase records include the product, token hash and encrypted token where a purchase is recorded. Historical request records, where present, can contain a UID, reference, date, language and status. New requests are received by email and handled manually. OWNER rights are granted server-side to an authorized identity. The local reservation database and photos are not sent for licensing. Providers may process network metadata under their own rules."
+    "The app sends a Firebase authentication token to the Cloudflare backend to verify identity. The licensing backend uses the Firebase UID, trial dates, license status and security restrictions. Purchase records include the product, token hash and encrypted token where a purchase is recorded. Historical request records, where present, can contain a UID, reference, date, language and status. New requests are received by email and handled manually. OWNER rights are granted server-side to an authorized identity. The local reservation database and photos are not sent for licensing. Providers may process network metadata under their own rules."
    ],
    [
     "Google Play purchases",
-    "Google Play purchasing is disabled in the current configuration. The app does not request card numbers or directly process card payments. Purchase tokens retained by the licensing system are encrypted. Google Play purchase rights and local business data are distinct; deleting the app account does not automatically cancel or refund a purchase. Google applies its own terms to data processed in its payment services."
+    "Google Play purchasing is disabled in the default app configuration. The app does not request card numbers or directly process card payments. Purchase tokens retained by the licensing system are encrypted. Google Play purchase rights and local business data are distinct; deleting the app account does not automatically cancel or refund a purchase. Google applies its own terms to data processed in its payment services."
    ],
    [
     "Advertising and consent",
-    "AdMob ads are disabled in the current configuration and the advertising SDK is excluded from the default build. No ad delivery or advertising consent collection is claimed in this configuration."
+    "AdMob ads are disabled in the default configuration and the advertising SDK is excluded from the default build. No ad delivery or advertising consent collection is claimed in this configuration."
    ],
    [
     "JSON backup and exports",

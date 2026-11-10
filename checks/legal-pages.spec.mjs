@@ -26,5 +26,5 @@ test('static legal pages have no runtime scripts, preserve existing storage and 
  }
  await page.goto('/legal/privacy-ro.html');await page.getByRole('link',{name:'EN',exact:true}).click();
  await expect(page.locator('html')).toHaveAttribute('lang','en');
- await expect(page.locator('h2')).toHaveText('Privacy');
+ await expect(page.locator('h2')).toHaveText('Privacy policy');
 });
