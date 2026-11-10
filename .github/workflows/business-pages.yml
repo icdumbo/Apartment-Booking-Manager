@@ -39,7 +39,7 @@ jobs:
           grep -F "$release/src/styles.css" _site/index.html
       - uses: actions/checkout@v6
         with:
-          ref: d79585f8cb8858023fc36926da5b137052aeebe3
+          ref: 298a5f216c63ed6bf8efe5d0264243ba277fe324
           path: legal-source
           persist-credentials: false
       - uses: actions/setup-node@v4
