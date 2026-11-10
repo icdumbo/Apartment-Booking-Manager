@@ -37,3 +37,24 @@ test('both bilingual sheets have valid workbook relationships and repeated print
   const empty=xlsxParts(reservationsExcel({version:1,apartments:[],bookings:[]},filters,access).bytes);assert.ok(empty['xl/worksheets/sheet2.xml']);assert.equal(value(empty['xl/worksheets/sheet1.xml'],'C4'),'0');assert.equal(value(empty['xl/worksheets/sheet1.xml'],'J4'),'0');
  }
 });
+
+test('protected reservation sheets retain formulas, cached totals and empty reports',()=>{
+ const before=structuredClone(collectionsFixture);
+ for(const data of [collectionsFixture,{version:1,apartments:[],bookings:[]}]){
+  const parts=xlsxParts(reservationsExcel(data,filters,access).bytes);
+  const main=parts['xl/worksheets/sheet1.xml'],grouped=parts['xl/worksheets/sheet2.xml'];
+  for(const sheet of [main,grouped]){
+   const protections=[...sheet.matchAll(/<sheetProtection\b[^>]*\/>/g)];
+   assert.equal(protections.length,1);
+   assert.match(protections[0][0],/\bsheet="1"/);
+   assert.doesNotMatch(protections[0][0],/\b(?:password|hashValue)=/);
+  }
+  if(data.bookings.length){
+   assert.match(main,/<f>[^<]*SUBTOTAL/);
+   assert.equal(value(main,'C7'),'1600');
+   assert.match(grouped,/<f>SUMIF\(/);
+   assert.equal(value(grouped,'G8'),'1000');
+  }else assert.equal(value(main,'C4'),'0');
+ }
+ assert.deepEqual(collectionsFixture,before);
+});
