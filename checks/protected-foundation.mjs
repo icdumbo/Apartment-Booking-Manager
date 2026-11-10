@@ -20,7 +20,7 @@ const approvedTrialCopy=[["secureTrialTerms:'Activezi 15 zile PREMIUM gratuite, 
 let expectedCopy=old('src/i18n.js');for(const [before,after] of approvedTrialCopy){assert.ok(expectedCopy.includes(before));expectedCopy=expectedCopy.replace(before,after);}
 const releaseCopy=current('src/i18n.js');
 assert.equal(releaseCopy.replace(/const commercialCopy=[\s\S]*?;\nexport function t/,'export function t').replace("(globalThis.document?.documentElement.dataset.commercialRelease==='true'?commercialCopy[language][key]:undefined)??",''),expectedCopy,'Existing web disclosures must remain unchanged');
-assert.equal(createHash('sha256').update(releaseCopy).digest('hex'),'b683cf58172e97d22cd4ff84b75cfa55c33fee0472974967fec03388d8ba6ac9');
+assert.equal(createHash('sha256').update(releaseCopy).digest('hex'),'339868fb37b9be2e2474aa2347a7513740eba65fe9e25b6990c203084246095b');
 const manifest=current('android/app/src/main/AndroidManifest.xml').replace('        android:fullBackupContent="@xml/backup_rules"\n','').replace('        android:dataExtractionRules="@xml/data_extraction_rules"\n','').replace('android:allowBackup="false"','android:allowBackup="true"');
 assert.equal(manifest,old('android/app/src/main/AndroidManifest.xml'),'Only the approved backup exclusions may change');
 const config=JSON.parse(current('backend/wrangler.jsonc')),previous=JSON.parse(old('backend/wrangler.jsonc'));

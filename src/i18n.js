@@ -80,7 +80,8 @@ const commercialCopy={
   "trialTerms": "Trialul este activ până la {date}. După expirare, datele rămân disponibile pentru consultare și export.",
   "secureTrialTerms": "Activezi 15 zile gratuite, fără card, cu Google Sign-In. După expirare poți consulta și exporta datele. Reinstalarea nu reînnoiește un trial înregistrat pe server. După eliminarea istoricului conform retenției, repetarea poate fi posibilă. Continui?",
   "licenseBackendUnavailable": "Trialul nu a putut fi activat. Datele rămân disponibile pentru consultare și export.",
-  "purchaseTerms": "PREMIUM permanent fără reclame, printr-o singură achiziție Google Play. Folosește același cont Google pentru verificare și restaurare."
+  "premiumActive": "PREMIUM permanent activ, fără reclame. Achizițiile se reverifică online. După repornirea telefonului sau expirarea dovezii offline de șapte zile, conectează-te pentru a relua editarea.",
+  "purchaseTerms": "PREMIUM permanent fără reclame, printr-o singură achiziție Google Play. Prima conectare poate porni trialul eligibil. Folosește același cont Google pentru verificare și restaurare."
  },
  "en": {
   "statusBasic": "View and export only",
@@ -99,7 +100,8 @@ const commercialCopy={
   "trialTerms": "Your trial is active until {date}. Afterwards, you can still view and export your data.",
   "secureTrialTerms": "Activate 15 free days without a card using Google Sign-In. After expiry you can view and export data. Reinstalling does not renew a trial recorded on the server. A repeat trial may be possible after history is removed under the retention policy. Continue?",
   "licenseBackendUnavailable": "The trial could not be started. Data remains available for viewing and export.",
-  "purchaseTerms": "Permanent, ad-free PREMIUM with one Google Play purchase. Use the same Google account for verification and restoration."
+  "premiumActive": "Permanent, ad-free PREMIUM is active. Purchases are reverified online. After restarting the phone or when the seven-day offline proof expires, reconnect to resume editing.",
+  "purchaseTerms": "Permanent, ad-free PREMIUM with one Google Play purchase. Your first sign-in can start an eligible trial. Use the same Google account for verification and restoration."
  }
 };
 export function t(key,values={}){const value=(globalThis.document?.documentElement.dataset.commercialRelease==='true'?commercialCopy[language][key]:undefined)??translations[language][key];if(value===undefined)throw new Error('Unknown translation key: '+key);return typeof value==='string'?value.replace(/\{(\w+)\}/g,(_,name)=>String(name==='reservationNoun'?translations[language][Number(values.count)===1?'reservationSingular':'reservationPlural']:name==='excludedAgreement'?translations[language][Number(values.unknown)===1?'reportExcludedOne':'reportExcludedMany']:values[name]??'')):value;}

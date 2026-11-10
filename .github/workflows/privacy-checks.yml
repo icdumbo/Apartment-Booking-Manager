@@ -35,5 +35,12 @@ jobs:
       - name: Validate Android resources without assembling an APK
         working-directory: android
         run: chmod +x gradlew && ./gradlew processDebugResources
+      - name: Compile Android ad integration with Google's public test IDs
+        working-directory: android
+        run: |
+          ./gradlew :app:compileDebugJavaWithJavac \
+            -PabmAdsEnabled=true \
+            -PabmAdMobAppId=ca-app-pub-3940256099942544~3347511713 \
+            -PabmAdMobBannerId=ca-app-pub-3940256099942544/6300978111
       - working-directory: android
         run: test -z "$(find app/build -name '*.apk' -o -name '*.aab')"
