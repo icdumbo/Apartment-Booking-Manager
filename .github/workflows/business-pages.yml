@@ -16,8 +16,6 @@ jobs:
   package:
     if: contains(github.event.head_commit.message, '[publish-pages]')
     runs-on: ubuntu-latest
-    env:
-      INCLUDE_APPROVED_LEGAL: 'false'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -39,17 +37,21 @@ jobs:
             -e "s|src=\"src/app.js|src=\"$release/src/app.js|" _site/index.html
           grep -F "$release/src/app.js" _site/index.html
           grep -F "$release/src/styles.css" _site/index.html
+      - uses: actions/checkout@v6
+        with:
+          ref: d79585f8cb8858023fc36926da5b137052aeebe3
+          path: legal-source
+          persist-credentials: false
       - uses: actions/setup-node@v4
-        if: env.INCLUDE_APPROVED_LEGAL == 'true'
         with:
           node-version: '22'
-      - name: Include approved bilingual legal pages
-        if: env.INCLUDE_APPROVED_LEGAL == 'true'
+      - name: Include audited bilingual documents with review notice
+        working-directory: legal-source
         run: |
-          node scripts/prepare-legal-pages.mjs --release
-          mkdir _site/legal
+          node scripts/prepare-legal-pages.mjs --preview
+          mkdir ../_site/legal
           for page in privacy-ro privacy-en delete-account-ro delete-account-en; do
-            install -m 644 "build/legal-pages-release/legal/$page.html" "_site/legal/$page.html"
+            install -m 644 "build/legal-pages-preview/legal/$page.html" "../_site/legal/$page.html"
           done
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -68,3 +70,19 @@ jobs:
       - name: Deploy verified BUSINESS site
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify public HTTPS documents and language links
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          mkdir verified-legal
+          for page in privacy-ro privacy-en delete-account-ro delete-account-en; do
+            url="${SITE_URL%/}/legal/$page.html"
+            test "${url#https://}" != "$url"
+            status=$(curl --silent --show-error --fail --retry 8 --retry-all-errors --retry-delay 5 --max-time 15 --output "verified-legal/$page.html" --write-out '%{http_code}' "$url")
+            test "$status" = 200
+            grep -F '<html lang="'"${page##*-}"'"' "verified-legal/$page.html" >/dev/null
+            grep -F 'href="'"${page%-*}"'-ro.html"' "verified-legal/$page.html" >/dev/null
+            grep -F 'href="'"${page%-*}"'-en.html"' "verified-legal/$page.html" >/dev/null
+            grep -F 'support.apartmentbookingmanager@gmail.com' "verified-legal/$page.html" >/dev/null
+            echo "HTTP $status $url; RO and EN links verified"
+          done
