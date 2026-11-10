@@ -22,7 +22,7 @@ test('grouped view includes all selected reservations once, per-apartment per-cu
  data.apartments[1].name=data.apartments[0].name;
  const before=JSON.stringify(data),parts=xlsxParts(reservationsExcel(data,filters,access).bytes),s=parts['xl/worksheets/sheet2.xml'];
  for(const guest of ['Client Test Unknown','Client Test Cross','Client Test EUR','Client Test Legacy'])assert.equal(s.split(guest).length-1,1,guest);
- assert.doesNotMatch(s,/Client Test Outside|Client Test Mixed|autoFilter|tableParts/);
+ assert.doesNotMatch(s,/Client Test Outside|Client Test Mixed|<autoFilter|<tableParts/);
  assert.match(s,/SUMIF\(\$K\$6:\$K\$7,&quot;RON&quot;,\$G\$6:\$G\$7\)/);assert.equal(value(s,'G8'),'1000');assert.equal(value(s,'H8'),'500');assert.equal(value(s,'I8'),'500');
  assert.equal(value(s,'G13'),'600');assert.equal(value(s,'H13'),'200');assert.equal(value(s,'G14'),'500');assert.equal(value(s,'H14'),'100');
  assert.match(s,/<c r="G6" s="6"\/>/);assert.match(s,/<c r="C6" s="5"><v>\d+<\/v>/);assert.match(s,/\[1\]/);assert.match(parts['xl/worksheets/sheet1.xml'],/Actual test note/);

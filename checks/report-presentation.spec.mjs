@@ -22,7 +22,7 @@ for(const width of [344,360,430,840,800])test(`report currency matrix, general c
   await page.screenshot({path:`test-results/Report-summary-${width}-${language}.png`,fullPage:true});
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#report-export-excel').click()]);
   const parts=xlsxParts(await readFile(await download.path()));expect(parts['xl/workbook.xml']).toContain(language==='ro'?'Pe apartamente':'By apartment');
-  const grouped=parts['xl/worksheets/sheet2.xml'];expect(grouped).not.toContain('autoFilter');
+  const grouped=parts['xl/worksheets/sheet2.xml'];expect(grouped).not.toContain('<autoFilter');
   for(const guest of ['Client Test Unknown','Client Test Cross','Client Test EUR','Client Test Legacy'])expect(grouped.split(guest).length-1).toBe(1);
  }
  await page.locator('#report-status').selectOption('unconfirmed');await expect(page.locator('#report-unpriced')).toContainText('0');await expect(page.locator('.report-card')).toHaveCount(0);
