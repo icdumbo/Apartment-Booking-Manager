@@ -31,8 +31,8 @@ export function createPremiumProvider({verifyAccess,getAuthenticatedSubject,cloc
  }});
 }
 export function createAccessService(storage=globalThis.localStorage,clock=Date.now,purchaseProvider=billingAdapter){
- let record,unavailable=false;
- try{const raw=storage.getItem(ACCESS_KEY);record=raw===null?null:JSON.parse(raw);
+ let record,rawRecord,unavailable=false;
+ try{rawRecord=storage.getItem(ACCESS_KEY);record=rawRecord===null?null:JSON.parse(rawRecord);
   if(record!==null&&(record.version!==1||!Number.isFinite(record.startedAt)||record.startedAt<0||!Number.isFinite(record.lastSeen)||record.lastSeen<record.startedAt))throw new Error('Invalid entitlement');
  }catch{unavailable=true;}
  function snapshot(){
@@ -40,12 +40,23 @@ export function createAccessService(storage=globalThis.localStorage,clock=Date.n
   let trusted=null;try{trusted=purchaseProvider.getVerifiedAccess?.();}catch{}
   if(trusted&&['BASIC','TRIAL','PREMIUM'].includes(trusted.state))return {state:trusted.state,trialAvailable:false,expiresAt:trusted.expiresAt??null,remainingMs:trusted.remainingMs,unavailable:false,premiumSource:trusted.state==='PREMIUM'?trusted.premiumSource:null,premiumExpiresAt:trusted.state==='PREMIUM'?trusted.expiresAt:null};
   const now=clock();
-  if(record&&!unavailable&&now>record.lastSeen){const next={...record,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;}catch{unavailable=true;}}
+  if(!purchaseProvider.requiresVerifiedTrial&&record&&!unavailable&&now>record.lastSeen){
+   try{
+    const saved=storage.getItem(ACCESS_KEY);
+    if(saved!==rawRecord){
+     const current=JSON.parse(saved);
+     if(current?.version!==1||current.startedAt!==record.startedAt||!Number.isFinite(current.lastSeen)||current.lastSeen<current.startedAt)throw Error('Invalid entitlement');
+     record={...record,lastSeen:Math.max(record.lastSeen,current.lastSeen)};
+     rawRecord=saved;
+    }
+    if(now>record.lastSeen){const next={...record,lastSeen:now},encoded=JSON.stringify(next);storage.setItem(ACCESS_KEY,encoded);rawRecord=encoded;record=next;}
+   }catch{unavailable=true;}
+  }
   const effectiveNow=Math.max(now,record?.lastSeen??now);
   let premium=null;try{const grant=purchaseProvider.getVerifiedEntitlement();if(validPremiumGrant(grant,effectiveNow))premium=grant;}catch{}
   return {legacyTrial:record!==null,legacyTrialPending:Boolean(purchaseProvider.requiresVerifiedTrial&&record),state:premium!==null?'PREMIUM':!purchaseProvider.requiresVerifiedTrial&&!unavailable&&record&&effectiveNow<record.startedAt+TRIAL_DURATION?'TRIAL':'BASIC',trialAvailable:!purchaseProvider.requiresVerifiedTrial&&!unavailable&&!record&&premium===null,expiresAt:record?record.startedAt+TRIAL_DURATION:null,unavailable,premiumSource:premium?.source??null,premiumExpiresAt:premium?.permanent===false?premium.expiresAt:null};
  }
- return {snapshot,startTrial(){if(purchaseProvider.requiresVerifiedTrial||!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;return true;}catch{unavailable=true;return false;}}};
+ return {snapshot,startTrial(){if(purchaseProvider.requiresVerifiedTrial||!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{const encoded=JSON.stringify(next);storage.setItem(ACCESS_KEY,encoded);rawRecord=encoded;record=next;return true;}catch{unavailable=true;return false;}}};
 }
 export function accessPolicy(entitlement,apartments=[],commercialRelease=false){
  const canWrite=entitlement?.state==='TRIAL'||entitlement?.state==='PREMIUM';

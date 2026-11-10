@@ -38,7 +38,7 @@ try {
  await beginPhotoSession({photos:apartmentPhotos});
  repository=createLocalRepository();state=repository.load();
  if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}
- const migrated=removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
+ const migrated=commercialRelease?state:removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
 }catch(error){state={version:1,apartments:[],bookings:[]};blocked=true;$('notice').dataset.i18n='storageBlocked';}
 // Start only after business storage has loaded successfully; existing trials are never renewed.
 // Secure activation is explicit and server-backed. Never mint a local trial on startup.

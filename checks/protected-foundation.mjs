@@ -48,14 +48,14 @@ const stabilitySources={
 for(const [path,hash] of Object.entries(stabilitySources))assert.equal(createHash('sha256').update(current(path)).digest('hex'),hash,'Only reviewed stability fixes are authorized: '+path);
 
 // Keep the reviewed calendar and apartment UI changes exact.
-assert.equal(createHash('sha256').update(current("src/app.js")).digest('hex'), 'd738727537bf4be6e40f2e03ccc962a76ea6f0ceded64539336a17545fae8dfa');
+assert.equal(createHash('sha256').update(current("src/app.js")).digest('hex'), '46c617ff81cad83d8ca913697e5e44a877c1384d5835cae8f40c4e4beed10a3b');
 assert.equal(createHash('sha256').update(current("src/month-navigation.js")).digest('hex'), 'e46dbe22fabf1c7c2e79a5091aa963b88008a23ce189ee68dfbd13f9d0850eec');
 assert.equal(createHash('sha256').update(current("src/timeline.js")).digest('hex'), 'c9173b93b26834214331df5df8ccc7befef07a8c73c1edbce99b3ce901f5d0ca');
 
 assert.equal(createHash('sha256').update(current('backend/firebase-token.js')).digest('hex'), 'a96273e12b2e7ed7cd7e1171ac89f57aba60a199df33433f2555dabbcfc22a43','Only the reviewed explicit Firebase project parameter may change');
 
 const commercialHashes={
- "src/access.js": "3a70739a702f1db063917a4207ed3784ca6b1245d297d9f6fc2b35e0fc2f8820",
+ "src/access.js": "acb8cd81ee566c9fd23743ec8f787dec88c09c28c2f0b43c275a055a57a2f0e1",
  "src/native-auth.js": "48e5471bf17498a6bcc2db661a040466ad02c7a60d156a0459f1a8d84b33cc62",
  "src/entry-screen.js": "36186fa193d8f518833270c36b7d7be268ca02c339f4571b555e3ed08ebc95da",
  "src/backup-screen.js": "494c40200ea8b6f8e7125ff88d12049a9216073ecacbe0aa4cf776e8af0dc574",

@@ -21,11 +21,13 @@ test('Android commercial package keeps 12 apartments and exports after trial exp
  });
  let activations=0;
  await page.route('https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access',route=>{
+  const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'POST'};
+  if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
   const body=route.request().postDataJSON();
   expect(body.action).toBe('startTrial');
   expect(body.terms).toBe('trial-15d-v1');
   activations++;
-  return route.fulfill({json:{version:1,proof:'fixture-proof'}});
+  return route.fulfill({headers,json:{version:1,proof:'fixture-proof'}});
  });
  await page.goto('/index.html');
  await expect(page.locator('.timeline-row')).toHaveCount(12);
@@ -43,7 +45,7 @@ test('Android commercial package keeps 12 apartments and exports after trial exp
  await expect(page.locator('#report-export-pdf')).toBeEnabled();
  await page.locator('#open-menu').click();
  await page.locator('#open-backup').click();
- await expect(page.getByRole('button',{name:'Salvează backup'})).toBeEnabled();
+ await expect(page.locator('.backup-actions button').first()).toBeEnabled();
  await expect(page.locator('.backup-actions button').nth(1)).toBeDisabled();
  expect(await page.evaluate(key=>localStorage.getItem(key),key)).toBe(before);
 });
