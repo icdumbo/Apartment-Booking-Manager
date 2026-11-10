@@ -38,11 +38,11 @@ export const privacyCopy={
    ],
    [
     "Achiziții Google Play",
-    "Cumpărarea Google Play este dezactivată în configurația implicită a aplicației. Aplicația nu solicită numărul cardului și nu procesează direct plăți cu cardul. Tokenurile de achiziție păstrate de sistemul de licențiere sunt criptate. Drepturile de achiziție Google Play și datele de afaceri locale sunt distincte; ștergerea contului aplicației nu anulează sau rambursează automat o achiziție. Google aplică propriile condiții datelor procesate în serviciile sale de plată."
+    "Cumpărarea Google Play este dezactivată în configurația implicită a aplicației. Pentru lansare este prevăzută o achiziție unică PREMIUM, fără abonament. Aplicația nu solicită numărul cardului și nu procesează direct plăți cu cardul. Tokenurile de achiziție păstrate de sistemul de licențiere sunt criptate. Drepturile de achiziție Google Play și datele de afaceri locale sunt distincte; ștergerea contului aplicației nu anulează sau rambursează automat o achiziție. Google aplică propriile condiții datelor procesate în serviciile sale de plată."
    ],
    [
     "Reclame și consimțământ",
-    "Reclamele AdMob sunt dezactivate în configurația implicită, iar SDK-ul publicitar este exclus din buildul implicit. Nu declarăm reclame livrate sau consimțământ publicitar colectat în această configurație."
+    "Reclamele AdMob sunt dezactivate în configurația implicită, iar SDK-ul publicitar este exclus din buildul implicit. Nu declarăm reclame livrate sau consimțământ publicitar colectat în această configurație. Pentru lansare sunt prevăzute reclame numai în trial, dacă sunt îndeplinite condițiile de consimțământ aplicabile."
    ],
    [
     "Backup JSON și exporturi",
@@ -111,11 +111,11 @@ export const privacyCopy={
    ],
    [
     "Google Play purchases",
-    "Google Play purchasing is disabled in the default app configuration. The app does not request card numbers or directly process card payments. Purchase tokens retained by the licensing system are encrypted. Google Play purchase rights and local business data are distinct; deleting the app account does not automatically cancel or refund a purchase. Google applies its own terms to data processed in its payment services."
+    "Google Play purchasing is disabled in the default app configuration. The planned release offers a one-time PREMIUM purchase without a subscription. The app does not request card numbers or directly process card payments. Purchase tokens retained by the licensing system are encrypted. Google Play purchase rights and local business data are distinct; deleting the app account does not automatically cancel or refund a purchase. Google applies its own terms to data processed in its payment services."
    ],
    [
     "Advertising and consent",
-    "AdMob ads are disabled in the default configuration and the advertising SDK is excluded from the default build. No ad delivery or advertising consent collection is claimed in this configuration."
+    "AdMob ads are disabled in the default configuration and the advertising SDK is excluded from the default build. No ad delivery or advertising consent collection is claimed in this configuration. The release plans to show ads only during the trial, subject to applicable consent requirements."
    ],
    [
     "JSON backup and exports",

@@ -1,25 +1,33 @@
-# Pregătire comercială și juridică — 5 noiembrie 2026
+# Pregătire pentru lansarea comercială
 
 Stare: pregătire în cod, **nu aprobare de publicare**. Sursa juridică RO/EN rămâne
 src/privacy-content.js, iar datele operatorului sunt centralizate în
 src/privacy-settings.js. Nu copiați date personale în alte fișiere.
 
-## Model confirmat și prezentare RO/EN
+## Model țintă aprobat, încă inactiv
 
-| RO | EN |
+- Trial de 15 zile, fără card, pornit de server la activarea validă prin Google Sign-In. Include toate funcțiile și apartamente nelimitate.
+- După expirare, consultarea apartamentelor și rezervărilor și exportul rămân disponibile. Crearea, modificarea, ștergerea și restaurarea care înlocuiește datele sunt operațiuni de scriere.
+- PREMIUM este o cumpărare unică, fără consum sau abonament. Prețul pentru România se configurează la 99 RON în Play Console, iar aplicația afișează prețul localizat primit de la Google Play.
+- PREMIUM cumpărat și OWNER autorizat de server au acces complet fără reclame. Bannerul este permis doar în trialul verificat și numai dacă UMP permite cererea de reclame.
+- Codul actual încă aplică BASIC și limita de trei apartamente. Nu activați noul model înainte de implementarea și testarea regulilor de mai jos.
+
+## Migrare și criterii de acceptare
+
+| Caz | Regulă propusă sau decizie necesară |
 | --- | --- |
-| BASIC gratuit: maximum 3 apartamente administrabile, fără autentificare obligatorie. | Free BASIC: up to 3 managed apartments, no mandatory sign-in. |
-| Trial PREMIUM de 15 zile, fără card, activat voluntar prin Google Sign-In după confirmarea termenilor. | A voluntary 15-day PREMIUM trial without a card, activated through Google Sign-In after confirming the terms. |
-| La expirare revii la BASIC; datele existente sunt păstrate. | On expiry you return to BASIC; existing data is retained. |
-| PREMIUM: achiziție unică, fără abonament, apartamente nelimitate și acces la toate funcțiile. | PREMIUM: a one-time purchase, no subscription, unlimited apartments and access to all features. |
-| Preț de lansare aprobat: 99 RON în Google Play Console. Prețul final localizat este cel afișat de Google Play. | Approved launch price: RON 99 in Google Play Console. The final localized price is supplied by Google Play. |
-| OWNER: PREMIUM permanent gratuit exclusiv pentru identitatea autorizată pe server. | OWNER: permanently free PREMIUM exclusively for the server-authorized identity. |
-| Reclame banner discrete în modelul existent, inclusiv în PREMIUM; integrarea rămâne dezactivată până la configurare și consimțământ. | Discreet banner ads remain part of the existing model, including PREMIUM; integration stays disabled pending configuration and consent. |
+| OWNER, cumpărători, drepturi administrative existente | Păstrați dreptul verificat și datele. Confirmați tratamentul eventualelor drepturi administrative temporare. |
+| Trial server activ sau expirat | Păstrați începutul și expirarea. Același cont pe alt dispozitiv sau după reinstalare trebuie să primească aceeași stare, atât timp cât dovada de eligibilitate există. |
+| BASIC anterior sau istoric exclusiv local | Operatorul trebuie să decidă dacă utilizatorii fără trial server sunt eligibili și cum se tratează istoricul anonim. O valoare locală editabilă nu poate acorda drepturi. |
+| Istoric de trial eliminat | Retenția de șase luni și lipsa unui identificator permanent nu permit o garanție împotriva unui trial nou după eliminarea dovezii. Confirmați dacă limita cunoscută rămâne acceptată sau stabiliți o alternativă proporțională înainte de schimbarea retenției. |
+| Fără autentificare, fără rețea sau dovadă expirată | Stabiliți accesul înainte de prima activare și politica offline pentru un drept deja verificat. Consultarea și exportul datelor existente trebuie să rămână disponibile. |
 
-Nu prezentați trialul ca pornind automat, achiziția ca abonament, PREMIUM ca
-versiune fără reclame sau protecția trialului ca permanentă. Nu înlocuiți
-prețul Play cu un preț local fix. Nu afișați cumpărarea ca disponibilă cât timp
-produsul/configurația reală lipsesc.
+Controlați scrierile la salvare, inclusiv din editoare deja deschise, încasări,
+întreținere, fotografii și import. Păstrați separat ștergerea locală explicită
+necesară controlului datelor. Verificați cu o copie fictivă care include
+12 apartamente, fotografii și rezervări, cu restart, expirare, cumpărare,
+calendar pornind la data de 1 și exporturi Excel/PDF și JSON. Testul pe telefon
+cu date reale necesită acord separat și nu implică resetare sau dezinstalare.
 
 ## Informații încă obligatorii, care trebuie confirmate de operator
 
@@ -32,8 +40,7 @@ produsul/configurația reală lipsesc.
 - Justificarea fiecărei păstrări după ștergere, temeiurile/rolurile prelucrării,
   configurările regionale și aranjamentele de transfer internațional confirmate
   din serviciile și acordurile efectiv folosite. Nu presupuneți stocarea exclusiv în UE.
-- URL-urile publice HTTPS ale politicii și solicitării de ștergere RO/EN, care
-  trebuie publicate și verificate separat. Nu sunt declarate online în această etapă.
+- Paginile RO/EN sunt deja publice pe GitHub Pages cu avertismentul de document în pregătire. Confirmați textele finale și verificați din nou cele patru URL-uri înainte de Play Console.
 
 Confirmat: datele de afaceri/fotografiile rămân locale, fără sincronizare pe
 server; backupul manual JSON nu este criptat; copiile exportate sunt controlate
@@ -41,24 +48,15 @@ de utilizator/furnizorul ales. Ștergerea contului online nu șterge datele loca
 sau contul Google. Istoricul trialului are maximum șase luni calendaristice de
 la început; această limită nu se extinde automat la toate celelalte categorii.
 Curățarea efectivă remote trebuie verificată înainte de a promite respectarea
-termenului în producție. Repetarea după eliminarea istoricului sau recrearea
-contului este acceptată, fără identificatori permanenți/fingerprinting.
+termenului în producție. Repetarea după eliminarea istoricului sau recrearea contului fusese acceptată pentru modelul anterior. Pentru modelul nou, decizia rămâne de confirmat, fără a introduce identificatori permanenți sau fingerprinting.
 
-## Ștergere: pregătită pentru teste, încă blocantă pentru lansare
+## Ștergerea contului
 
-Fluxul existent cere confirmare explicită și reautentificarea aceluiași cont,
-verifică UID-ul/recent-auth pe server și confirmă doar înregistrarea cererii.
-Procesorul verifică Firebase, confirmă absența contului și curăță datele D1
-eligibile; erorile rămân reluabile. Datele locale nu sunt accesate de procesor.
-Testele controlate folosesc numai SQL local și răspunsuri Google/Firebase fictive;
-nu reprezintă dovada ștergerii unui cont real sau a verificării configurației remote.
-
-Blocaje reale: conturile cu achiziții sunt excluse până la rezolvarea recuperării
-securizate după schimbarea UID-ului. Conturile OWNER/cu restricții necesită
-rezolvare administrativă. Nu publicați cu promisiunea ștergerii pentru toți
-utilizatorii până când toate cazurile au o procedură verificată. Nu ștergeți
-drepturile Google Play și nu transferați achiziții către alt UID prin bypass.
-Politica Play cere o cale în aplicație și o resursă web pentru solicitare.
+Urmați [procedura manuală](manual-account-deletion.md). Proprietarul verifică
+identitatea, tratează individual PREMIUM și OWNER și răspunde prin e-mail.
+Testați primirea și soluționarea cu un cont fictiv. Confirmați recuperarea
+achiziției după schimbarea UID-ului înainte de a șterge un cont cumpărător.
+Nu transferați achiziții între UID-uri prin bypass.
 
 ## Ordinea configurării manuale — fără activare în această etapă
 
@@ -82,8 +80,7 @@ Politica Play cere o cale în aplicație și o resursă web pentru solicitare.
    configurat, iar accesul permanent deja verificat poate continua offline.
 5. Verificați Google/Firebase/OAuth și certificatele distribuției Play; verificați
    OWNER exclusiv prin identitatea serverului. Nu schimbați semnarea actuală aici.
-6. Verificați ștergerea într-un mediu controlat, inclusiv erorile parțiale și
-   păstrarea datelor locale în BASIC, apoi obțineți aprobare separată pentru activare.
+6. Verificați procedura manuală, inclusiv identitatea, erorile parțiale și păstrarea datelor locale.
 7. Completați în Play Console Data Safety, Account deletion, politica HTTPS,
    declarația de reclame, clasificarea conținutului, accesul pentru review și
    cerințele de testare afișate contului. Verificați declarațiile pentru SDK-urile
@@ -109,3 +106,31 @@ trial server-side și fluxul de ștergere cu SQL în memorie. Pentru ștergere s
 folosit ABM_LOCAL_SQLITE=1, nu D1 remote; Google/Firebase sunt simulate exclusiv
 la granița API pentru testare, fără tranzacții reale. Aceste rezultate nu confirmă
 Google Play Console, backendul real sau comportamentul telefonului fizic.
+
+## AdMob și verificări de lansare
+
+În AdMob adăugați aplicația cu package ID-ul existent, creați o unitate Banner
+și configurați mesajul european în Privacy & messaging. Folosiți ID-urile
+emise pentru aplicație și banner, test devices în buildurile de test și
+verificați la fiecare lansare rezultatul UMP, opțiunile de confidențialitate
+și retragerea consimțământului. Integrarea actuală cere reclame la inițializarea
+panoului fără a verifica starea comercială și poate consulta consimțământul
+cache-uit după o eroare de actualizare. Înainte de activare, implementați
+condiția trial verificat plus consimțământ aplicabil, opriți bannerul la
+expirare, schimbare de cont sau achiziție și verificați cursa cu încărcarea.
+Nu activați AdMob până la aceste verificări și inventarierea datelor SDK.
+
+În Firebase verificați providerul Google, certificatele distribuției Play
+pentru package ID-ul existent și identificarea OWNER autorizată de server.
+În Google Play verificați revocarea rambursărilor online și decideți fereastra
+offline și mecanismul RTDN sau Voided Purchases înainte de lansare. Declarați
+numai fluxurile, datele SDK și furnizorii din buildul efectiv. Validați temeiurile,
+interesul legitim, retenția și transferurile cu dovezi concrete, apoi obțineți
+aprobarea operatorului pentru textele RO/EN. Avertismentul rămâne până atunci.
+
+Surse oficiale
+
+- [Produse cu achiziție unică în Google Play](https://support.google.com/googleplay/android-developer/answer/16430488?hl=en)
+- [Google Play Billing](https://developer.android.com/google/play/billing/integrate)
+- [AdMob UMP pentru Android](https://developers.google.com/admob/android/privacy)
+- [Datele utilizatorilor și Data Safety](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en)
