@@ -12,7 +12,7 @@ additions.push('backend/trial-retention.js','backend/checks/trial-retention.chec
 additions.push('backend/migrations/0006_trial_retention_cursor.sql');
 additions.push('backend/migrations/0007_approved_trial_policy.sql');
 const commercialIntegrations=["src/access.js","src/native-auth.js","src/entry-screen.js","src/backup-screen.js","src/maintenance-screen.js","src/maintenance-export.js","src/reports-screen.js","src/reservations-report.js","src/collections-screen.js","android/app/src/main/java/ro/icdapps/apartmentbookingmanager/BookingAdsPlugin.java","android/app/src/main/java/ro/icdapps/apartmentbookingmanager/BookingAccessPlugin.java","android/app/src/main/java/ro/icdapps/apartmentbookingmanager/TrialAdGate.java"];
-integrations.push(...commercialIntegrations);
+integrations.push(...commercialIntegrations,'src/xlsx.js');
 execFileSync('git',['diff','--exit-code',base,'HEAD','--','src','index.html','android','backend','package.json','package-lock.json','capacitor.config.json',':!src/styles.css',':!src/i18n.js',...additions.concat(integrations).map(p=>':!'+p)],{stdio:'pipe'});
 const old=p=>execFileSync('git',['show',base+':'+p],{encoding:'utf8'}).replaceAll('\r\n','\n');
 const current=p=>readFileSync(p,'utf8').replaceAll('\r\n','\n');
@@ -69,3 +69,5 @@ const commercialHashes={
  "android/app/src/main/java/ro/icdapps/apartmentbookingmanager/TrialAdGate.java": "a7d7a3acc6281175832a62e9e03954441cc74838a15137827f31f6f227acdec7"
 };
 for(const [path,hash] of Object.entries(commercialHashes))assert.equal(createHash('sha256').update(current(path)).digest('hex'),hash,'Only reviewed commercial changes are authorized: '+path);
+
+assert.equal(createHash('sha256').update(current('src/xlsx.js')).digest('hex'),'b714000079bc9900ed050522b608f63fc6c28e2cb0e7c4930b0aaa9fbf388d51','Only the reviewed worksheet protection may change');

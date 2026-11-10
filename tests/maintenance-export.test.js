@@ -55,3 +55,22 @@ test('report reservation grammar covers 0/1/2 in UI templates, PDF and Excel wit
   assert.ok(xlsxParts(excel.bytes)['xl/worksheets/sheet1.xml'].includes(expected));await writeFile(`test-results/maintenance-exports/grammar-${language}-${count}.pdf`,pdf.bytes);
  }
 });
+
+test('every Excel report sheet protects locked cells and allows selection and existing filters',()=>{
+ const {state,data}=maintenanceExportFixture();
+ for(const language of ['ro','en']){
+  selectLanguage(language);
+  for(const report of [reservationsExcel(state,{start:'2026-10-01',end:'2026-10-31',currency:'ALL'},premium),maintenanceExcel(state,data,filters,premium)]){
+   const parts=xlsxParts(report.bytes);
+   const sheets=Object.entries(parts).filter(([name])=>/^xl\/worksheets\/sheet\d+\.xml$/.test(name));
+   assert.ok(sheets.length>1);
+   assert.equal(sheets.length,[...parts['xl/workbook.xml'].matchAll(/<sheet name=/g)].length);
+   assert.match(parts['xl/workbook.xml'],/<workbookProtection lockStructure="1"\/>/);
+   assert.doesNotMatch(parts['xl/styles.xml'],/<protection\b[^>]*locked="(?:0|false)"/);
+   for(const [,sheet] of sheets){
+    assert.match(sheet,/<\/sheetData><sheetProtection sheet="1" objects="1" scenarios="1" selectLockedCells="0" selectUnlockedCells="0" autoFilter="0" sort="0"\/>/);
+    assert.doesNotMatch(sheet,/<protectedRanges\b/);
+   }
+  }
+ }
+});

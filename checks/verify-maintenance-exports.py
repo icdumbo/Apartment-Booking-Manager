@@ -23,10 +23,14 @@ for language in ['ro', 'en']:
         assert excluded not in value, excluded
     book = openpyxl.load_workbook(root / f'{language}.xlsx', data_only=True)
     assert len(book.worksheets) == 4
+    assert book.security.lockStructure
     totals = list(book.worksheets[3].values)
     amounts = {row[2]: row[5] for row in totals if len(row) > 5 and row[2] in ['RON', 'EUR']}
     assert amounts == {'RON': 13, 'EUR': 45}, amounts
     for sheet in book:
+        assert sheet.protection.sheet and not sheet.protection.selectLockedCells
+        assert not sheet.protection.autoFilter and not sheet.protection.sort
+        assert all(cell.protection.locked for row in sheet for cell in row)
         values = '\n'.join(str(value) for row in sheet for value in [cell.value for cell in row] if value is not None)
         assert 'Beta Test' not in values and 'EXCLUDED_MAINTENANCE_NOTE' not in values
         assert all((row.height or 15) <= 409 for row in sheet.row_dimensions.values())

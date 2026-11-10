@@ -116,7 +116,7 @@ test('native table exposes ten buttons without overlapping sheet filter or merge
  assert.match(table,/ref="A11:J14"/);assert.match(table,/totalsRowShown="0"/);
  assert.equal([...table.matchAll(/<tableColumn id=/g)].length,10);
  assert.deepEqual([...table.matchAll(/<filterColumn colId="(\d+)" hiddenButton="0" showButton="1"\/>/g)].map(m=>Number(m[1])),[0,1,2,3,4,5,6,7,8,9]);
- assert.doesNotMatch(table,/tableStyleInfo name=/);assert.doesNotMatch(sheet,/<autoFilter|sheetProtection/);
+ assert.doesNotMatch(table,/tableStyleInfo name=/);assert.doesNotMatch(sheet,/<autoFilter/);
  for(const m of sheet.matchAll(/<mergeCell ref="[A-Z]+(\d+):[A-Z]+(\d+)"/g))assert.ok(Number(m[2])<11||Number(m[1])>14);
 });
 
