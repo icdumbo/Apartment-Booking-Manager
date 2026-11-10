@@ -23,7 +23,7 @@ export function createCollectionsScreen({root,getState,getEntitlement,openBookin
  const legacy=document.createElement('section');legacy.className='collections-legacy';legacy.id='collections-legacy';content.append(legacy);text('h2','collectionsLegacyHeading',legacy);text('p','collectionsLegacyBasis',legacy);
  const legacyTotal=document.createElement('strong');legacyTotal.id='collections-legacy-total';legacy.append(legacyTotal);
  const legacyList=document.createElement('div');legacyList.className='collections-list';legacy.append(legacyList);
- function navigate(id){if(!canEditPayments(getEntitlement())){render();return;}if(getState().bookings.some(b=>b.id===id))openBooking(id);}
+ function navigate(id){if(!getEntitlement().readOnlyExports&&!canEditPayments(getEntitlement())){render();return;}if(getState().bookings.some(b=>b.id===id))openBooking(id);}
  function option(select,value,label){const entry=document.createElement('option');entry.value=value;entry.textContent=label;select.append(entry);}
  function amountCard(key,value,id){const card=document.createElement('div');text('span',key,card);const amount=document.createElement('strong');amount.id=id;amount.textContent=value;card.append(amount);summary.append(card);}
  function row(item,amount,dateLabel){
@@ -34,7 +34,7 @@ export function createCollectionsScreen({root,getState,getEntitlement,openBookin
   const sum=document.createElement('strong');sum.className='collection-amount';sum.textContent=formatMoney(amount,filters.currency);button.append(date,info,method,sum);return button;
  }
  function render(){
-  const allowed=canEditPayments(getEntitlement());locked.hidden=allowed;content.hidden=!allowed;
+  const allowed=getEntitlement().readOnlyExports||canEditPayments(getEntitlement());locked.hidden=allowed;content.hidden=!allowed;
   summary.replaceChildren();list.replaceChildren();legacyList.replaceChildren();legacyTotal.textContent='';unknown.textContent='';error.hidden=true;legacy.hidden=true;
   apartment.replaceChildren();if(!allowed)return;
   const state=getState();if(filters.apartmentId&&!state.apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';

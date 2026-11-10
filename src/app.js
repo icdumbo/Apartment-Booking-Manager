@@ -26,8 +26,9 @@ import {createOptionalAndroidAuth} from './native-auth.js';
 import {mountCommerce} from './commerce-screen.js';
 import {mountPrivacy} from './privacy-screen.js';
 import {owners,existingOwnerName} from './owners.js';
-const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
-const access=createAccessService(globalThis.localStorage,Date.now,androidAuth.provider);
+const commercialRelease=document.documentElement.dataset.commercialRelease==='true';
+const androidAuth=createOptionalAndroidAuth(undefined,{activateOnSignIn:commercialRelease,changed:()=>queueMicrotask(()=>render())});
+const access=createAccessService(globalThis.localStorage,Date.now,commercialRelease?{...androidAuth.provider,requiresVerifiedTrial:true}:androidAuth.provider);
 const $=id=>document.getElementById(id);
 let commerce=null;
 initializeLanguage();
@@ -44,14 +45,14 @@ try {
 let activeScreen='calendar';
 let start=dayNumber(today().slice(0,7)+'-01'),monthView=true,editing;
 let selectorYear=calendarYear(start);
-const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
+const collectionsScreen=createCollectionsScreen({root:$('payments-panel'),getState:()=>state,getEntitlement:currentEntitlement,openBooking:id=>{const booking=state.bookings.find(b=>b.id===id);if(booking)open('booking',booking);}});
 const statisticsScreen=createStatisticsScreen({root:$('statistics-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
-const reportsScreen=createReportsScreen({root:$('reports-panel'),getState:()=>state,getEntitlement:()=>access.snapshot()});
-const backupScreen=createBackupScreen({root:$('backup-content'),ready:()=>!blocked});
+const reportsScreen=createReportsScreen({root:$('reports-panel'),getState:()=>state,getEntitlement:currentEntitlement});
+const backupScreen=createBackupScreen({root:$('backup-content'),ready:()=>!blocked,canRestore:()=>policy().canWrite});
 $('open-backup').onclick=()=>{$('app-menu').close();backupScreen.render();$('backup-dialog').showModal();};
 $('close-backup').onclick=()=>{if(backupScreen.isBusy())return;if(backupScreen.needsReload())backupScreen.reload();else $('backup-dialog').close();};
 $('backup-dialog').addEventListener('cancel',event=>{if(backupScreen.isBusy()||backupScreen.needsReload()){event.preventDefault();if(!backupScreen.isBusy())backupScreen.reload();}});
-const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:()=>access.snapshot(),upgrade:()=>{showMenu(true);}});
+const maintenanceScreen=createMaintenanceScreen({root:$('maintenance-panel'),getState:()=>state,getEntitlement:currentEntitlement,upgrade:()=>{showMenu(true);}});
 function renderMonthSelector(){
  $('selector-year').textContent=selectorYear;const currentDate=new Date(start*86400000);
  $('month-options').replaceChildren();
@@ -64,7 +65,8 @@ function renderMonthSelector(){
   button.onclick=()=>{showMonth(selectorYear,month);};$('month-options').append(button);
  });
 }
-function policy(){return accessPolicy(access.snapshot(),state.apartments);}
+function currentEntitlement(){return {...access.snapshot(),readOnlyExports:commercialRelease};}
+function policy(){return accessPolicy(access.snapshot(),state.apartments,commercialRelease);}
 function showMonth(year,month){
  start=monthStart(year,month);
  selectorYear=calendarYear(start);
@@ -89,7 +91,7 @@ function render(){
  renderMonthSelector();renderTimeline($('timeline'),state,start,days,{editApartment:a=>open('apartment',a),editBooking:b=>openSavedBooking(b.id),newBooking:(apartmentId,checkIn)=>open('booking',null,{apartmentId,checkIn})});
  $('range').textContent=`${displayDate(isoDay(start))} – ${displayDate(isoDay(start+days-1))}`;
  $('summary').textContent=t('summary',{apartments:state.apartments.length,bookings:state.bookings.length});
- $('add-booking').disabled=blocked||!state.apartments.length;$('add-apartment').disabled=blocked||!policy().canAddApartment;$('add-apartment').title=!policy().canAddApartment?t('apartmentLimit'):'';
+ $('add-booking').disabled=blocked||!policy().canWrite||!state.apartments.length;$('add-apartment').disabled=blocked||!policy().canAddApartment;$('add-apartment').title=!policy().canAddApartment?t(commercialRelease?'basicReadOnly':'apartmentLimit'):'';
 }
 function renderAccessStatus(){
  const entitlement=access.snapshot(),expiry=entitlement.premiumExpiresAt??entitlement.expiresAt;
@@ -97,7 +99,7 @@ function renderAccessStatus(){
  const accessLabel=t(entitlement.unavailable?'statusUnavailable':entitlement.state==='TRIAL'?'statusTrial':entitlement.state==='PREMIUM'?(entitlement.premiumExpiresAt?'statusGift':'statusPremium'):'statusBasic',{days:daysLeft});
  $('access-message').textContent=accessLabel;
  $('menu-access-status').textContent=accessLabel;
- document.querySelector('.brand small').textContent=t('version',{access:entitlement.state==='PREMIUM'?t(entitlement.premiumExpiresAt?'headerPremium':'headerPermanent'):entitlement.state==='TRIAL'?'TRIAL PREMIUM':'BASIC'});
+ document.querySelector('.brand small').textContent=t('version',{access:entitlement.state==='PREMIUM'?t(entitlement.premiumExpiresAt?'headerPremium':'headerPermanent'):entitlement.state==='TRIAL'?'TRIAL PREMIUM':(commercialRelease?t('readOnly'):'BASIC')});
  $('activate-secure-trial').hidden=entitlement.state!=='BASIC';
  if($('auth-status').dataset.i18n==='authSignedIn')$('auth-status').textContent=t('authSignedIn')+' '+accessLabel+'.';
  $('access-details').textContent=t(entitlement.legacyTrialPending?'legacyTrialReview':entitlement.state==='TRIAL'?'trialTerms':entitlement.state==='BASIC'?'basicActive':entitlement.premiumExpiresAt?'premiumTemporary':'premiumActive',{date:expiry?displayDate(new Date(expiry).toISOString().slice(0,10)):''});
@@ -156,12 +158,12 @@ function openSavedBooking(id){const booking=state.bookings.find(item=>item.id===
 function titleKey(){return editing.kind==='apartment'?(editing.id?'apartmentDetails':'newApartment'):(editing.id?'bookingDetails':'newBooking');}
 function formError(error){const source=error?.message??error;$('form-error').dataset.source=source;$('form-error').textContent=source?translateError(source):'';}
 function open(kind,item=null,defaults={}){
- if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(kind==='apartment'&&!item&&!policy().canAddApartment)return;editing?.photo?.dispose();editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
+ if(blocked)return;if(!$('editor').open){if(refreshStoredState()===null)return;if(item){item=state[kind==='apartment'?'apartments':'bookings'].find(record=>record.id===item.id);if(!item)return;}}if(!item&&(!policy().canWrite||(kind==='apartment'&&!policy().canAddApartment)))return;editing?.photo?.dispose();editing={kind,id:item?.id};$('editor-form').reset();$('fields').replaceChildren();formError('');$('delete').hidden=!item;$('editor-title').textContent=t(titleKey());
  if(kind==='apartment'){field('apartmentName','name',item?.name);const owner=field('apartmentOwner','owner',item?.owner??'');owner.required=false;owner.maxLength=200;owner.setAttribute('list','apartment-owner-options');const choices=document.createElement('datalist');choices.id='apartment-owner-options';for(const entry of owners(state.apartments)){const option=document.createElement('option');option.value=entry.name;choices.append(option);}$('fields').append(choices);field('address','address',item?.address,'textarea');field('city','city',item?.city);editing.photo=createApartmentPhotoEditor($('fields'),item?.photoId,{canManage:()=>!blocked&&(!item||policy().canManageApartment(item.id)),onBusy:busy=>{$('editor-form').querySelector('[type=submit]').disabled=busy;}});}
  else editing.payments=renderBookingFields({container:$('fields'),state,item,defaults,field,textLabel,canManagePayments:()=>!blocked&&canEditPayments(access.snapshot())&&policy().canManageApartment($('fields').querySelector('[name=apartmentId]').value)});
  $('editor').classList.toggle('booking-editor',kind==='booking');$('editor').classList.toggle('apartment-editor',kind==='apartment');$('editor-form').querySelector('[type=submit]').disabled=false;
  const apartmentId=kind==='apartment'?item?.id:item?.apartmentId||defaults.apartmentId;
- const readOnly=apartmentId&&!policy().canManageApartment(apartmentId);
+ const readOnly=!policy().canWrite||(apartmentId&&!policy().canManageApartment(apartmentId));
  if(kind==='booking'&&!item&&readOnly)return;
  for(const option of $('fields').querySelectorAll('select[name=apartmentId] option'))option.disabled=!policy().canManageApartment(option.value);
  for(const input of $('fields').querySelectorAll('input,select,textarea'))input.disabled=Boolean(readOnly)||input.dataset.currencyLocked==='true';
@@ -174,15 +176,18 @@ function persist(next){try{
  // A second open tab/file can share storage while retaining an older in-memory snapshot.
  const saved=repository.load();if(editing?.conflicted||!saved||JSON.stringify(saved)!==JSON.stringify(state)){if(editing)editing.conflicted=true;throw new Error('storageChanged');}
  const permissions=policy();
+ if(!permissions.canWrite)throw Error('basicReadOnly');
  for(const booking of next.bookings){const old=state.bookings.find(old=>old.id===booking.id);assertCurrencyChange(old,booking);assertPaymentHistoryAccess(old,booking,access.snapshot());}
- for(const kind of ['apartments','bookings']){
-  for(const old of state[kind]){const changed=next[kind].find(v=>v.id===old.id);if(JSON.stringify(changed)!==JSON.stringify(old)&&!permissions.canManageApartment(kind==='apartments'?old.id:old.apartmentId))throw new Error('basicReadOnly');}
-  for(const item of next[kind]){if(kind==='apartments'&&!state.apartments.some(a=>a.id===item.id)&&!permissions.canAddApartment)throw new Error('apartmentLimit');if(kind==='bookings'&&JSON.stringify(state.bookings.find(b=>b.id===item.id))!==JSON.stringify(item)&&!permissions.canManageApartment(item.apartmentId))throw new Error('basicReadOnly');}
+ if(!commercialRelease){
+  for(const kind of ['apartments','bookings']){
+   for(const old of state[kind]){const changed=next[kind].find(v=>v.id===old.id);if(JSON.stringify(changed)!==JSON.stringify(old)&&!permissions.canManageApartment(kind==='apartments'?old.id:old.apartmentId))throw new Error('basicReadOnly');}
+   for(const item of next[kind]){if(kind==='apartments'&&!state.apartments.some(a=>a.id===item.id)&&!permissions.canAddApartment)throw new Error('apartmentLimit');if(kind==='bookings'&&JSON.stringify(state.bookings.find(b=>b.id===item.id))!==JSON.stringify(item)&&!permissions.canManageApartment(item.apartmentId))throw new Error('basicReadOnly');}
+  }
  }
-repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments','currencyLocked','storageChanged'].includes(error.message)?error.message:'storageSave');return false;}}
+ repository.save(next);state=next;render();return true;}catch(error){formError(['basicReadOnly','apartmentLimit','premiumPayments','currencyLocked','storageChanged'].includes(error.message)?error.message:'storageSave');return false;}}
 $('editor-form').onsubmit=async e=>{
  if(editing?.saving){e.preventDefault();return;}
- e.preventDefault();const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
+ e.preventDefault();if(!editing||!policy().canWrite){formError('basicReadOnly');return;}const values=Object.fromEntries(new FormData(e.target));for(const key in values)values[key]=values[key].trim();
  // Browser-native messages follow OS language, so show centralized translated validation instead.
  if([...$('fields').querySelectorAll('[required]')].some(input=>!input.value.trim())){formError('required');return;}
  const key=editing.kind==='apartment'?'apartments':'bookings';
@@ -238,7 +243,7 @@ $('today').onclick=()=>{monthView=false;$('timeline').parentElement.scrollLeft=0
 
 const entry=createEntryScreen({auth:androidAuth,hasData:()=>state.apartments.length>0||state.bookings.length>0,t});
 commerce=mountCommerce({root:$('menu-account-content'),auth:androidAuth,t,getEntitlement:()=>access.snapshot(),changed:()=>render()});
-mountPrivacy({auth:androidAuth});
+mountPrivacy({auth:androidAuth,canEraseLocal:()=>policy().canWrite});
 const upgradeAction=document.createElement('button');upgradeAction.type='button';upgradeAction.dataset.i18n='upgradePremium';upgradeAction.textContent=t('upgradePremium');upgradeAction.onclick=()=>{showMenu(true);commerce.refresh();};document.querySelector('.access-card details').append(upgradeAction);
 // Optional account controls sit outside the calendar; BASIC never waits for Firebase.
 if(androidAuth.available){
@@ -256,7 +261,7 @@ if(androidAuth.available){
   try{
    if(!androidAuth.configured)throw Error('licenseBackendUnavailable');
    if(!androidAuth.bridge.getCurrentUser())await androidAuth.signIn();
-   const verified=await androidAuth.secure.activateTrial();if(!verified||!['TRIAL','PREMIUM'].includes(verified.state))throw Error('licenseBackendUnavailable');render();
+   const verified=access.snapshot().state==='BASIC'?await androidAuth.secure.activateTrial():access.snapshot();if(!verified||!['TRIAL','PREMIUM'].includes(verified.state))throw Error('licenseBackendUnavailable');render();
   }catch(error){accountStatus(error.message==='legacyTrialReview'?'legacyTrialReview':error.message==='licenseBackendUnavailable'?'licenseBackendUnavailable':'secureTrialError');}
   finally{trial.disabled=false;}
  };

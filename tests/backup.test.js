@@ -48,3 +48,15 @@ test('restore space preflight rejects before writing any user record or permanen
  const doc=await parseBackup(encoded(data()),options),s=memory();fill(s);const old=[...s.map];let writes=0;
  await assert.rejects(restoreBackup(doc,{storage:s,locks,estimateSpace:async()=>({quota:100,usage:99}),photos:{async write(){writes++;},async remove(){}}}),/backupSpace/);assert.equal(writes,0);assert.deepEqual([...s.map],old);
 });
+
+test('trial expiring while a backup photo is staged blocks replacement and cleans the staged photo',async()=>{
+ const doc=await parseBackup(encoded(data()),options),storage=memory(),photos=photoStore();
+ fill(storage);
+ const before=[...storage.map];
+ let allowed=true;
+ const write=photos.write;
+ photos.write=async blob=>{const id=await write(blob);allowed=false;return id;};
+ await assert.rejects(restoreBackup(doc,{storage,photos,locks,canRestore:()=>allowed}),/backupReadOnly/);
+ assert.deepEqual([...storage.map],before);
+ assert.equal(photos.map.size,0);
+});

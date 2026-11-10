@@ -108,7 +108,8 @@ async function existingPhoto(blob,candidates,photos){
  }
  return null;
 }
-export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=apartmentPhotos,locks=globalThis.navigator?.locks,estimateSpace=()=>globalThis.navigator?.storage?.estimate?.()}={}){
+export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=apartmentPhotos,locks=globalThis.navigator?.locks,estimateSpace=()=>globalThis.navigator?.storage?.estimate?.(),canRestore=()=>true}={}){
+ if(!canRestore())throw Error('backupReadOnly');
  if(!prepared.has(doc))throw Error('backupInvalid');
  return withPhotoUse(()=>backupLock(async()=>{
   const staged=[];let committed=false,journalWritten=false;
@@ -120,11 +121,13 @@ export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=
     const blob=await entry.read(),candidates=new Set();
     for(const apartment of data.business.apartments)if(apartment.photoId===id){const saved=previous.find(a=>a.id===apartment.id);if(saved?.photoId)candidates.add(saved.photoId);}
     const reused=await existingPhoto(blob,candidates,photos);
+    if(!canRestore())throw Error('backupReadOnly');
     const next=reused??await photos.write(blob);if(reused===null)staged.push(next);ids.set(id,next);
    }
    for(const a of data.business.apartments)if(a.photoId)a.photoId=ids.get(a.photoId);
    if(JSON.stringify(before)!==JSON.stringify(captureBackupKeys(storage)))throw Error('backupChanged');
    const after=[JSON.stringify(data.business),JSON.stringify(data.maintenance),data.drafts?JSON.stringify(data.drafts):null,data.preferences.language,data.preferences.welcomeDismissed?'dismissed':null];
+   if(!canRestore())throw Error('backupReadOnly');
    const journal={version:1,phase:'prepared',before};storage.setItem(BACKUP_JOURNAL,JSON.stringify(journal));journalWritten=true;
    BACKUP_KEYS.forEach((key,i)=>{if(after[i]===null)storage.removeItem(key);else storage.setItem(key,after[i]);});
    storage.setItem(BACKUP_JOURNAL,JSON.stringify({...journal,phase:'committed'}));committed=true;
@@ -134,7 +137,7 @@ export async function restoreBackup(doc,{storage=globalThis.localStorage,photos=
    return backupCounts(doc);
   }catch(error){
    if(journalWritten&&!committed){try{recoverBackupUnlocked(storage);}catch{throw Error('backupRecoveryFailed');}}
-   throw Error(['backupChanged','backupSpace'].includes(error.message)?error.message:'backupRestoreFailed');
+   throw Error(['backupChanged','backupSpace','backupReadOnly'].includes(error.message)?error.message:'backupRestoreFailed');
   }finally{if(!committed)for(const id of staged)await photos.remove(id).catch(()=>{});}
  },locks));
 }

@@ -1,8 +1,9 @@
 import {BACKUP_KEYS,BACKUP_JOURNAL,backupLock,captureBackupKeys,recoverBackupUnlocked} from './backup-transaction.js';
 
 // The separate destructive action uses the same recovery protocol as restore.
-export async function eraseLocalBusinessData({storage=globalThis.localStorage,locks=globalThis.navigator?.locks}={}){
+export async function eraseLocalBusinessData({storage=globalThis.localStorage,locks=globalThis.navigator?.locks,canErase=()=>true}={}){
  return backupLock(()=>{
+  if(!canErase())throw Error('readOnly');
   recoverBackupUnlocked(storage);
   const before=captureBackupKeys(storage);
   const journal={version:1,phase:'prepared',before};

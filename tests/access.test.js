@@ -58,3 +58,15 @@ test('eligible initialization never resets ongoing or expired trials or writes o
  }
  const f=fixture();const premium=createAccessService(f.storage,f.clock,{getVerifiedEntitlement:()=>({subject:'test',source:PREMIUM_SOURCES.OWNER,permanent:true,verifiedUntil:5000})});assert.equal(premium.startTrial(),false);assert.equal(f.values.size,0);assert.equal(premium.snapshot().state,'PREMIUM');
 });
+
+test('commercial Android denies every apartment write without proof and permits all 12 with trial, paid or OWNER',()=>{
+ const apartments=Array.from({length:12},(_,i)=>({id:String(i)}));
+ const before=structuredClone(apartments);
+ for(const entitlement of [{state:'BASIC'},{state:'TRIAL'},{state:'PREMIUM',premiumSource:'GOOGLE_PLAY_PURCHASE'},{state:'PREMIUM',premiumSource:'OWNER_GRANT'}]){
+  const policy=accessPolicy(entitlement,apartments,true);
+  assert.equal(policy.canAddApartment,entitlement.state!=='BASIC');
+  for(const {id} of apartments)assert.equal(policy.canManageApartment(id),entitlement.state!=='BASIC');
+  assert.equal(policy.adsEligible,entitlement.state==='TRIAL');
+ }
+ assert.deepEqual(apartments,before);
+});

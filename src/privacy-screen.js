@@ -4,7 +4,7 @@ import {privacyCopy,renderPolicy} from './privacy-content.js';
 import {eraseLocalBusinessData} from './local-data-deletion.js';
 import {renderDeletionRequest} from './account-deletion.js';
 
-export function mountPrivacy({auth}){
+export function mountPrivacy({auth,canEraseLocal=()=>true}){
  const menu=document.getElementById('app-menu');
  const links=document.createElement('nav');
  links.id='privacy-actions';
@@ -37,14 +37,14 @@ export function mountPrivacy({auth}){
   }
   renderPolicy(body,getLanguage());
   // Existing local-only operation remains separate from requesting account deletion.
-  const local=document.createElement('button');local.type='button';local.textContent=copy.eraseLocal;
+  const local=document.createElement('button');local.type='button';local.textContent=copy.eraseLocal;local.disabled=!canEraseLocal();
   const status=document.createElement('p');status.setAttribute('aria-live','polite');
   local.onclick=async()=>{
-   if(busy||!confirm(copy.eraseLocalConfirm))return;
+   if(busy||!canEraseLocal()||!confirm(copy.eraseLocalConfirm))return;
    busy=true;local.disabled=true;
-   try{await eraseLocalBusinessData();location.reload();}
+   try{await eraseLocalBusinessData({canErase:canEraseLocal});location.reload();}
    catch{status.textContent=copy.localEraseError;}
-   finally{busy=false;local.disabled=false;}
+   finally{busy=false;local.disabled=!canEraseLocal();}
   };
   body.append(local,status);
  }

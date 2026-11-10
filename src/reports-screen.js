@@ -5,11 +5,11 @@ import {parseDate} from './date-format.js?v=0.2.5';
 import {downloadReservationsPDF} from './report-pdf.js';
 import {downloadReservationsExcel} from './report-excel.js';
 import {selectReservationsReport} from './reservations-report.js';
-import {canEditPayments} from './payments.js';
 import {formatMoney} from './booking-values.js';
 import {displayDate} from './date-format.js?v=0.2.5';
 import {today} from './domain.js?v=0.2.1';
 import {t} from './i18n.js?v=0.3.1';
+import {canEditPayments} from './payments.js';
 import {ownerApartments,ownerOptions} from './owners.js';
 import {reportApartmentGroups} from './report-summary.js';
 export function createReportsScreen({root,getState,getEntitlement}){
@@ -36,7 +36,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
    const result=await download(getState(),{...filters},getEntitlement());
    status(result.status==='saved'?'exportSaved':result.status==='cancelled'?'exportCancelled':'exportBrowserStarted',{filename:result.filename});
   }catch(reason){
-   status('');if(!canEditPayments(getEntitlement()))render();
+   status('');if(!getEntitlement().readOnlyExports&&!canEditPayments(getEntitlement()))render();
    else{const key=['exportNativeUnavailable','exportFileTooLarge'].includes(reason.message)?reason.message:'exportSaveFailed';error.textContent=t(key);error.hidden=false;}
   }finally{
    exporting=false;
@@ -55,7 +55,7 @@ export function createReportsScreen({root,getState,getEntitlement}){
  function option(select,value,label){const el=document.createElement('option');el.value=value;el.textContent=label;select.append(el);}
  function render(){
   exportStatus.textContent=statusKey?t(statusKey,statusValues):'';
-  const allowed=canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';unpriced.textContent='';error.hidden=true;if(!allowed)return;
+  const allowed=getEntitlement().readOnlyExports||canEditPayments(getEntitlement());exportButton.disabled=true;pdfButton.disabled=true;lock.hidden=allowed;content.hidden=!allowed;summary.replaceChildren();list.replaceChildren();notice.textContent='';count.textContent='';unpriced.textContent='';error.hidden=true;if(!allowed)return;
   const state=getState(),apartments=ownerApartments(state.apartments,filters.ownerId);ownerOptions(inputs.ownerId,state.apartments,filters.ownerId,t);if(filters.apartmentId&&!apartments.some(a=>a.id===filters.apartmentId))filters.apartmentId='';
   for(const name of ['apartmentId','status','currency'])inputs[name].replaceChildren();
   option(inputs.apartmentId,'',t('allApartments'));for(const a of apartments)option(inputs.apartmentId,a.id,a.name);

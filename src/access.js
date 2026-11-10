@@ -1,6 +1,5 @@
 // Offline entitlement foundation. Never stores or rewrites apartment/booking data.
 export const ACCESS_KEY='apartment-booking-manager:access:v1';
-export const BASIC_LIMIT=3;
 export const TRIAL_DURATION=15*86400000;
 export const ACCESS_STATES=Object.freeze({TRIAL:'TRIAL',BASIC:'BASIC',PREMIUM:'PREMIUM'});
 export const PREMIUM_SOURCES=Object.freeze({PURCHASE:'GOOGLE_PLAY_PURCHASE',OWNER:'OWNER_GRANT',GIFT:'ADMIN_GIFT'});
@@ -48,10 +47,13 @@ export function createAccessService(storage=globalThis.localStorage,clock=Date.n
  }
  return {snapshot,startTrial(){if(purchaseProvider.requiresVerifiedTrial||!snapshot().trialAvailable)return false;const now=clock(),next={version:1,startedAt:now,lastSeen:now};try{storage.setItem(ACCESS_KEY,JSON.stringify(next));record=next;return true;}catch{unavailable=true;return false;}}};
 }
-export function accessPolicy(entitlement,apartments){
- const unlimited=['TRIAL','PREMIUM'].includes(entitlement.state);
- const active=new Set(apartments.slice(0,BASIC_LIMIT).map(a=>a.id));
- return {adsEligible:true,canAddApartment:unlimited||apartments.length<BASIC_LIMIT,canManageApartment:id=>unlimited||active.has(id)};
+export function accessPolicy(entitlement,apartments=[],commercialRelease=false){
+ const canWrite=entitlement?.state==='TRIAL'||entitlement?.state==='PREMIUM';
+ if(!commercialRelease){
+  const active=new Set(apartments.slice(0,3).map(apartment=>apartment.id));
+  return {canWrite:true,canAddApartment:canWrite||apartments.length<3,canManageApartment:id=>canWrite||active.has(id),adsEligible:true};
+ }
+ return {canWrite,canAddApartment:canWrite,canManageApartment:()=>canWrite,adsEligible:entitlement?.state==='TRIAL'};
 }
 // Future Billing adapter: only a verified purchase provider may supply PREMIUM.
 // No UI/local flag grants PREMIUM; purchasing and restoration are unavailable.

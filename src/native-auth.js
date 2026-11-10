@@ -17,15 +17,32 @@ export function createNativeAuthBridge(plugin){
   async dispose(){disposed=true;revision++;user=null;listeners.clear();await handle?.remove();handle=null;}
  };
 }
-export function createOptionalAndroidAuth(capacitor=globalThis.Capacitor,{changed=()=>{}}={}){
+export function createOptionalAndroidAuth(capacitor=globalThis.Capacitor,{changed=()=>{},activateOnSignIn=false}={}){
  const plugin=capacitor?.getPlatform?.()==='android'?capacitor.Plugins?.BookingAuth:null;
  if(!plugin)return {available:false,provider:billingAdapter};
  const bridge=createNativeAuthBridge(plugin);
+ let activation=null,currentSubject,initializedSession;
  const access=createSecureAccess({bridge,plugin:capacitor.Plugins?.BookingAccess,endpoint:LICENSE_ENDPOINT,changed});
  return {available:true,provider:access.provider,bridge,
   configured:access.configured,secure:access,
-  async initialize(){bridge.onIdTokenChanged(()=>{access.sessionChanged().then(()=>access.refresh()).catch(()=>{});});await bridge.initialize();await access.sessionChanged();},
-  async signIn(){await bridge.signInWithGoogle();},
+  async initialize(){
+   bridge.onIdTokenChanged(()=>{
+    const uid=bridge.getCurrentUser()?.uid;
+    if(activateOnSignIn&&uid&&uid===currentSubject&&activation?.uid===uid)return;
+    currentSubject=uid;
+    const shouldActivate=activateOnSignIn&&uid&&activation?.uid!==uid;
+    initializedSession=access.sessionChanged();
+    const verification=initializedSession.then(()=>uid?access.refresh(shouldActivate?'startTrial':'verify'):null);
+    if(shouldActivate){
+     const attempt={uid,promise:verification};activation=attempt;
+     verification.catch(()=>{if(activation===attempt)activation=null;});
+    }else if(!uid)activation=null;
+    verification.catch(()=>{});
+   });
+   await bridge.initialize();
+   await initializedSession;
+  },
+  async signIn(){await bridge.signInWithGoogle();await activation?.promise.catch(()=>{});},
   async signOut(){await access.signOut();await bridge.signOut();}
  };
 }

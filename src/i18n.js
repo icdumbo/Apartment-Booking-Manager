@@ -62,7 +62,47 @@ export function selectLanguage(value,storage){
 
 Object.assign(translations.ro,{"maintenanceExportDate":"Data","maintenanceExportLinkedNote":"Cost legat: inclus o singură dată prin cheltuială.","maintenanceExportTitle":"Raport întreținere","maintenanceExportPeriod":"Perioadă","maintenanceExportOpenStart":"De la început","maintenanceExportOpenEnd":"Până în prezent","maintenanceExportRows":"Înregistrări: {count}","maintenanceExportType":"Tip","maintenanceExportCounted":"Inclus în total","maintenanceExportLinked":"Cost legat","maintenanceExportExpenses":"Cheltuieli","maintenanceExportWorkCosts":"Costuri reale lucrări netransferate","maintenanceExportTotal":"Total selecție","maintenanceExportGrand":"Total general","maintenanceExportByOwner":"Pe proprietari","maintenanceExportDetails":"Detalii întreținere","maintenanceExportUnknown":"Lucrări fără cost real","maintenanceExportBasis":"Exportă cheltuielile și lucrările salvate, nu ciornele. Perioada folosește data cheltuielii și data programată a lucrării. Total = cheltuieli + costuri reale ale lucrărilor netransformate în cheltuieli; costurile legate se numără doar la data cheltuielii. Estimările sunt separate. Sumele lipsă rămân nespecificate. Monedele nu se adună.","reservationSingular":"rezervare","reservationPlural":"rezervări","reportExcludedOne":"exclusă","reportExcludedMany":"excluse"});
 Object.assign(translations.en,{"maintenanceExportDate":"Date","maintenanceExportLinkedNote":"Linked cost: counted once through the expense.","maintenanceExportTitle":"Maintenance report","maintenanceExportPeriod":"Period","maintenanceExportOpenStart":"From the beginning","maintenanceExportOpenEnd":"To date","maintenanceExportRows":"Records: {count}","maintenanceExportType":"Type","maintenanceExportCounted":"Included in total","maintenanceExportLinked":"Linked cost","maintenanceExportExpenses":"Expenses","maintenanceExportWorkCosts":"Actual unconverted work costs","maintenanceExportTotal":"Selection total","maintenanceExportGrand":"Grand total","maintenanceExportByOwner":"By owner","maintenanceExportDetails":"Maintenance details","maintenanceExportUnknown":"Works without actual cost","maintenanceExportBasis":"Exports saved expenses and works, not drafts. The period uses the expense date and work scheduled date. Total = expenses + actual work costs not converted into expenses; linked costs count only on the expense date. Estimates are separate. Missing amounts remain unspecified. Currencies are not added together.","reservationSingular":"reservation","reservationPlural":"reservations","reportExcludedOne":"excluded","reportExcludedMany":"excluded"});
-export function t(key,values={}){const value=translations[language][key];if(value===undefined)throw new Error('Unknown translation key: '+key);return typeof value==='string'?value.replace(/\{(\w+)\}/g,(_,name)=>String(name==='reservationNoun'?translations[language][Number(values.count)===1?'reservationSingular':'reservationPlural']:name==='excludedAgreement'?translations[language][Number(values.unknown)===1?'reportExcludedOne':'reportExcludedMany']:values[name]??'')):value;}
+const commercialCopy={
+ "ro": {
+  "statusBasic": "Doar consultare și export",
+  "statusUnavailable": "Doar consultare și export · acces neverificat",
+  "basicActive": "Poți consulta datele și le poți exporta. Autentifică-te pentru trial, dacă ești eligibil, sau cumpără PREMIUM pentru editare.",
+  "basicReadOnly": "Mod de consultare. Pentru a modifica datele ai nevoie de un trial activ sau de PREMIUM verificat.",
+  "backupReadOnly": "Restaurarea modifică datele locale și necesită un trial activ sau PREMIUM verificat.",
+  "entryBasicNote": "15 zile gratuite cu Google · fără card",
+  "entryContinueBasic": "Continuă fără cont · doar consultare",
+  "entryLoginDescription": "Conectează contul Google pentru a porni trialul eligibil sau a verifica drepturile PREMIUM.",
+  "entryLoginTerms": "Prima autentificare validă pornește trialul eligibil de 15 zile, fără card. După expirare poți consulta și exporta datele.",
+  "entryOffline": "Autentificarea necesită internet. Datele existente pot fi consultate și exportate offline.",
+  "authSignedOut": "Autentifică-te pentru a porni un trial eligibil sau pentru a verifica accesul PREMIUM.",
+  "authCancelled": "Autentificare anulată. Datele rămân disponibile pentru consultare și export.",
+  "authError": "Autentificarea nu s-a finalizat. Verifică conexiunea și încearcă din nou.",
+  "trialTerms": "Trialul este activ până la {date}. După expirare, datele rămân disponibile pentru consultare și export.",
+  "secureTrialTerms": "Activezi 15 zile gratuite, fără card, cu Google Sign-In. După expirare poți consulta și exporta datele. Reinstalarea nu reînnoiește un trial înregistrat pe server. După eliminarea istoricului conform retenției, repetarea poate fi posibilă. Continui?",
+  "licenseBackendUnavailable": "Trialul nu a putut fi activat. Datele rămân disponibile pentru consultare și export.",
+  "purchaseTerms": "PREMIUM permanent fără reclame, printr-o singură achiziție Google Play. Folosește același cont Google pentru verificare și restaurare."
+ },
+ "en": {
+  "statusBasic": "View and export only",
+  "statusUnavailable": "View and export only · access unverified",
+  "basicActive": "You can view and export your data. Sign in for a trial if eligible, or buy PREMIUM to edit.",
+  "basicReadOnly": "Read-only mode. Editing requires an active trial or verified PREMIUM.",
+  "backupReadOnly": "Restoring changes local data and requires an active trial or verified PREMIUM.",
+  "entryBasicNote": "15 free days with Google · no card",
+  "entryContinueBasic": "Continue without an account · view only",
+  "entryLoginDescription": "Connect your Google account to start an eligible trial or verify PREMIUM access.",
+  "entryLoginTerms": "The first valid sign-in starts the eligible 15-day trial without a card. After expiry you can view and export your data.",
+  "entryOffline": "Sign-in requires internet. You can view and export existing data offline.",
+  "authSignedOut": "Sign in to start an eligible trial or verify PREMIUM access.",
+  "authCancelled": "Sign-in cancelled. Data remains available for viewing and export.",
+  "authError": "Sign-in did not complete. Check your connection and try again.",
+  "trialTerms": "Your trial is active until {date}. Afterwards, you can still view and export your data.",
+  "secureTrialTerms": "Activate 15 free days without a card using Google Sign-In. After expiry you can view and export data. Reinstalling does not renew a trial recorded on the server. A repeat trial may be possible after history is removed under the retention policy. Continue?",
+  "licenseBackendUnavailable": "The trial could not be started. Data remains available for viewing and export.",
+  "purchaseTerms": "Permanent, ad-free PREMIUM with one Google Play purchase. Use the same Google account for verification and restoration."
+ }
+};
+export function t(key,values={}){const value=(globalThis.document?.documentElement.dataset.commercialRelease==='true'?commercialCopy[language][key]:undefined)??translations[language][key];if(value===undefined)throw new Error('Unknown translation key: '+key);return typeof value==='string'?value.replace(/\{(\w+)\}/g,(_,name)=>String(name==='reservationNoun'?translations[language][Number(values.count)===1?'reservationSingular':'reservationPlural']:name==='excludedAgreement'?translations[language][Number(values.unknown)===1?'reportExcludedOne':'reportExcludedMany']:values[name]??'')):value;}
 export function monthTitle(date){return `${t('monthsFull')[date.getUTCMonth()]} ${date.getUTCFullYear()}`;}
 export function weekdayTitle(date){return t('weekdays')[date.getUTCDay()];}
 const errors={

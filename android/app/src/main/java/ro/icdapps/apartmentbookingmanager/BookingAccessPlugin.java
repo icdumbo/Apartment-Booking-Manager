@@ -23,6 +23,7 @@ import org.json.JSONObject;
 public class BookingAccessPlugin extends Plugin {
     private static final String PREFS="abm-verified-access",ALIAS="abm-access-cache-v1";
     private static final long TRIAL_MS=15L*86400000;
+    private static final long PURCHASE_OFFLINE_MS=7L*86400000;
     private String nonce,requestSubject;
     private long requestElapsed;
     private int requestBoot;
@@ -81,15 +82,22 @@ public class BookingAccessPlugin extends Plugin {
         JSONObject c=claims(record.getString("proof"));String state=c.getString("state");
         JSObject result=new JSObject().put("state",state).put("subject",c.getString("subject")).put("premiumSource",c.opt("source"));
         if("BASIC".equals(state))return result;
-        if(!c.isNull("expiresAt")) {
+        boolean purchaseLease=c.isNull("expiresAt")&&"GOOGLE_PLAY_PURCHASE".equals(c.optString("source"));
+        if(purchaseLease||!c.isNull("expiresAt")) {
             long anchor=record.getLong("elapsed"),elapsed=SystemClock.elapsedRealtime();
             // A reboot loses the trusted monotonic time base. Do not use wall-clock fallback.
             if(boot()<0||boot()!=record.getInt("boot")||elapsed<anchor)return new JSObject().put("state","BASIC").put("subject",c.getString("subject")).put("needsOnlineTime",true);
-            long remaining=OfflineAccessClock.remaining(c.getLong("expiresAt"),c.getLong("issuedAt"),anchor,elapsed,record.getInt("boot"),boot());
+            long issued=c.getLong("issuedAt"),until=purchaseLease?Math.addExact(issued,PURCHASE_OFFLINE_MS):c.getLong("expiresAt");
+            long remaining=OfflineAccessClock.remaining(until,issued,anchor,elapsed,record.getInt("boot"),boot());
             if(remaining<=0)return new JSObject().put("state","BASIC").put("subject",c.getString("subject"));
-            result.put("expiresAt",c.getLong("expiresAt")).put("remainingMs",remaining);
+            if(!purchaseLease)result.put("expiresAt",until);
+            result.put("remainingMs",remaining);
         }
         return result;
+    }
+    synchronized String verifiedTrialSubject() {
+        try { JSObject access=snapshot();return "TRIAL".equals(access.optString("state"))?access.optString("subject",null):null; }
+        catch (Exception ignored) { return null; }
     }
     @PluginMethod public synchronized void beginVerification(PluginCall call) {
         if(subject()==null){call.reject("Sign in first","authenticationRequired");return;}

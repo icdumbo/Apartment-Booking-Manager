@@ -39,14 +39,17 @@ export function createSecureAccess({bridge,plugin,endpoint=null,fetchImpl=global
  }
  return {configured:Boolean(url&&plugin),provider:{requiresVerifiedTrial:true,getVerifiedAccess,getVerifiedEntitlement:()=>null},
   async sessionChanged(){clearMemory();await read();},
-  async refresh(){
+  async refresh(action='verify'){
    const account=subject(),revision=generation;
-   if(pending?.account===account&&pending.revision===revision)return pending.promise;
-   const request={account,revision};
-   request.promise=verify().finally(()=>{if(pending===request)pending=null;});
+   if(pending?.account===account&&pending.revision===revision){
+    if(action==='startTrial'&&pending.action!=='startTrial')return pending.promise.then(()=>{if(revision!==generation||account!==subject())throw Error('authenticationRequired');return this.refresh(action);});
+    return pending.promise;
+   }
+   const request={account,revision,action};
+   request.promise=verify(action).finally(()=>{if(pending===request)pending=null;});
    pending=request;return request.promise;
   },
-  async activateTrial(){return verify('startTrial');},
+  async activateTrial(){return this.refresh('startTrial');},
   async verifyPurchase(purchaseToken){if(typeof purchaseToken!=='string'||!purchaseToken||purchaseToken.length>4096)throw Error('purchaseRejected');return verify('verifyPurchase',purchaseToken);},
   suspend:clearMemory,read,
   async signOut(){clearMemory();await plugin?.clear();}

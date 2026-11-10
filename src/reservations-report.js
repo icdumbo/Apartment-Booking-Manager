@@ -5,7 +5,7 @@ import {bookingBalance} from './booking-values.js';
 import {ownerScope} from './owners.js';
 // Read-only projection: inclusive filter dates, check-out excluded; full current amounts.
 export function selectReservationsReport(state,{start,end,apartmentId='',ownerId='',status='all',currency='ALL'},entitlement){
- if(!canEditPayments(entitlement))throw new Error('reportPremium');
+ if(!entitlement?.readOnlyExports&&!canEditPayments(entitlement))throw new Error('reportPremium');
  if(currency!=='ALL')validateCurrency(currency);
  let first,last;try{first=dayNumber(start);last=dayNumber(end);}catch{throw new Error('reportInvalidPeriod');}
  if(first>last||!['all','confirmed','unconfirmed'].includes(status))throw new Error('reportInvalidPeriod');

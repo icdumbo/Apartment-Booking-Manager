@@ -7,7 +7,7 @@ export function createEntryScreen({auth,hasData,storage=globalThis.localStorage,
  const $=id=>root.querySelector('#'+id);
  let busy=false,fromWelcome=false;
  const remembered=()=>{try{return storage.getItem(ENTRY_KEY)==='dismissed';}catch{return false;}};
- function remember(){try{storage.setItem(ENTRY_KEY,'dismissed');}catch{/* BASIC is still reachable if preferences cannot be saved. */}}
+ function remember(){try{storage.setItem(ENTRY_KEY,'dismissed');}catch{/* Read-only access is still reachable if preferences cannot be saved. */}}
  function message(key=''){const el=$('entry-message');if(key)el.dataset.i18n=key;else delete el.dataset.i18n;el.textContent=key?t(key):'';}
  function enter(){remember();root.close();}
  function show(view){
@@ -32,7 +32,7 @@ export function createEntryScreen({auth,hasData,storage=globalThis.localStorage,
   busy=true;for(const id of ['entry-google','entry-basic','entry-back'])$(id).disabled=true;
   message('authPending');
   try{
-   // Reuse the native Google/Firebase flow. This never starts a trial or purchase.
+   // Reuse the native Google/Firebase flow. The server determines trial eligibility.
    await auth.signIn();
    if(!auth.bridge.getCurrentUser())throw Error('authenticationRequired');
    enter();

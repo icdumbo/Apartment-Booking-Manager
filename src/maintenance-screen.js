@@ -21,20 +21,21 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
    const result=await download(getState(),repository.load(),{...filters,category:kind==='expenses'?filters.category:''},getEntitlement());
    status(result.status==='saved'?'exportSaved':result.status==='cancelled'?'exportCancelled':'exportBrowserStarted',{filename:result.filename});
   }catch(error){status('');if(!maintenanceAllowed(getEntitlement()))render();else message({message:['maintenancePremium','maintenanceInvalid','collectionOverflow','exportNativeUnavailable','exportFileTooLarge'].includes(error.message)?error.message:'exportSaveFailed'});}
-  finally{exporting=false;for(const button of root.querySelectorAll('[data-maintenance-export]'))button.disabled=!maintenanceAllowed(getEntitlement());}
+  finally{exporting=false;for(const button of root.querySelectorAll('[data-maintenance-export]'))button.disabled=!getEntitlement().readOnlyExports&&!maintenanceAllowed(getEntitlement());}
  }
  function node(tag,value,parent=root){const el=document.createElement(tag);if(value!==undefined)el.textContent=value;parent.append(el);return el;}
  function button(label,action,parent){const el=node('button',t(label),parent);el.type='button';el.onclick=action;return el;}
  function message(error,focus=true){const el=root.querySelector('.maintenance-error');if(!el)return;el.textContent=translateError(error);if(focus&&!root.hidden){el.tabIndex=-1;el.scrollIntoView({block:'center'});el.focus({preventScroll:true});}}
  function persistDraft(){
+  if(!maintenanceAllowed(getEntitlement()))return false;
   try{draftRepository.put(kind,draft,expectedDraft);expectedDraft=structuredClone(draft);draftWarning='';return true;}catch(error){draftWarning=error.message;message(error,false);return false;}
  }
- function capture(force=false){const form=root.querySelector('form');if(!draft||form?.dataset.draftId!==draft.recordId)return true;
+ function capture(force=false){if(!maintenanceAllowed(getEntitlement()))return true;const form=root.querySelector('form');if(!draft||form?.dataset.draftId!==draft.recordId)return true;
   const values=Object.fromEntries(new FormData(form));if(JSON.stringify(values)!==JSON.stringify(draft.values)||force===true){draft.values=values;return persistDraft();}return !draftWarning;
  }
  function restore(selected){try{const doc=draftRepository.load();kind=selected??doc.activeKind;draft=doc.drafts[kind]?structuredClone(doc.drafts[kind]):null;expectedDraft=draft?structuredClone(draft):null;}catch(error){draftWarning=error.message;draft=null;expectedDraft=null;}}
- function begin(row){if(draft)return;draft={recordId:row?.id??crypto.randomUUID(),values:{}};if(row){draft.id=row.id;draft.baseRecord=structuredClone(row);draft.item=row;}render();}
- function cancelDraft(){try{draftRepository.remove(kind,expectedDraft);draft=null;expectedDraft=null;draftWarning='';render();}catch(error){message(error);}}
+ function begin(row){if(draft||!maintenanceAllowed(getEntitlement()))return;draft={recordId:row?.id??crypto.randomUUID(),values:{}};if(row){draft.id=row.id;draft.baseRecord=structuredClone(row);draft.item=row;}render();}
+ function cancelDraft(){if(!maintenanceAllowed(getEntitlement()))return;try{draftRepository.remove(kind,expectedDraft);draft=null;expectedDraft=null;draftWarning='';render();}catch(error){message(error);}}
  function fieldErrors(form,errors){
   for(const input of form.querySelectorAll('[name]')){const key=errors[input.name],error=form.querySelector('[data-error-for="'+input.name+'"]');input.setAttribute('aria-invalid',String(Boolean(key)));if(error)error.textContent=key?t(key):'';}
   const first=Object.keys(errors)[0];if(first){message({message:'maintenanceCheckFields'},false);const input=form.elements.namedItem(first);input.scrollIntoView({block:'center'});input.focus({preventScroll:true});}
@@ -73,7 +74,8 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
  function render(){
   capture();if(!initialized){restore();initialized=true;}
   root.replaceChildren();const error=node('p','',root);error.className='maintenance-error';error.setAttribute('role','alert');
-  if(!maintenanceAllowed(getEntitlement())){const locked=node('div',undefined,root);locked.className='collections-locked';node('h2',t('maintenancePremium'),locked);node('p',t('maintenanceBenefits'),locked);button('maintenanceUpgrade',upgrade,locked);return;}
+  const writable=maintenanceAllowed(getEntitlement());
+  if(!writable&&!getEntitlement().readOnlyExports){const locked=node('div',undefined,root);locked.className='collections-locked';node('h2',t('maintenancePremium'),locked);node('p',t('maintenanceBenefits'),locked);button('maintenanceUpgrade',upgrade,locked);return;}
   try{if(!draft||!data)data=repository.load();}catch{error.textContent=t('maintenanceStorage');return;}
   const tabs=node('nav',undefined,root);tabs.className='maintenance-tabs';for(const name of ['expenses','works','reviews']){const b=button('maintenance_'+name,()=>{if(!capture(true))return;restore(name);data=undefined;render();},tabs);b.setAttribute('aria-pressed',String(kind===name));}
   const controls=node('div',undefined,root);controls.className='maintenance-filters';
@@ -88,8 +90,8 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
   for(const [format,key,download] of [['excel','reportExportExcel',downloadMaintenanceExcel],['pdf','reportExportPDF',downloadMaintenancePDF]]){const action=button(key,()=>runExport(download),exports);action.id='maintenance-export-'+format;action.dataset.maintenanceExport=format;action.disabled=exporting;}
   const exportMessage=node('p',exportStatus?t(exportStatus,exportStatusValues):'',root);exportMessage.id='maintenance-export-status';exportMessage.setAttribute('role','status');
   node('p',t('maintenanceExportBasis'),root).className='maintenance-export-basis';
-  const add=button('maintenanceAdd',()=>begin(),root);add.id='maintenance-add';add.className='primary';add.disabled=Boolean(draft)||!getState().apartments.length;
-  if(draft)editor();else if(draftWarning)message({message:draftWarning},false);
+  const add=button('maintenanceAdd',()=>begin(),root);add.id='maintenance-add';add.className='primary';add.disabled=!writable||Boolean(draft)||!getState().apartments.length;
+  if(draft&&writable)editor();else if(writable&&draftWarning)message({message:draftWarning},false);
   let result;try{result=selectMaintenance(data,kind,filters,getState().apartments);}catch{error.textContent=t('maintenanceInvalid');return;}
   const totals=node('div',undefined,root);totals.className='maintenance-totals';for(const [currency,sum] of Object.entries(result.totals))node('strong',formatMoney(sum,currency),totals);
   const list=node('div',undefined,root);list.className='maintenance-list';if(!result.rows.length)node('p',t('maintenanceEmpty'),list);
@@ -99,9 +101,9 @@ export function createMaintenanceScreen({root,getState,getEntitlement,upgrade}){
    if(kind==='works'){node('p',`${t('maintenanceStatus_'+row.status)} · ${displayDate(row.scheduledDate)}`,card);if(row.completedDate)node('p',`${t('maintenanceCompleted')}: ${displayDate(row.completedDate)}`,card);if(row.provider)node('p',row.provider,card);node('p',`${t('maintenanceEstimated')}: ${formatMoney(row.estimatedCents,row.currency)} · ${t('maintenanceActual')}: ${formatMoney(row.actualCents,row.currency)}`,card);}
    if(kind==='reviews'){node('p',t('maintenanceEquipment_'+row.equipment),card);if(row.lastDate)node('p',`${t('maintenanceLast')}: ${displayDate(row.lastDate)}`,card);const due=reviewDue(row,today());node('p',`${t('maintenanceNext')}: ${displayDate(row.nextDate)} · ${t('maintenanceDue_'+due)}`,card).className='maintenance-due-'+due;}
    if(row.notes)node('p',row.notes,card);const actions=node('div',undefined,card);actions.className='maintenance-actions';
-   if(!row.workId){const edit=button('maintenanceEdit',()=>begin(row),actions);edit.disabled=Boolean(draft);}
-   button('delete',()=>{if(confirm(t('maintenanceDelete')))execute({kind,id:row.id,operation:'delete'});},actions);
-   if(kind==='works'){const linked=data.expenses.some(e=>e.workId===row.id);if(linked)node('span',t('maintenanceAlreadyLinked'),actions);else if(row.status==='completed'&&row.completedDate&&row.actualCents!==undefined)button('maintenanceConvert',()=>execute({kind,id:row.id,operation:'convert',expenseId:crypto.randomUUID()}),actions);}
+   if(!row.workId){const edit=button('maintenanceEdit',()=>begin(row),actions);edit.disabled=!writable||Boolean(draft);}
+   if(writable)button('delete',()=>{if(confirm(t('maintenanceDelete')))execute({kind,id:row.id,operation:'delete'});},actions);
+   if(kind==='works'){const linked=data.expenses.some(e=>e.workId===row.id);if(linked)node('span',t('maintenanceAlreadyLinked'),actions);else if(writable&&row.status==='completed'&&row.completedDate&&row.actualCents!==undefined)button('maintenanceConvert',()=>execute({kind,id:row.id,operation:'convert',expenseId:crypto.randomUUID()}),actions);}
   }
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden)capture(true);});

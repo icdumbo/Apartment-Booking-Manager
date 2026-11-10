@@ -5,6 +5,10 @@ import {maintenanceExcel} from '../src/maintenance-excel.js';import {maintenance
 import {reservationsExcel} from '../src/report-excel.js';import {reservationsPDF} from '../src/report-pdf.js';
 import {selectLanguage,t} from '../src/i18n.js?v=0.3.1';import {ownerId,NO_OWNER} from '../src/owners.js';import {xlsxParts} from '../checks/helpers/xlsx.mjs';
 const premium={state:'PREMIUM'},filters={start:'2026-10-01',end:'2026-10-31',ownerId:ownerId('Ștefan Test')};
+test('read-only Android still generates reservations Excel and PDF',()=>{
+ const {state}=maintenanceExportFixture(),filter={start:'2026-10-01',end:'2026-10-31'};
+ for(const generate of [reservationsExcel,reservationsPDF])assert.ok(generate(state,filter,{state:'BASIC',readOnlyExports:true}).bytes.length>0);
+});
 test('maintenance export scopes owners/apartments/period/category and separates currencies without double-counting converted work',()=>{
  const {state,data}=maintenanceExportFixture(),before=JSON.stringify({state,data});selectLanguage('ro');
  const result=selectMaintenanceExport(state,data,filters,premium);assert.equal(result.rows.length,6);assert.equal(result.byApartment.length,2);assert.equal(result.byOwner.length,1);
@@ -23,6 +27,7 @@ test('both formats require current access, reject invalid periods/unsafe totals 
  const {state,data}=maintenanceExportFixture();for(const generate of [maintenanceExcel,maintenancePDF]){
   assert.throws(()=>generate(state,data,filters,{state:'BASIC'}),/maintenancePremium/);assert.throws(()=>generate(state,data,{...filters,end:'2026-09-01'},premium),/maintenanceInvalid/);
   assert.ok(generate(state,data,filters,{state:'TRIAL'}).bytes.length>0);
+  assert.ok(generate(state,data,filters,{state:'BASIC',readOnlyExports:true}).bytes.length>0);
  }
  const large=structuredClone(data);large.expenses[0].amountCents=Number.MAX_SAFE_INTEGER;assert.throws(()=>selectMaintenanceExport(state,large,filters,premium),/maintenanceInvalid|collectionOverflow/);
  const workOverflow=structuredClone(data);workOverflow.works[1].actualCents=Number.MAX_SAFE_INTEGER;assert.throws(()=>selectMaintenanceExport(state,workOverflow,filters,premium),/collectionOverflow/);

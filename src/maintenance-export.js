@@ -5,7 +5,7 @@ import {displayDate} from './date-format.js?v=0.2.5';
 
 // Read-only persisted records. Drafts and entitlement metadata never enter exports.
 export function selectMaintenanceExport(state,data,filters={},access){
- if(!maintenanceAllowed(access))throw Error('maintenancePremium');
+ if(!access?.readOnlyExports&&!maintenanceAllowed(access))throw Error('maintenancePremium');
  validateMaintenance(data);
  const expenses=selectMaintenance(data,'expenses',filters,state.apartments).rows;
  const works=selectMaintenance(data,'works',filters,state.apartments).rows;
