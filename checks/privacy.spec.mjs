@@ -29,8 +29,9 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
   await verifyDraft(dialog,language);
   const email=dialog.locator('input[type=email]');
   const send=dialog.getByRole('button',{name:language==='ro'?'Trimite solicitarea prin e-mail':'Send request by email'});
-  await send.scrollIntoViewIfNeeded();
-  await expect(send).toBeInViewport({ratio:1});
+  await send.evaluate(button=>button.scrollIntoView({block:'center',inline:'nearest'}));
+  // Allow fractional-pixel clipping in the dialog while still requiring the button to be clickable.
+  await expect(send).toBeInViewport({ratio:0.99});
   await expect(email).toHaveValue('');
   await expect(email).toHaveJSProperty('required',true);
   await send.click();
