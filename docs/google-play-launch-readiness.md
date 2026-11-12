@@ -134,3 +134,17 @@ Surse oficiale
 - [Google Play Billing](https://developer.android.com/google/play/billing/integrate)
 - [AdMob UMP pentru Android](https://developers.google.com/admob/android/privacy)
 - [Datele utilizatorilor și Data Safety](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en)
+
+## Verificări juridice rămase pentru versiunea Android de lansare
+
+- **Inventar și Data Safety.** Separă datele de lucru exclusiv locale și exporturile inițiate de utilizator de datele online. Firebase Auth procesează identitatea Google, UID-ul și metadatele de autentificare. Cloudflare verifică tokenul Firebase și gestionează starea licenței și a trialului. Play verifică tranzacțiile atunci când Billing este activ, iar solicitările sunt gestionate în căsuța de suport. Analytics este planificat, dar dependența și controlul consimțământului nu sunt prezente în configurația Android verificată. AdMob și Billing sunt dezactivate implicit. Verifică SDK-urile, evenimentele automate și explicite, parametrii, identificatorii tehnici, destinatarii și traficul buildului real, inclusiv înainte de consimțământ, la refuz și după retragere. Nu trata lipsa UID-ului din evenimente ca anonimizare.
+- **Retenție.** Verifică în proprietatea Analytics setarea de 2 luni pentru datele la nivel de eveniment și documentează separat rapoartele agregate, care nu sunt acoperite de acea setare. Verifică aplicarea efectivă a retenției istoricului trialului și documentează criteriile pentru licențe, tranzacții, restricții, corespondență și dovezi de ștergere. Termenele Firebase sunt ale furnizorului și nu stabilesc termenul de soluționare al operatorului.
+- **Temeiuri și transferuri.** Confirmă necesitatea prelucrării pentru contract, temeiul legal pentru soluționarea drepturilor, evaluarea interesului legitim pentru securitate și cerințele de consimțământ pentru Analytics și AdMob. Confirmă serviciile, entitățile contractante și garanțiile de transfer efectiv aplicabile pentru Google/Firebase, Cloudflare și căsuța de suport. Nu extinde termenii Firebase asupra tuturor serviciilor Google.
+- **Ștergere.** Testează cu un cont fictiv, de la primirea e-mailului până la verificarea identității, eliminarea înregistrărilor eligibile din Firebase și D1 și răspunsul operatorului. Verifică tratamentul cumpărătorilor PREMIUM și al conturilor OWNER. Înainte de activarea Analytics, stabilește cum se pot identifica și șterge datele eligibile în mod proporțional, fără a introduce UID-ul sau e-mailul în evenimente și fără a promite asocierea dacă aceasta nu poate fi demonstrată.
+- **Publicare.** După validarea configurației reale, aliniază documentele cu Data Safety și aprobă textele ca operator. Păstrează avertismentul DRAFT și blocarea generatorului de release până la îndeplinirea condițiilor. Publicarea de preview nu este o aprobare a documentelor.
+
+Surse oficiale
+
+- [Retenția datelor în Google Analytics](https://support.google.com/analytics/answer/7667196?hl=en)
+- [Cerințele Google Play privind datele utilizatorilor](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en)
+- [Cerințele Google Play pentru ștergerea contului](https://support.google.com/googleplay/android-developer/answer/13327111?hl=en)
