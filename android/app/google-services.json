@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "139551918205-8jp5dct09c19ebee0ruoeov1tkb900bm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ro.icdapps.apartmentbookingmanager",
+            "certificate_hash": "6f2cbbdc212869bd5cee6611ada88e71ec0c9c63"
+          }
+        },
+        {
           "client_id": "139551918205-0s1knhrp5qgnc5v0l22lier2ulu1a7do.apps.googleusercontent.com",
           "client_type": 3
         }
