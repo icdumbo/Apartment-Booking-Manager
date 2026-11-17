@@ -104,13 +104,13 @@ test('separately requested local erase preserves preferences and rolls back a pa
  assert.equal(map.get('unrelated'),'keep');
 });
 
-test('release drafts distinguish planned Analytics from active processing in both languages',()=>{
+test('release drafts exclude Analytics from the initial release in both languages',()=>{
  for(const lang of ['ro','en']){
   const text=policySections(lang).flat().join(' ');
   assert.match(text,/Firebase Analytics/);
   assert.match(text,/99 RON|RON 99/);
-  assert.match(text,/2 luni|2 months/);
-  assert.match(text,/nu sunt active în versiunea verificată|are not active in the reviewed version/);
+  assert.doesNotMatch(text,/2 luni|2 months/);
+  assert.match(text,/nu face parte din lansarea inițială|excluded from the initial release/);
   assert.match(text,/posibilitatea retragerii|option to withdraw consent/);
   assert.match(privacyCopy[lang].scope,/trial/);
  }

@@ -55,6 +55,14 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --test tests/privacy.test.js tests/legal-pages.test.js
+      - run: node --test tests/privacy.test.js tests/legal-pages.test.js tests/secure-trial.test.js tests/play-purchases.test.js
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test checks/legal-pages.spec.mjs
+      - run: npx playwright test checks/legal-pages.spec.mjs checks/commerce.spec.mjs checks/commercial-release.spec.mjs
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify trial and UMP ad eligibility
+        run: |
+          javac -d "$RUNNER_TEMP/abm-ad-gate" android/app/src/main/java/ro/icdapps/apartmentbookingmanager/TrialAdGate.java tests/fixtures/TrialAdGateTest.java
+          java -cp "$RUNNER_TEMP/abm-ad-gate" ro.icdapps.apartmentbookingmanager.TrialAdGateTest
