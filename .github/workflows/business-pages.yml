@@ -39,19 +39,20 @@ jobs:
           grep -F "$release/src/styles.css" _site/index.html
       - uses: actions/checkout@v6
         with:
-          ref: 298a5f216c63ed6bf8efe5d0264243ba277fe324
+          ref: ${{ github.sha }}
           path: legal-source
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Include audited bilingual documents with review notice
+      - name: Render the Android source of the bilingual legal documents
         working-directory: legal-source
         run: |
-          node scripts/prepare-legal-pages.mjs --preview
+          mode=$(node --input-type=module -e "import {isPrivacyPublicationReady} from './src/privacy-settings.js'; console.log(isPrivacyPublicationReady() ? 'release' : 'preview')")
+          node scripts/prepare-legal-pages.mjs --"$mode"
           mkdir ../_site/legal
           for page in privacy-ro privacy-en delete-account-ro delete-account-en; do
-            install -m 644 "build/legal-pages-preview/legal/$page.html" "../_site/legal/$page.html"
+            install -m 644 "build/legal-pages-$mode/legal/$page.html" "../_site/legal/$page.html"
           done
       - uses: actions/upload-pages-artifact@v4
         with:

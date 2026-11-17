@@ -148,3 +148,14 @@ Surse oficiale
 - [Retenția datelor în Google Analytics](https://support.google.com/analytics/answer/7667196?hl=en)
 - [Cerințele Google Play privind datele utilizatorilor](https://support.google.com/googleplay/android-developer/answer/10144311?hl=en)
 - [Cerințele Google Play pentru ștergerea contului](https://support.google.com/googleplay/android-developer/answer/13327111?hl=en)
+
+## Pregătirea publicării din baza BUSINESS aprobată
+
+Referința funcțională este APK-ul 1.0.31, cod 32, din `7e605a4`.
+Baza tehnică `affaec7` păstrează actualizarea OAuth Firebase și verificările CI.
+
+1. În **Play Console → Monetize with Play → Products → One-time products**, verifică dacă există produsul PREMIUM. Dacă lipsește, configurează o opțiune Buy neconsumabilă, la 99 RON pentru România. Folosește ID-ul real în `play_premium_product_id` și `PLAY_PRODUCT_ID`. Pentru pachetul comercial, `play_billing_enabled` se activează după configurarea verificării serverului. Verifică cheia de upload, certificatul de distribuție și conturile de test din **Settings → License testing**.
+2. În **AdMob → Apps**, confirmă ID-ul aplicației și al unității Banner. Pregătește mesajul european în **Privacy & messaging**. Opțiunile existente de build sunt `abmAdsEnabled`, `abmAdMobAppId` și `abmAdMobBannerId`. Verifică UMP la acceptare, refuz și retragere, plus absența reclamelor în modul de consultare și pentru PREMIUM și OWNER.
+3. Trialul Android durează 15 zile și folosește Google Sign-In și un drept emis de server. După expirare se păstrează datele, consultarea și exportul, conform comportamentului din 1.0.31. Activarea de producție a `NEW_TRIALS_ENABLED` rămâne o decizie separată. În testare, verifică autentificarea cu certificatul Play, un cont nou și unul cu trial expirat. Confirmă și restaurarea achiziției pentru același cont.
+4. Android și GitHub Pages preiau textele RO/EN din aceeași revizie. Înaintea aprobării finale, confirmă inventarul de date din buildul efectiv, temeiurile, retenția, transferurile aplicabile și procesarea unei solicitări fictive de ștergere. Clarifică dacă Analytics rămâne în configurația de lansare. Aprobările din `src/privacy-settings.js` și URL-ul de bază sunt necesare pentru generarea ediției finale. Verifică cele patru URL-uri publice și afișarea în Android.
+5. În **Play Console → App content**, completează declarațiile de reclame, Data Safety, URL-ul de ștergere, informațiile de acces pentru evaluatori, publicul țintă și clasificarea conținutului. Adaugă URL-ul politicii aprobate în câmpul dedicat. În **Testing**, verifică eligibilitatea pentru producție și cerința de testare închisă afișată contului.

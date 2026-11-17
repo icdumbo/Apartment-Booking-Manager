@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 import {renderLegalPages} from '../scripts/prepare-legal-pages.mjs';
 import {privacySettings} from '../src/privacy-settings.js';
-const pages=renderLegalPages({configuration:{...privacySettings,brand:'Fictional brand',operator:'Fictional controller',contact:'privacy@example.invalid'}});
+const pages=renderLegalPages({configuration:{...privacySettings,brand:'Fictional brand',operator:'Fictional controller',contact:privacySettings.contact}});
 
 test('static legal pages have no runtime scripts, preserve existing storage and link both languages',async({page})=>{
  const original=JSON.stringify({version:1,apartments:[{id:'fictional-static',name:'Fictional apartment',address:'Fictional street',city:'Fictional city'}],bookings:[]});
@@ -19,6 +19,10 @@ test('static legal pages have no runtime scripts, preserve existing storage and 
    await expect(page.locator('main')).toBeVisible();
    await expect(page.locator('[role=note]')).toBeVisible();
    await expect(page.locator('script')).toHaveCount(0);
+   const contact=page.getByRole('link',{name:privacySettings.contact,exact:true});
+   await expect(contact).toHaveAttribute('href','mailto:'+privacySettings.contact);
+   await contact.scrollIntoViewIfNeeded();
+   await expect(contact).toBeInViewport({ratio:0.99});
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
    expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(original);
    await page.locator('main>p:last-child>a').click();await expect(page.locator('h2')).toBeVisible();

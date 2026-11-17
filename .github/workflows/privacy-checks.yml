@@ -1,11 +1,12 @@
 name: Privacy and deletion checks (no APK)
 on:
   push:
-    branches: [codex/business-ui-redesign]
+    branches: [codex/business-ui-redesign, codex/commercial-launch-preparation]
 permissions:
   contents: read
 jobs:
   privacy:
+    if: github.ref_name == 'codex/business-ui-redesign'
     runs-on: ubuntu-latest
     env:
       WRANGLER_SEND_METRICS: "false"
@@ -44,3 +45,16 @@ jobs:
             -PabmAdMobBannerId=ca-app-pub-3940256099942544/6300978111
       - working-directory: android
         run: test -z "$(find app/build -name '*.apk' -o -name '*.aab')"
+  launch-documents:
+    if: github.ref_name == 'codex/commercial-launch-preparation'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/privacy.test.js tests/legal-pages.test.js
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test checks/legal-pages.spec.mjs
