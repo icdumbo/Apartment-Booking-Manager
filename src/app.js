@@ -27,7 +27,7 @@ import {mountCommerce} from './commerce-screen.js';
 import {mountPrivacy} from './privacy-screen.js';
 import {owners,existingOwnerName} from './owners.js';
 const commercialRelease=document.documentElement.dataset.commercialRelease==='true';
-const androidAuth=createOptionalAndroidAuth(undefined,{activateOnSignIn:commercialRelease,changed:()=>queueMicrotask(()=>render())});
+const androidAuth=createOptionalAndroidAuth(undefined,{changed:()=>queueMicrotask(()=>render())});
 const access=createAccessService(globalThis.localStorage,Date.now,commercialRelease?{...androidAuth.provider,requiresVerifiedTrial:true}:androidAuth.provider);
 const $=id=>document.getElementById(id);
 let commerce=null;

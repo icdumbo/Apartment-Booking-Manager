@@ -7,32 +7,52 @@ test('Android commercial package keeps 12 apartments and exports after trial exp
  await page.addInitScript(({key,fixture})=>{
   localStorage.setItem(key,JSON.stringify(fixture));
   localStorage.setItem('apartment-booking-manager:access:v1',JSON.stringify({version:1,startedAt:1,lastSeen:1}));
-  let verified=false;
+  let verified=false,signedIn=false;
+  const user={uid:'trial-fixture'};
   window.commercialTime=0;
   Object.defineProperty(performance,'now',{value:()=>window.commercialTime});
   window.Capacitor={getPlatform:()=> 'android',Plugins:{
-   BookingAuth:{addListener:async()=>({remove:async()=>{}}),getCurrentUser:async()=>({user:{uid:'trial-fixture'}}),getIdToken:async()=>({token:'fixture-token'})},
-   BookingAccess:{beginVerification:async()=>({nonce:'fixture-nonce'}),acceptProof:async()=>{verified=true;},getAccess:async()=>({subject:'trial-fixture',state:verified?'TRIAL':'BASIC',...(verified?{remainingMs:10000,expiresAt:Date.now()+10000}:{})})}
+   BookingAuth:{addListener:async()=>({remove:async()=>{}}),getCurrentUser:async()=>({user:signedIn?user:null}),signInWithGoogle:async()=>{signedIn=true;return {user};},getIdToken:async()=>({token:'fixture-token'})},
+   BookingAccess:{beginVerification:async()=>({nonce:'fixture-nonce'}),acceptProof:async({proof})=>{verified=proof==='fixture-trial-proof';},getAccess:async()=>({subject:'trial-fixture',state:verified?'TRIAL':'BASIC',...(verified?{remainingMs:10000,expiresAt:Date.now()+10000}:{})})}
   }};
  },{key,fixture});
  await page.route('**/index.html',async route=>{
   const response=await route.fetch();
   await route.fulfill({response,body:(await response.text()).replace('<html ','<html data-commercial-release="true" ')});
  });
- let activations=0;
+ let activations=0,verifications=0;
  await page.route('https://apartment-booking-access.ionutliviucraciun1982.workers.dev/access',route=>{
   const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'Authorization, Content-Type','Access-Control-Allow-Methods':'POST'};
   if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers});
   const body=route.request().postDataJSON();
+  if(body.action==='verify'){verifications++;return route.fulfill({headers,json:{version:1,proof:'fixture-view-only-proof'}});}
   expect(body.action).toBe('startTrial');
   expect(body.terms).toBe('trial-15d-v1');
   activations++;
-  return route.fulfill({headers,json:{version:1,proof:'fixture-proof'}});
+  return route.fulfill({headers,json:{version:1,proof:'fixture-trial-proof'}});
  });
  await page.goto('/index.html');
  await expect(page.locator('.timeline-row')).toHaveCount(12);
  await expect(page.locator('#range')).toHaveText(/^01\//);
+ await expect(page.locator('#add-apartment')).toBeDisabled();
+ await page.locator('#open-menu').click();
+ await page.locator('#menu-account summary').click();
+ await page.locator('#google-sign-in').click();
+ await page.locator('#entry-google').click();
+ await expect.poll(()=>verifications).toBeGreaterThan(0);
+ expect(activations).toBe(0);
+ await page.locator('#open-menu').click();
+ await page.locator('#menu-account summary').click();
+ page.once('dialog',dialog=>dialog.dismiss());
+ await page.locator('#activate-secure-trial').click();
+ expect(activations).toBe(0);
+ page.once('dialog',dialog=>{
+  expect(dialog.message()).toContain('expiră după 15 zile');
+  return dialog.accept();
+ });
+ await page.locator('#activate-secure-trial').click();
  await expect(page.locator('#add-apartment')).toBeEnabled();
+ await page.locator('#close-menu').click();
  expect(activations).toBe(1);
  const before=await page.evaluate(key=>localStorage.getItem(key),key);
  await page.locator('#add-apartment').click();

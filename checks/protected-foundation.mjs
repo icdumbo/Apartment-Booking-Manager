@@ -27,7 +27,7 @@ const approvedTrialCopy=[["secureTrialTerms:'Activezi 15 zile PREMIUM gratuite, 
 let expectedCopy=old('src/i18n.js');for(const [before,after] of approvedTrialCopy){assert.ok(expectedCopy.includes(before));expectedCopy=expectedCopy.replace(before,after);}
 const releaseCopy=current('src/i18n.js');
 assert.equal(releaseCopy.replace(/const commercialCopy=[\s\S]*?;\nexport function t/,'export function t').replace("(globalThis.document?.documentElement.dataset.commercialRelease==='true'?commercialCopy[language][key]:undefined)??",''),expectedCopy,'Existing web disclosures must remain unchanged');
-assert.equal(createHash('sha256').update(releaseCopy).digest('hex'),'339868fb37b9be2e2474aa2347a7513740eba65fe9e25b6990c203084246095b');
+assert.equal(createHash('sha256').update(releaseCopy).digest('hex'),'3901193e05d2dd5f74269a3dd8b92ec22688e96b65fc82b33b43079fe32979f2');
 const manifest=current('android/app/src/main/AndroidManifest.xml').replace('        android:fullBackupContent="@xml/backup_rules"\n','').replace('        android:dataExtractionRules="@xml/data_extraction_rules"\n','').replace('android:allowBackup="false"','android:allowBackup="true"');
 assert.equal(manifest,old('android/app/src/main/AndroidManifest.xml'),'Only the approved backup exclusions may change');
 const config=JSON.parse(current('backend/wrangler.jsonc')),previous=JSON.parse(old('backend/wrangler.jsonc'));
@@ -55,7 +55,7 @@ const stabilitySources={
 for(const [path,hash] of Object.entries(stabilitySources))assert.equal(createHash('sha256').update(current(path)).digest('hex'),hash,'Only reviewed stability fixes are authorized: '+path);
 
 // Keep the reviewed calendar and apartment UI changes exact.
-assert.equal(createHash('sha256').update(current("src/app.js")).digest('hex'), '46c617ff81cad83d8ca913697e5e44a877c1384d5835cae8f40c4e4beed10a3b');
+assert.equal(createHash('sha256').update(current("src/app.js")).digest('hex'), '0baa04fe8715833dfd36f5dc6d1381e06f844df4d5679b69808101d221a6d628');
 assert.equal(createHash('sha256').update(current("src/month-navigation.js")).digest('hex'), 'e46dbe22fabf1c7c2e79a5091aa963b88008a23ce189ee68dfbd13f9d0850eec');
 assert.equal(createHash('sha256').update(current("src/timeline.js")).digest('hex'), 'c9173b93b26834214331df5df8ccc7befef07a8c73c1edbce99b3ce901f5d0ca');
 
@@ -63,7 +63,7 @@ assert.equal(createHash('sha256').update(current('backend/firebase-token.js')).d
 
 const commercialHashes={
  "src/access.js": "acb8cd81ee566c9fd23743ec8f787dec88c09c28c2f0b43c275a055a57a2f0e1",
- "src/native-auth.js": "48e5471bf17498a6bcc2db661a040466ad02c7a60d156a0459f1a8d84b33cc62",
+ "src/native-auth.js": "9c52fc9f293df217f6ccd0d04e3bd0a18d046d235e3593078fc7a472f09e3e61",
  "src/entry-screen.js": "36186fa193d8f518833270c36b7d7be268ca02c339f4571b555e3ed08ebc95da",
  "src/backup-screen.js": "494c40200ea8b6f8e7125ff88d12049a9216073ecacbe0aa4cf776e8af0dc574",
  "src/maintenance-screen.js": "902f11cb5df08687b2fcaa641ef63a1ea511a16e009a68eef6a238183c2bafe0",

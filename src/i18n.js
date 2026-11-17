@@ -71,17 +71,17 @@ const commercialCopy={
   "backupReadOnly": "Restaurarea modifică datele locale și necesită un trial activ sau PREMIUM verificat.",
   "entryBasicNote": "15 zile gratuite cu Google · fără card",
   "entryContinueBasic": "Continuă fără cont · doar consultare",
-  "entryLoginDescription": "Conectează contul Google pentru a porni trialul eligibil sau a verifica drepturile PREMIUM.",
-  "entryLoginTerms": "Prima autentificare validă pornește trialul eligibil de 15 zile, fără card. După expirare poți consulta și exporta datele.",
+  "entryLoginDescription": "Conectează contul Google pentru a verifica eligibilitatea la trial sau drepturile PREMIUM.",
+  "entryLoginTerms": "După autentificare, alege «Activează trialul PREMIUM» în Cont și acces. Perioada gratuită de 15 zile începe doar când confirmi activarea. După expirare poți consulta și exporta datele.",
   "entryOffline": "Autentificarea necesită internet. Datele existente pot fi consultate și exportate offline.",
   "authSignedOut": "Autentifică-te pentru a porni un trial eligibil sau pentru a verifica accesul PREMIUM.",
   "authCancelled": "Autentificare anulată. Datele rămân disponibile pentru consultare și export.",
   "authError": "Autentificarea nu s-a finalizat. Verifică conexiunea și încearcă din nou.",
   "trialTerms": "Trialul este activ până la {date}. După expirare, datele rămân disponibile pentru consultare și export.",
-  "secureTrialTerms": "Activezi 15 zile gratuite, fără card, cu Google Sign-In. După expirare poți consulta și exporta datele. Reinstalarea nu reînnoiește un trial înregistrat pe server. După eliminarea istoricului conform retenției, repetarea poate fi posibilă. Continui?",
+  "secureTrialTerms": "Confirmi activarea trialului PREMIUM fără card. Perioada gratuită expiră după 15 zile. După expirare poți consulta și exporta datele. Reinstalarea nu reînnoiește un trial înregistrat pe server. După eliminarea istoricului conform retenției, repetarea poate fi posibilă. Continui?",
   "licenseBackendUnavailable": "Trialul nu a putut fi activat. Datele rămân disponibile pentru consultare și export.",
   "premiumActive": "PREMIUM permanent activ, fără reclame. Achizițiile se reverifică online. După repornirea telefonului sau expirarea dovezii offline de șapte zile, conectează-te pentru a relua editarea.",
-  "purchaseTerms": "PREMIUM permanent fără reclame, printr-o singură achiziție Google Play. Prima conectare poate porni trialul eligibil. Folosește același cont Google pentru verificare și restaurare."
+  "purchaseTerms": "PREMIUM permanent fără reclame, printr-o singură achiziție Google Play. Folosește același cont Google pentru verificare și restaurare."
  },
  "en": {
   "statusBasic": "View and export only",
@@ -91,17 +91,17 @@ const commercialCopy={
   "backupReadOnly": "Restoring changes local data and requires an active trial or verified PREMIUM.",
   "entryBasicNote": "15 free days with Google · no card",
   "entryContinueBasic": "Continue without an account · view only",
-  "entryLoginDescription": "Connect your Google account to start an eligible trial or verify PREMIUM access.",
-  "entryLoginTerms": "The first valid sign-in starts the eligible 15-day trial without a card. After expiry you can view and export your data.",
+  "entryLoginDescription": "Connect your Google account to check trial eligibility or verify PREMIUM access.",
+  "entryLoginTerms": "After signing in, choose Activate PREMIUM trial in Account and access. The free 15-day period starts only when you confirm activation. After expiry you can view and export your data.",
   "entryOffline": "Sign-in requires internet. You can view and export existing data offline.",
   "authSignedOut": "Sign in to start an eligible trial or verify PREMIUM access.",
   "authCancelled": "Sign-in cancelled. Data remains available for viewing and export.",
   "authError": "Sign-in did not complete. Check your connection and try again.",
   "trialTerms": "Your trial is active until {date}. Afterwards, you can still view and export your data.",
-  "secureTrialTerms": "Activate 15 free days without a card using Google Sign-In. After expiry you can view and export data. Reinstalling does not renew a trial recorded on the server. A repeat trial may be possible after history is removed under the retention policy. Continue?",
+  "secureTrialTerms": "Confirm activation of the PREMIUM trial without a card. The free period expires after 15 days. After expiry you can view and export data. Reinstalling does not renew a trial recorded on the server. A repeat trial may be possible after history is removed under the retention policy. Continue?",
   "licenseBackendUnavailable": "The trial could not be started. Data remains available for viewing and export.",
   "premiumActive": "Permanent, ad-free PREMIUM is active. Purchases are reverified online. After restarting the phone or when the seven-day offline proof expires, reconnect to resume editing.",
-  "purchaseTerms": "Permanent, ad-free PREMIUM with one Google Play purchase. Your first sign-in can start an eligible trial. Use the same Google account for verification and restoration."
+  "purchaseTerms": "Permanent, ad-free PREMIUM with one Google Play purchase. Use the same Google account for verification and restoration."
  }
 };
 export function t(key,values={}){const value=(globalThis.document?.documentElement.dataset.commercialRelease==='true'?commercialCopy[language][key]:undefined)??translations[language][key];if(value===undefined)throw new Error('Unknown translation key: '+key);return typeof value==='string'?value.replace(/\{(\w+)\}/g,(_,name)=>String(name==='reservationNoun'?translations[language][Number(values.count)===1?'reservationSingular':'reservationPlural']:name==='excludedAgreement'?translations[language][Number(values.unknown)===1?'reportExcludedOne':'reportExcludedMany']:values[name]??'')):value;}

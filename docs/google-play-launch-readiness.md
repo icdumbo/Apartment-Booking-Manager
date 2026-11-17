@@ -6,7 +6,7 @@ src/privacy-settings.js. Nu copiați date personale în alte fișiere.
 
 ## Model Android implementat, cu servicii comerciale dezactivate implicit
 
-- Trial de 15 zile, fără card, pornit de server la activarea validă prin Google Sign-In. Include toate funcțiile și apartamente nelimitate.
+- Trial de 15 zile, fără card, pornit de server după autentificarea Google și confirmarea explicită a activării. Include toate funcțiile și apartamente nelimitate.
 - După expirare, consultarea apartamentelor și rezervărilor și exportul rămân disponibile. Crearea, modificarea, ștergerea și restaurarea care înlocuiește datele sunt operațiuni de scriere.
 - PREMIUM este o cumpărare unică, fără consum sau abonament. Prețul pentru România se configurează la 99 RON în Play Console, iar aplicația afișează prețul localizat primit de la Google Play.
 - PREMIUM cumpărat și OWNER autorizat de server au acces complet fără reclame. Bannerul este permis doar în trialul verificat și numai dacă UMP permite cererea de reclame.
@@ -18,7 +18,7 @@ src/privacy-settings.js. Nu copiați date personale în alte fișiere.
 | --- | --- |
 | OWNER, cumpărători, drepturi administrative existente | Păstrați dreptul verificat și datele. Confirmați tratamentul eventualelor drepturi administrative temporare. |
 | Trial server activ sau expirat | Păstrați începutul și expirarea. Același cont pe alt dispozitiv sau după reinstalare trebuie să primească aceeași stare, atât timp cât dovada de eligibilitate există. |
-| BASIC anterior sau istoric exclusiv local | Prima autentificare validă solicită serverului activarea conturilor eligibile fără trial server. Istoricul local nu acordă drepturi. |
+| BASIC anterior sau istoric exclusiv local | Autentificarea verifică drepturile existente. Serverul primește cererea de activare după confirmarea explicită din Cont și acces. Istoricul local nu acordă drepturi. |
 | Istoric de trial eliminat | Retenția de șase luni și lipsa unui identificator permanent nu permit o garanție împotriva unui trial nou după eliminarea dovezii. După curățarea istoricului, serverul poate considera din nou contul eligibil, conform regulii aprobate. |
 | Fără autentificare, fără rețea sau dovadă expirată | Consultarea și exportul rămân disponibile. Editarea necesită drept verificat. Pentru achiziții, dovada offline este valabilă maximum șapte zile în aceeași sesiune de pornire a telefonului. |
 

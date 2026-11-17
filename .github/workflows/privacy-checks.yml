@@ -1,7 +1,7 @@
 name: Privacy and deletion checks (no APK)
 on:
   push:
-    branches: [codex/business-ui-redesign, codex/commercial-launch-preparation]
+    branches: [codex/business-ui-redesign, codex/commercial-launch-preparation, codex/commercial-trial-premium]
 permissions:
   contents: read
 jobs:
@@ -46,7 +46,7 @@ jobs:
       - working-directory: android
         run: test -z "$(find app/build -name '*.apk' -o -name '*.aab')"
   launch-documents:
-    if: github.ref_name == 'codex/commercial-launch-preparation'
+    if: github.ref_name == 'codex/commercial-launch-preparation' || github.ref_name == 'codex/commercial-trial-premium'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
