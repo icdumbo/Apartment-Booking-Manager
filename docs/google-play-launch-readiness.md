@@ -4,13 +4,13 @@ Stare: pregătire în cod, **nu aprobare de publicare**. Sursa juridică RO/EN r
 src/privacy-content.js, iar datele operatorului sunt centralizate în
 src/privacy-settings.js. Nu copiați date personale în alte fișiere.
 
-## Model țintă aprobat, încă inactiv
+## Model Android implementat, cu servicii comerciale dezactivate implicit
 
 - Trial de 15 zile, fără card, pornit de server la activarea validă prin Google Sign-In. Include toate funcțiile și apartamente nelimitate.
 - După expirare, consultarea apartamentelor și rezervărilor și exportul rămân disponibile. Crearea, modificarea, ștergerea și restaurarea care înlocuiește datele sunt operațiuni de scriere.
 - PREMIUM este o cumpărare unică, fără consum sau abonament. Prețul pentru România se configurează la 99 RON în Play Console, iar aplicația afișează prețul localizat primit de la Google Play.
 - PREMIUM cumpărat și OWNER autorizat de server au acces complet fără reclame. Bannerul este permis doar în trialul verificat și numai dacă UMP permite cererea de reclame.
-- Codul actual încă aplică BASIC și limita de trei apartamente. Nu activați noul model înainte de implementarea și testarea regulilor de mai jos.
+- Versiunea Android 1.0.31 folosește modul de consultare și export după expirare. Modelul BASIC cu limita de trei apartamente aparține versiunii web existente.
 
 ## Migrare și criterii de acceptare
 
@@ -18,9 +18,9 @@ src/privacy-settings.js. Nu copiați date personale în alte fișiere.
 | --- | --- |
 | OWNER, cumpărători, drepturi administrative existente | Păstrați dreptul verificat și datele. Confirmați tratamentul eventualelor drepturi administrative temporare. |
 | Trial server activ sau expirat | Păstrați începutul și expirarea. Același cont pe alt dispozitiv sau după reinstalare trebuie să primească aceeași stare, atât timp cât dovada de eligibilitate există. |
-| BASIC anterior sau istoric exclusiv local | Operatorul trebuie să decidă dacă utilizatorii fără trial server sunt eligibili și cum se tratează istoricul anonim. O valoare locală editabilă nu poate acorda drepturi. |
-| Istoric de trial eliminat | Retenția de șase luni și lipsa unui identificator permanent nu permit o garanție împotriva unui trial nou după eliminarea dovezii. Confirmați dacă limita cunoscută rămâne acceptată sau stabiliți o alternativă proporțională înainte de schimbarea retenției. |
-| Fără autentificare, fără rețea sau dovadă expirată | Stabiliți accesul înainte de prima activare și politica offline pentru un drept deja verificat. Consultarea și exportul datelor existente trebuie să rămână disponibile. |
+| BASIC anterior sau istoric exclusiv local | Prima autentificare validă solicită serverului activarea conturilor eligibile fără trial server. Istoricul local nu acordă drepturi. |
+| Istoric de trial eliminat | Retenția de șase luni și lipsa unui identificator permanent nu permit o garanție împotriva unui trial nou după eliminarea dovezii. După curățarea istoricului, serverul poate considera din nou contul eligibil, conform regulii aprobate. |
+| Fără autentificare, fără rețea sau dovadă expirată | Consultarea și exportul rămân disponibile. Editarea necesită drept verificat. Pentru achiziții, dovada offline este valabilă maximum șapte zile în aceeași sesiune de pornire a telefonului. |
 
 Controlați scrierile la salvare, inclusiv din editoare deja deschise, încasări,
 întreținere, fotografii și import. Păstrați separat ștergerea locală explicită
@@ -113,17 +113,12 @@ Google Play Console, backendul real sau comportamentul telefonului fizic.
 și configurați mesajul european în Privacy & messaging. Folosiți ID-urile
 emise pentru aplicație și banner, test devices în buildurile de test și
 verificați la fiecare lansare rezultatul UMP, opțiunile de confidențialitate
-și retragerea consimțământului. Integrarea actuală cere reclame la inițializarea
-panoului fără a verifica starea comercială și poate consulta consimțământul
-cache-uit după o eroare de actualizare. Înainte de activare, implementați
-condiția trial verificat plus consimțământ aplicabil, opriți bannerul la
-expirare, schimbare de cont sau achiziție și verificați cursa cu încărcarea.
-Nu activați AdMob până la aceste verificări și inventarierea datelor SDK.
+și retragerea consimțământului. Codul Android cere un trial verificat și permisiunea UMP pentru reclame. Verificați pe dispozitiv oprirea bannerului la expirare, schimbarea contului sau achiziție, inclusiv în timpul încărcării. Inventariați datele SDK înainte de activare.
 
 În Firebase verificați providerul Google, certificatele distribuției Play
 pentru package ID-ul existent și identificarea OWNER autorizată de server.
-În Google Play verificați revocarea rambursărilor online și decideți fereastra
-offline și mecanismul RTDN sau Voided Purchases înainte de lansare. Declarați
+În Google Play verificați revocarea rambursărilor online și verificați fereastra
+offline implementată de șapte zile. Evaluați necesitatea RTDN sau Voided Purchases în funcție de rezultatele reverificării online. Declarați
 numai fluxurile, datele SDK și furnizorii din buildul efectiv. Validați temeiurile,
 interesul legitim, retenția și transferurile cu dovezi concrete, apoi obțineți
 aprobarea operatorului pentru textele RO/EN. Avertismentul rămâne până atunci.
