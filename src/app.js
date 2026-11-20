@@ -27,19 +27,21 @@ import {mountCommerce} from './commerce-screen.js';
 import {mountPrivacy} from './privacy-screen.js';
 import {owners,existingOwnerName} from './owners.js';
 const commercialRelease=document.documentElement.dataset.commercialRelease==='true';
-const androidAuth=createOptionalAndroidAuth(undefined,{activateOnSignIn:commercialRelease,changed:()=>queueMicrotask(()=>render())});
+const androidAuth=createOptionalAndroidAuth(undefined,{activateOnSignIn:commercialRelease,changed:()=>queueMicrotask(refreshSessionState)});
 const access=createAccessService(globalThis.localStorage,Date.now,commercialRelease?{...androidAuth.provider,requiresVerifiedTrial:true}:androidAuth.provider);
 const $=id=>document.getElementById(id);
 let commerce=null;
 initializeLanguage();
 let repository,state,blocked=false;
 try {
- await recoverLocalBackup();await cleanupBackupStages();
- await beginPhotoSession({photos:apartmentPhotos});
- repository=createLocalRepository();state=repository.load();
+ repository=createLocalRepository();
+ await recoverLocalBackup();
+ state=repository.load();
  if(!state){state={version:1,apartments:[],bookings:[]};repository.save(state);}
  const migrated=commercialRelease?state:removeOriginalDemo(state);if(migrated!==state){repository.save(migrated);state=migrated;}
-}catch(error){state={version:1,apartments:[],bookings:[]};blocked=true;$('notice').dataset.i18n='storageBlocked';}
+ await cleanupBackupStages();
+ await beginPhotoSession({photos:apartmentPhotos});
+}catch(error){state??={version:1,apartments:[],bookings:[]};blocked=true;$('notice').dataset.i18n='storageBlocked';}
 // Start only after business storage has loaded successfully; existing trials are never renewed.
 // Secure activation is explicit and server-backed. Never mint a local trial on startup.
 let activeScreen='calendar';
@@ -132,6 +134,17 @@ function renderApartments(){
 }
 function refreshStoredState(){
  try{const saved=repository.load();if(!saved)return false;const changed=JSON.stringify(saved)!==JSON.stringify(state);state=saved;return changed;}catch{ $('notice').dataset.i18n='storageBlocked';$('notice').textContent=t('storageBlocked');return null;}
+}
+function refreshSessionState(){
+ // Business data belongs to this installation, independently of Google identity.
+ // Open editors retain their snapshot; save() still rejects stale edits.
+ if(repository&&!$('editor').open){
+  if(refreshStoredState()===null)return;
+  if(!blocked&&$('notice').dataset.i18n==='storageBlocked'){
+   delete $('notice').dataset.i18n;$('notice').textContent='';
+  }
+ }
+ render();
 }
 function selectScreen(screen){
  const changed=!blocked&&!$('editor').open?refreshStoredState():false;if(changed===null)return;
@@ -233,7 +246,7 @@ for(const widget of document.querySelectorAll('.language-selector')){
 // Re-evaluate expiry on resume and while the offline app remains open. Mutation guards also recheck.
 let displayedAccess=access.snapshot().state;
 setInterval(()=>{const current=access.snapshot().state;if(current!==displayedAccess){displayedAccess=current;render();}else renderAccessStatus();},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSessionState();});
 $('editor').addEventListener('cancel',event=>{if(editing?.saving)event.preventDefault();});
 $('editor').addEventListener('close',()=>{if(!$('editor').open)editing?.photo?.dispose();});
 $('close').onclick=$('cancel').onclick=()=>{if(!editing?.saving)$('editor').close();};$('add-apartment').onclick=()=>open('apartment');$('add-booking').onclick=()=>open('booking');
