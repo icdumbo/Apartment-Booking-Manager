@@ -16,7 +16,7 @@ test('static export is restricted to four legal HTML files and reuses every shar
   assert.ok(html.includes('lang="'+lang+'"'));assert.ok(html.includes('width=device-width'));
   assert.ok(html.includes(escape(privacyCopy[lang].draft)));assert.ok(html.includes('noindex,nofollow'));
   const deletion=pages['legal/delete-account-'+lang+'.html'];
-  assert.ok(deletion.includes(escape(privacyCopy[lang].scope)));assert.ok(deletion.includes(escape(privacyCopy[lang].emailNotice)));assert.ok(deletion.includes('mailto:'+fixture.contact));assert.ok(deletion.includes(lang==='ro'?'Suportul verifică manual':'Support checks your identity manually'));for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days'])assert.ok(!html.includes(future)&&!deletion.includes(future));
+  assert.ok(deletion.includes(escape(privacyCopy[lang].scope.replaceAll('{contact}',()=>fixture.contact))));assert.ok(deletion.includes(escape(privacyCopy[lang].emailNotice)));assert.ok(deletion.includes('mailto:'+fixture.contact));assert.ok(deletion.includes(lang==='ro'?'Operatorul verifică titularul':'The controller verifies the account holder'));for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days'])assert.ok(!html.includes(future)&&!deletion.includes(future));
  }
  for(const html of Object.values(pages)){
   assert.ok(!/<script|<iframe|<form|\son\w+\s*=/i.test(html));
@@ -25,7 +25,7 @@ test('static export is restricted to four legal HTML files and reuses every shar
 });
 
 test('release fails closed for missing approvals and unresolved policy even when configuration is filled',()=>{
- assert.throws(()=>renderLegalPages({preview:false}),/Publication blocked/);
+ assert.throws(()=>renderLegalPages({configuration:{...fixture,publicationApproved:false},preview:false}),/Publication blocked/);
  const filled={...fixture,retentionPolicy:{ro:'Fictional retention RO',en:'Fictional retention EN'},processingPolicy:{ro:'Fictional processing RO',en:'Fictional processing EN'},publicBaseUrl:'https://fixture.invalid/legal/',legalReviewApproved:true,publicationApproved:true};
  const pages=renderLegalPages({configuration:filled,preview:false});
  for(const lang of ['ro','en']){
@@ -60,4 +60,10 @@ test('local HTTP serves all language and related-page links without scripts or m
   }
   assert.equal((await fetch(new URL('index.html',base))).status,404,'Export contains no replacement application homepage');
  }finally{await new Promise(resolve=>server.close(resolve));}
+});
+
+test('approved release has no warnings and all four pages use the shared approved policy and deletion copy',()=>{
+ const pages=renderLegalPages({preview:false});
+ for(const html of Object.values(pages)){assert.doesNotMatch(html,/DOCUMENT ÎN PREGĂTIRE|DRAFT|class="draft"|noindex/);assert.match(html,/support.apartmentbookingmanager@gmail.com/);}
+ for(const lang of ['ro','en']){const text=pages['legal/privacy-'+lang+'.html'];for(const [title,body]of policySections(lang)){assert.ok(text.includes(escape(title)));assert.ok(text.includes(escape(body)));}assert.ok(pages['legal/delete-account-'+lang+'.html'].includes(escape(privacyCopy[lang].scope.replaceAll('{contact}',()=>privacySettings.contact))));}
 });

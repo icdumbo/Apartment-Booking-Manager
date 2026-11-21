@@ -30,7 +30,7 @@ jobs:
           test -s _site/src/app.js
           test ! -e _site/src/legal
           test ! -e _site/legal
-          release="business-$(git rev-parse --short=12 HEAD)"
+          release="business-$(git rev-parse --short=12 HEAD)-legal-20261121"
           mkdir "_site/$release"
           mv _site/src "_site/$release/src"
           sed -i -e "s|href=\"src/styles.css|href=\"$release/src/styles.css|" \
@@ -39,19 +39,23 @@ jobs:
           grep -F "$release/src/styles.css" _site/index.html
       - uses: actions/checkout@v6
         with:
-          ref: 298a5f216c63ed6bf8efe5d0264243ba277fe324
+          ref: 1795169baa948db1f5962e20f7d57ecf43083bce
           path: legal-source
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Include audited bilingual documents with review notice
+      - name: Include operator-approved bilingual documents
         working-directory: legal-source
         run: |
-          node scripts/prepare-legal-pages.mjs --preview
+          node scripts/prepare-legal-pages.mjs --release
+          release="business-$(git -C .. rev-parse --short=12 HEAD)-legal-20261121"
+          for module in privacy-settings privacy-content privacy-screen account-deletion; do
+            install -m 644 "src/$module.js" "../_site/$release/src/$module.js"
+          done
           mkdir ../_site/legal
           for page in privacy-ro privacy-en delete-account-ro delete-account-en; do
-            install -m 644 "build/legal-pages-preview/legal/$page.html" "../_site/legal/$page.html"
+            install -m 644 "build/legal-pages-release/legal/$page.html" "../_site/legal/$page.html"
           done
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -80,6 +84,7 @@ jobs:
             test "${url#https://}" != "$url"
             status=$(curl --silent --show-error --fail --retry 8 --retry-all-errors --retry-delay 5 --max-time 15 --output "verified-legal/$page.html" --write-out '%{http_code}' "$url")
             test "$status" = 200
+            ! grep -Eq 'DOCUMENT ÎN PREGĂTIRE|DRAFT' "verified-legal/$page.html"
             grep -F '<html lang="'"${page##*-}"'"' "verified-legal/$page.html" >/dev/null
             grep -F 'href="'"${page%-*}"'-ro.html"' "verified-legal/$page.html" >/dev/null
             grep -F 'href="'"${page%-*}"'-en.html"' "verified-legal/$page.html" >/dev/null

@@ -1,152 +1,143 @@
-import {privacySettings as settings} from './privacy-settings.js';
-import {isPrivacyPublicationReady,privacyConfigurationIssues} from './privacy-settings.js';
+import {privacySettings as settings,isPrivacyPublicationReady,privacyConfigurationIssues} from './privacy-settings.js';
 export const privacyCopy={
- "ro": {
-  "supportLabel": "Suport și confidențialitate: ",
-  "deletionSupportLabel": "Suport pentru solicitările de ștergere a contului: ",
-  "title": "Politica de confidențialitate",
-  "deletion": "Solicită ștergerea contului",
-  "eraseLocal": "Șterge separat datele locale",
-  "eraseLocalConfirm": "Ștergi apartamentele, rezervările și celelalte date de lucru din această instalare? Fotografiile nereferențiate se curăță la o pornire sigură, după închiderea celorlalte ferestre. Copiile exportate rămân la tine.",
-  "close": "Închide",
-  "draft": "DOCUMENT ÎN PREGĂTIRE — informațiile obligatorii și aprobarea publicării nu sunt încă complete.",
-  "scope": "Pentru a solicita ștergerea contului Apartment Booking Manager și a datelor online asociate, deschide mesajul pregătit și trimite-l la suport. Completează în mesaj adresa contului folosit în aplicație. Suportul verifică manual identitatea înainte de procesare. Proprietarul aplicației este singura persoană care primește și gestionează solicitările. De regulă, verifică titularul prin adresa Google asociată contului. Dacă aceasta nu poate fi folosită, aplică o metodă alternativă sigură și proporțională. Nu trimite parole, tokenuri, documente de identitate sau backupuri prin acest formular. Rezervările, apartamentele, fotografiile și copiile locale rămân pe dispozitiv sau la furnizorul ales. Achizițiile Google Play nu sunt revocate, anulate sau rambursate automat. Evidențele tranzacțiilor necesare potrivit legii se tratează separat. Procedura se aplică tuturor titularilor de cont, inclusiv celor aflați în trial sau în modul de consultare și celor cu acces PREMIUM sau OWNER. Cazurile PREMIUM, OWNER sau cu restricții sunt verificate individual, inclusiv pentru drepturi și achiziții. După procesare, proprietarul răspunde prin e-mail și explică ce date trebuie păstrate și pe ce temei.",
-  "sendRequestEmail": "Trimite solicitarea prin e-mail",
-  "invalidAccountEmail": "Introdu o adresă de e-mail validă pentru contul Google.",
-  "requestAccountEmail": "Adresa de e-mail a contului Google",
-  "requestTemplateLabel": "Mesajul pe care îl vei completa în aplicația de e-mail",
-  "requestTemplate": "Solicit ștergerea contului meu Apartment Booking Manager și a datelor online asociate.\r\nAdresa contului folosit în aplicație: [completează aici]",
-  "openEmail": "Deschide mesajul către suport",
-  "emailNotice": "Dacă nu se deschide aplicația de e-mail, copiază mesajul și trimite-l la adresa de mai sus. Mesajul nu este trimis automat și trimiterea lui nu confirmă ștergerea.",
-  "localEraseError": "Datele locale nu au putut fi șterse.",
-  "sections": [
-   [
-    "Aplicație și operator",
-    "Apartment Booking Manager, sub brandul {brand}, gestionează apartamente și rezervări. Operator de date, persoană fizică: {operator}. Brandul nu reprezintă o persoană juridică separată. Contact pentru confidențialitate și solicitări: {contact}."
-   ],
-   [
-    "Datele de afaceri de pe dispozitiv",
-    "Numele și adresele apartamentelor, proprietarii, fotografiile, numele și telefonul oaspeților, rezervările, notele, sumele, monedele, încasările, întreținerea și ciornele sunt salvate local în browser sau, pe Android, în WebView (localStorage și IndexedDB). Aplicația nu le sincronizează cu propriul server și nu le trimite pentru acordarea licenței. Proprietarul sau administratorul care introduce datele oaspeților stabilește scopul și temeiul prelucrării lor și răspunde de informare, minimizare, securitate și soluționarea drepturilor oaspeților. Operatorul aplicației răspunde separat pentru prelucrările online pe care le controlează."
-   ],
-   [
-    "Google și Firebase Authentication",
-    "În versiunea Android de lansare, datele existente pot fi consultate și exportate fără autentificare. Google Sign-In este necesar pentru activarea trialului și pentru obținerea sau restaurarea accesului PREMIUM. Trialul eligibil durează 15 zile, fără card. După expirare, în lipsa accesului PREMIUM, sunt disponibile doar consultarea și exportul. Versiunea web publicată folosește modelul BASIC existent. Dacă alegi autentificarea, Google și Firebase procesează credențiale, identificatori și datele furnizate de identitatea Google; acestea pot include adresa de e-mail și profilul. Firebase generează UID-ul contului și procesează informații tehnice, inclusiv IP și user-agent, pentru autentificare și prevenirea abuzului. Parola Google nu este solicitată de aplicație. Tokenurile nu trebuie trimise prin e-mail sau în conversații de suport. Conform documentației Google, Firebase Authentication procesează date în SUA. IP-urile jurnalizate sunt păstrate câteva săptămâni; celelalte informații de autentificare, până la inițierea ștergerii utilizatorului, apoi sunt eliminate din sistemele active și backupuri în maximum 180 de zile. Acestea sunt termenele furnizorului, nu un termen de soluționare promis de operator."
-   ],
-   [
-    "Cloudflare, licențe și trialuri",
-    "Aplicația trimite către backendul Cloudflare un token Firebase de autentificare pentru verificarea identității. Backendul de licențiere folosește UID-ul Firebase, datele trialului, starea licenței și restricții de securitate. Evidențele de achiziție includ produsul, hash-ul tokenului și tokenul criptat, acolo unde există o achiziție înregistrată. Înregistrările istorice ale solicitărilor, dacă există, pot conține UID, referință, dată, limbă și stare. Cererile noi sunt primite prin e-mail și gestionate manual. Drepturile OWNER sunt acordate server-side unei identități autorizate. Baza locală de rezervări și fotografiile nu sunt trimise pentru licențiere. Datele apartamentelor, rezervărilor, oaspeților și fotografiile nu sunt sincronizate cu serverele aplicației. Furnizorii pot procesa metadate tehnice de rețea conform propriilor reguli."
-   ],
-   [
-    "Achiziții Google Play",
-    "Cumpărarea Google Play este dezactivată în configurația implicită a aplicației. Pentru lansare este prevăzută o achiziție unică PREMIUM, fără abonament, la prețul de lansare de 99 RON în România. Prețul aplicabil este afișat de Google Play. Aplicația nu solicită numărul cardului și nu procesează direct plăți cu cardul. Tokenurile de achiziție păstrate de sistemul de licențiere sunt criptate. Drepturile de achiziție Google Play și datele de afaceri locale sunt distincte; ștergerea contului aplicației nu anulează sau rambursează automat o achiziție. Google aplică propriile condiții datelor procesate în serviciile sale de plată."
-   ],
-   [
-    "Reclame, Analytics și consimțământ",
-    "Reclamele AdMob sunt dezactivate în configurația implicită, iar SDK-ul publicitar este exclus din buildul implicit. Nu declarăm reclame livrate sau consimțământ publicitar colectat în această configurație. Pentru lansare, reclamele AdMob sunt prevăzute numai în trialul activ. PREMIUM și OWNER nu vor avea reclame. Firebase Analytics este planificat pentru măsurarea utilizării aplicației cu un set minim de evenimente, fără date despre oaspeți, rezervări, e-mailuri sau UID-uri de cont în evenimente. SDK-ul poate colecta automat date tehnice și identificatori ai instanței aplicației. Inventarul efectiv va fi verificat în versiunea de lansare. Retenția aprobată pentru evenimentele Analytics este de 2 luni, iar setarea efectivă rămâne de verificat. Analytics și AdMob vor respecta cerințele de consimțământ aplicabile, inclusiv posibilitatea retragerii. Colectarea Analytics și mecanismul său de consimțământ nu sunt active în versiunea verificată."
-   ],
-   [
-    "Backup JSON și exporturi",
-    "Backupul manual conține datele de afaceri și fotografiile, dar nu sesiunile Google, eligibilitatea trialului sau drepturile PREMIUM/OWNER. Fișierul JSON nu este criptat de aplicație: protejează-l și locația aleasă. Android poate permite alegerea unui furnizor cloud; transferul ales este gestionat de acel furnizor. Exporturile Excel/PDF pot conține date personale și financiare. Restaurarea necesită validare și confirmare explicită și păstrează mecanismul de rollback."
-   ],
-   [
-    "Backupul automat Android",
-    "{backup} Cache-ul licenței, preferințele de autentificare și cookie-urile sunt excluse prin regulile aplicației; Android Keystore nu este transferat. Regulile nu șterg datele existente și nu schimbă formatul backupului JSON."
-   ],
-   [
-    "Scopuri, destinatari și temeiuri juridice",
-    "Datele sunt utilizate pentru gestionarea locală, autentificare, verificarea accesului, securitate și soluționarea solicitărilor. Furnizorii implicați în fluxurile relevante sunt Google/Firebase, Cloudflare și furnizorul de fișiere ales de utilizator. Mesajele trimise la contactul public sunt prelucrate în serviciul de e-mail folosit pentru suport. {processing}"
-   ],
-   [
-    "Păstrarea datelor",
-    "Datele de afaceri rămân pe dispozitiv până la ștergerea prin funcțiile disponibile ori ștergerea datelor aplicației/dezinstalare. Copiile exportate sunt sub controlul utilizatorului și al furnizorului ales. Limita aprobată pentru istoricul trialului este de maximum șase luni calendaristice de la început, în UTC. Curățarea automată nu este activată în configurația verificată; nu afirmăm că a fost verificată ștergerea efectivă în producție. Nu păstrăm un indicator permanent separat al folosirii trialului. Datele contului și licenței sunt păstrate cât timp contul este activ, sub rezerva termenelor și excepțiilor aplicabile. După verificarea solicitării, datele eligibile sunt șterse manual. Păstrarea impusă de lege se documentează și se limitează la strictul necesar. {retention}"
-   ],
-   [
-    "Solicitarea ștergerii și drepturile tale",
-    "Pentru acces, rectificare, ștergere, restricționare, portabilitate sau opoziție, în condițiile GDPR, contactează operatorul la {contact}. Pentru ștergere, precizează că soliciți eliminarea contului aplicației și a datelor online asociate. Proprietarul aplicației primește solicitările la adresa oficială de suport și verifică identitatea înainte de procesare, de regulă prin adresa Google asociată contului. Dacă aceasta nu poate fi folosită, aplică o metodă alternativă sigură și proporțională. Nu solicită copii ale documentelor de identitate. După verificare, proprietarul șterge manual datele eligibile și comunică rezultatul prin e-mail. Dacă legea sau o altă excepție aplicabilă impune păstrarea unor date, se păstrează numai evidențele necesare și se comunică motivul. Evidențele tranzacțiilor Google Play sunt tratate separat de datele personale eligibile pentru ștergere. Nu trimite parole, tokenuri sau backupuri. Verificarea identității trebuie limitată la informațiile necesare. Datele locale și copiile exportate nu sunt șterse de această solicitare. Un mesaj trimis sau o referință nu înseamnă ștergere finalizată. Cazurile cu achiziții, OWNER sau restricții nu sunt declarate soluționate automat; motivele și datele păstrate trebuie explicate individual. Obiectivul operațional este răspunsul în cel mult 30 de zile, fără depășirea termenului GDPR de o lună în lipsa unei prelungiri legale. GDPR impune informarea privind măsurile luate fără întârziere nejustificată, în principiu într-o lună; o prelungire justificată de cel mult două luni suplimentare se comunică motivat în prima lună. Acesta este termenul legal de răspuns, nu o promisiune de ștergere tehnică a tuturor copiilor în aceeași perioadă. Te poți adresa autorității de supraveghere competente."
-   ],
-   [
-    "Securitate și modificări",
-    "Conexiunile de autentificare și licențiere folosesc HTTPS. Dovezile de acces sunt semnate, iar cache-ul nativ de acces este criptat cu Android Keystore. Backupul JSON manual nu este criptat de aplicație. Aceste măsuri nu înlocuiesc securitatea dispozitivului. Versiune document: 6 noiembrie 2026."
-   ],
-   [
-    "Transferuri internaționale",
-    "Google documentează procesarea Firebase Authentication în SUA. Termenii Firebase Data Processing and Security Terms, secțiunea 10, prevăd soluții de transfer, inclusiv Data Privacy Framework pentru entitățile certificate acoperite și clauze contractuale standard, în condițiile de aplicabilitate prevăzute acolo. Cloudflare Customer DPA, secțiunea 6, descrie procesarea internațională, DPF și SCC pentru transferurile relevante. Poți solicita informații despre garanțiile aplicabile transferurilor prin adresa de contact. Surse oficiale: https://firebase.google.com/terms/data-processing-terms și https://www.cloudflare.com/cloudflare-customer-dpa/. Pentru e-mailul de suport se aplică regulile serviciului Google folosit, inclusiv politica https://policies.google.com/privacy; nu presupunem că acordul Firebase acoperă căsuța de e-mail."
-   ]
-  ]
- },
- "en": {
-  "supportLabel": "Support and privacy contact: ",
-  "deletionSupportLabel": "Support for account deletion requests: ",
-  "title": "Privacy policy",
-  "deletion": "Request account deletion",
-  "eraseLocal": "Delete local data separately",
-  "eraseLocalConfirm": "Delete apartments, reservations and other business data in this installation? Unreferenced photos are removed at a safe startup after other windows close. Exported copies remain under your control.",
-  "close": "Close",
-  "draft": "DRAFT — required information and publication approval are not yet complete.",
-  "scope": "To request deletion of your Apartment Booking Manager account and associated online data, open the prepared message and send it to support. Enter the email address of the account you use in the app in the message. Support checks your identity manually before processing. The app owner is the only person who receives and handles requests. The owner normally verifies the account holder through the Google email address associated with the account. If that address cannot be used, the owner uses a secure and proportionate alternative. Do not send passwords, tokens, identity documents or backups through this form. Reservations, apartments, photos and local copies stay on the device or with the provider you chose. Google Play purchases are not automatically revoked, cancelled or refunded. Transaction records required by law are handled separately. The procedure applies to all account holders, including those on a trial, in view-only mode or with PREMIUM or OWNER access. PREMIUM, OWNER or restricted accounts are reviewed individually, including access rights and purchases. After processing, the owner replies by email and explains what data must be retained and on what basis.",
-  "sendRequestEmail": "Send request by email",
-  "invalidAccountEmail": "Enter a valid email address for your Google account.",
-  "requestAccountEmail": "Google account email address",
-  "requestTemplateLabel": "Message to complete in your email application",
-  "requestTemplate": "I request deletion of my Apartment Booking Manager account and associated online data.\r\nEmail address of the account used in the app: [fill in here]",
-  "openEmail": "Open email to support",
-  "emailNotice": "If your email application does not open, copy the message and send it to the address above. The message is not sent automatically and sending it does not confirm deletion.",
-  "localEraseError": "Local data could not be deleted.",
-  "sections": [
-   [
-    "App and controller",
-    "Apartment Booking Manager, under the {brand} brand, manages apartments and reservations. Individual data controller: {operator}. The brand is not a separate legal entity. Privacy and request contact: {contact}."
-   ],
-   [
-    "Business data on your device",
-    "Apartment names and addresses, owners, photos, guest names and phone numbers, reservations, notes, amounts, currencies, receipts, maintenance and drafts are stored locally in browser storage or, on Android, in WebView localStorage and IndexedDB. The app does not synchronize them with its own server or send them for licensing. The owner or manager entering guest data determines its purpose and legal basis and is responsible for notice, minimization, security and handling guest rights. The app controller is separately responsible for the online processing it controls."
-   ],
-   [
-    "Google and Firebase Authentication",
-    "In the Android launch version, you can view and export existing data without signing in. Google Sign-In is required to activate the trial and to obtain or restore PREMIUM access. Eligible users receive a 15-day trial without a card. After expiry, users without PREMIUM can only view and export data. The published web version uses the existing BASIC model. If you choose sign-in, Google and Firebase process credentials, identifiers and information supplied by your Google identity, which may include email and profile information. Firebase generates an account UID and processes technical information, including IP and user-agent, for authentication and abuse prevention. The app does not request your Google password. Never email tokens or include them in support chats. Google documents US processing for Firebase Authentication. Logged IP addresses are retained for a few weeks; other authentication information remains until user deletion is initiated, then is removed from live and backup systems within 180 days. These are provider periods, not a completion deadline promised by the controller."
-   ],
-   [
-    "Cloudflare, licenses and trials",
-    "The app sends a Firebase authentication token to the Cloudflare backend to verify identity. The licensing backend uses the Firebase UID, trial dates, license status and security restrictions. Purchase records include the product, token hash and encrypted token where a purchase is recorded. Historical request records, where present, can contain a UID, reference, date, language and status. New requests are received by email and handled manually. OWNER rights are granted server-side to an authorized identity. The local reservation database and photos are not sent for licensing. Apartment, reservation and guest data and photos are not synchronized with the app servers. Providers may process network metadata under their own rules."
-   ],
-   [
-    "Google Play purchases",
-    "Google Play purchasing is disabled in the default app configuration. The planned release offers a one-time PREMIUM purchase without a subscription, with a launch price of RON 99 in Romania. Google Play displays the applicable price. The app does not request card numbers or directly process card payments. Purchase tokens retained by the licensing system are encrypted. Google Play purchase rights and local business data are distinct; deleting the app account does not automatically cancel or refund a purchase. Google applies its own terms to data processed in its payment services."
-   ],
-   [
-    "Advertising, Analytics and consent",
-    "AdMob ads are disabled in the default configuration and the advertising SDK is excluded from the default build. No ad delivery or advertising consent collection is claimed in this configuration. For launch, AdMob ads are planned only during an active trial. PREMIUM and OWNER will be ad-free. Firebase Analytics is planned to measure app usage with a minimal set of events, with no guest data, reservation data, email addresses or account UIDs in events. The SDK may automatically collect technical data and app instance identifiers. Actual collection will be verified in the release build. The approved retention period for Analytics events is 2 months, and the actual setting remains to be verified. Analytics and AdMob will meet applicable consent requirements, including the option to withdraw consent. Analytics collection and its consent mechanism are not active in the reviewed version."
-   ],
-   [
-    "JSON backup and exports",
-    "Manual backups contain business data and photos, but not Google sessions, trial eligibility or PREMIUM/OWNER access. The app does not encrypt the JSON file: protect the file and chosen location. Android may let you choose a cloud document provider; your chosen transfer is handled by that provider. Excel/PDF exports may contain personal and financial data. Restoration requires validation and explicit confirmation and retains rollback protection."
-   ],
-   [
-    "Android automatic backup",
-    "{backup} License-cache and authentication preferences and cookies are excluded by app rules; Android Keystore is not transferred. The rules do not delete existing data or change manual JSON backup format."
-   ],
-   [
-    "Purposes, recipients and legal bases",
-    "Data is used for local management, authentication, access verification, security and handling requests. Providers involved in relevant flows are Google/Firebase, Cloudflare and the document provider chosen by the user. Messages sent to the public contact are processed in the email service used for support. {processing}"
-   ],
-   [
-    "Data retention",
-    "Business data remains on the device until deletion through available features or clearing app data/uninstalling. Exported copies are controlled by the user and the chosen provider. The approved trial-history limit is at most six calendar months from trial start, in UTC. Automatic cleanup is not enabled in the checked configuration; actual production deletion is not claimed as verified. We do not keep a separate permanent trial-use marker. Account and license data are kept while the account is active, subject to applicable periods and exceptions. After a request is verified, eligible data are deleted manually. Data that must be retained by law are documented and limited to what is necessary. {retention}"
-   ],
-   [
-    "Deletion requests and your rights",
-    "For access, rectification, erasure, restriction, portability or objection, where applicable under GDPR, contact the controller at {contact}. For deletion, specify that you request removal of your app account and associated online data. The app owner receives requests at the official support address and verifies identity before processing, normally through the Google email address associated with the account. If that address cannot be used, the owner uses a secure and proportionate alternative. The owner does not request copies of identity documents. Once identity is verified, the owner manually deletes eligible data and replies by email. Where retention is required by law or another applicable exception, only necessary records are retained and the reason is communicated. Google Play transaction records are handled separately from personal data eligible for deletion. Do not send passwords, tokens or backups. Identity verification must be limited to necessary information. Local data and exported copies are not erased by this request. Sending a message or receiving a reference is not completed deletion. Purchase, OWNER or restricted-account cases are not described as automatically resolved; retained data and reasons must be explained individually. The operational target is to respond within 30 days, without exceeding the GDPR one-month deadline unless a lawful extension applies. GDPR requires information on action taken without undue delay and normally within one month; a justified extension of up to two further months must be explained within the first month. This is a legal response deadline, not a promise to technically erase all copies within that period. You may complain to the competent supervisory authority."
-   ],
-   [
-    "Security and changes",
-    "Authentication and licensing connections use HTTPS. Access proofs are signed and the native access cache is encrypted with Android Keystore. Manual JSON backups are not encrypted by the app. These safeguards do not replace device security. Document version: 6 November 2026."
-   ],
-   [
-    "International transfers",
-    "Google documents US processing for Firebase Authentication. Section 10 of the Firebase Data Processing and Security Terms provides transfer solutions, including the Data Privacy Framework for covered certified entities and standard contractual clauses under the conditions stated there. Section 6 of the Cloudflare Customer DPA describes international processing, DPF and SCCs for relevant transfers. You can ask about the safeguards applicable to transfers using the contact address. Official sources: https://firebase.google.com/terms/data-processing-terms and https://www.cloudflare.com/cloudflare-customer-dpa/. Support email is subject to the Google service rules, including https://policies.google.com/privacy; the Firebase agreement is not assumed to cover the mailbox."
-   ]
-  ]
- }
+  "ro": {
+    "supportLabel": "Suport și confidențialitate: ",
+    "deletionSupportLabel": "Suport pentru solicitările de ștergere a contului: ",
+    "title": "Politica de confidențialitate",
+    "deletion": "Solicită ștergerea contului",
+    "eraseLocal": "Șterge separat datele locale",
+    "eraseLocalConfirm": "Ștergi apartamentele, rezervările și celelalte date de lucru din această instalare? Fotografiile nereferențiate se curăță la o pornire sigură, după închiderea celorlalte ferestre. Copiile exportate rămân la tine.",
+    "close": "Închide",
+    "draft": "DOCUMENT ÎN PREGĂTIRE — informațiile obligatorii și aprobarea publicării nu sunt încă complete.",
+    "scope": "Poți solicita ștergerea contului și a datelor online asociate din Meniu → Cont și acces → Solicită ștergerea contului, din pagina publică dedicată sau direct la: {contact}.\n\nIndică adresa Google asociată contului și faptul că soliciți ștergerea contului Apartment Booking Manager. Formularul pregătește un mesaj; trebuie să îl trimiți din aplicația de e-mail sau din webmail. Trimiterea nu produce ștergere automată și nu confirmă finalizarea ei.\n\nOperatorul verifică titularul, de regulă prin controlul adresei Google asociate. Dacă aceasta nu poate fi folosită, se stabilește o alternativă sigură și proporțională. Nu sunt solicitate parole, tokenuri sau copii ale documentelor de identitate.\n\nDupă verificare, operatorul procesează manual ștergerea datelor online eligibile și comunică rezultatul prin e-mail. Dacă rămân date în baza unei excepții aplicabile, sunt explicate categoriile, motivul și criteriul de păstrare. O operațiune parțială nu este prezentată ca ștergere finalizată.\n\nProcedura se aplică inclusiv conturilor PREMIUM și OWNER. Verificările suplimentare nu constituie, singure, motiv de refuz.\n\nȘtergerea contului online nu șterge contul Google, apartamentele, rezervările, fotografiile sau backupurile locale. Gestionarea acestora rămâne o operațiune separată a utilizatorului.\n\nÎn condițiile GDPR, poți solicita accesul, rectificarea, ștergerea, restricționarea și portabilitatea datelor și te poți opune prelucrărilor întemeiate pe interes legitim. Dacă o prelucrare se bazează pe consimțământ, acesta poate fi retras fără afectarea legalității prelucrării anterioare.\n\nOperatorul răspunde fără întârziere nejustificată, în principiu în cel mult o lună. Obiectivul operațional este de maximum 30 de zile, fără depășirea termenului legal. O prelungire permisă de GDPR se comunică motivat în prima lună.\n\nPoți depune plângere la ANSPDCP, în România, sau la autoritatea de supraveghere competentă și poți utiliza căile judiciare disponibile.\n\nSuport și cereri de ștergere. Datele necesare soluționării sunt păstrate până la închiderea cererii. La închidere sunt eliminate informațiile și copiile devenite inutile. Pot rămâne numai evidențe minimale necesare unei obligații legale identificate sau unui litigiu concret, cu motivul, temeiul și data ori evenimentul de revizuire documentate. La încetarea necesității sunt eliminate. Această gestionare este manuală.",
+    "sendRequestEmail": "Trimite solicitarea prin e-mail",
+    "invalidAccountEmail": "Introdu o adresă de e-mail validă pentru contul Google.",
+    "requestAccountEmail": "Adresa de e-mail a contului Google",
+    "requestTemplateLabel": "Mesajul pe care îl vei completa în aplicația de e-mail",
+    "requestTemplate": "Solicit ștergerea contului meu Apartment Booking Manager și a datelor online asociate.\r\nAdresa contului folosit în aplicație: [completează aici]",
+    "openEmail": "Trimite solicitarea prin e-mail",
+    "emailNotice": "Dacă nu se deschide aplicația de e-mail, copiază mesajul și trimite-l la adresa de mai sus. Mesajul nu este trimis automat și trimiterea lui nu confirmă ștergerea.",
+    "localEraseError": "Datele locale nu au putut fi șterse.",
+    "sections": [
+      [
+        "Operatorul și contactul",
+        "Apartment Booking Manager este o aplicație pentru administrarea apartamentelor și rezervărilor, oferită sub brandul {brand}.\n\nOperatorul datelor personale prelucrate pentru cont, autentificare, licențiere și suport este {operator}, persoană fizică. {brand} este un brand, nu o persoană juridică separată.\n\nPentru întrebări privind confidențialitatea și exercitarea drepturilor: {contact}.\n\nVersiune: 21 noiembrie 2026."
+      ],
+      [
+        "Datele păstrate pe dispozitiv",
+        "Aplicația păstrează local datele introduse pentru administrarea activității: apartamente, adrese, proprietari, fotografii, informații despre oaspeți, inclusiv nume și telefon atunci când sunt completate, rezervări, note, încasări, cheltuieli, întreținere și ciorne.\n\nAceste date nu sunt sincronizate automat cu serverele aplicației și nu sunt trimise către Firebase sau Cloudflare pentru verificarea licenței.\n\nStocarea locală nu reprezintă sincronizare între dispozitive. În aceeași instalare, datele locale nu sunt separate automat în baze distincte pentru fiecare cont Google. Deconectarea sau schimbarea contului nu șterge datele locale. Protejează dispozitivul dacă este utilizat și de alte persoane.\n\nProprietarul sau administratorul care introduce datele oaspeților stabilește scopurile și temeiul propriei prelucrări. Acestuia îi revine responsabilitatea de a informa oaspeții, de a introduce numai date necesare și de a gestiona solicitările privind evidențele sale. Operatorul aplicației răspunde separat pentru prelucrările online descrise în această politică."
+      ],
+      [
+        "Google Sign-In și Firebase Authentication",
+        "Autentificarea Google identifică utilizatorul pentru verificarea drepturilor de acces. Activarea trialului necesită autentificare și confirmare explicită, după informarea privind durata de 15 zile, fără card bancar. Disponibilitatea activării este stabilită de serviciul de licențiere.\n\nGoogle și Firebase pot prelucra adresa de e-mail, numele și informațiile de profil furnizate de contul Google, identificatorii contului și informații tehnice necesare autentificării și securității, precum adresa IP și user-agent. Firebase atribuie contului un identificator UID și gestionează tokenurile de autentificare.\n\nAplicația nu solicită parola Google prin formularele sale și nu o transmite operatorului prin suport.\n\nDatele existente pot fi consultate și exportate fără autentificare. Refuzul autentificării împiedică identificarea contului și acordarea serviciilor care necesită verificarea drepturilor online."
+      ],
+      [
+        "Cloudflare și verificarea accesului",
+        "Backendul de licențiere utilizează Cloudflare Workers și D1. Primește un token Firebase pentru verificarea identității și poate păstra:\n\n• UID-ul Firebase;\n• începutul și expirarea trialului și starea eligibilității;\n• sursa și starea licenței;\n• restricții de securitate și informații necesare invalidării accesului;\n• pentru achizițiile înregistrate: identificatorul produsului, hash-ul tokenului de achiziție, tokenul criptat și starea verificării;\n• eventuale evidențe istorice ale solicitărilor, cu referință, dată, limbă și stare.\n\nAccesul OWNER este autorizat pe server pentru identitatea desemnată. Nu este acordat prin conținutul unui backup sau prin simpla modificare a datelor locale.\n\nApartamentele, rezervările, datele oaspeților și fotografiile nu sunt trimise pentru licențiere. Furnizorii infrastructurii pot prelucra metadate tehnice necesare furnizării și protejării serviciilor.\n\nDeciziile automate ale sistemului privesc verificarea tehnică a drepturilor de acces. Dacă o verificare pare incorectă, utilizatorul poate solicita examinarea situației prin adresa de suport."
+      ],
+      [
+        "Google Play Billing, reclame și Analytics",
+        "În versiunea comercială v1.0.32 verificată, cumpărarea prin Google Play și reclamele AdMob sunt dezactivate. SDK-ul AdMob este exclus din buildul implicit.\n\nIntegrarea pregătită pentru Google Play Billing folosește o achiziție unică PREMIUM, fără abonament. Când cumpărarea este disponibilă, Google Play afișează prețul aplicabil și procesează plata. Aplicația nu solicită numărul cardului. Validarea și restaurarea drepturilor utilizează informațiile achiziției și contul autentificat.\n\nȘtergerea contului aplicației nu anulează și nu rambursează automat achiziția Google Play. Pentru conturile cu achiziții se verifică separat datele eligibile pentru ștergere, evidențele tranzacției și consecințele asupra recuperării accesului. Recuperarea după ștergerea și recrearea contului aplicației nu este prezentată ca funcție deja verificată.\n\nFirebase Analytics nu este activ și nu este inclus în configurația aprobată pentru lansarea inițială. Această politică nu declară colectarea de evenimente Analytics.\n\nActivarea reclamelor sau a altor colectări noi necesită actualizarea politicii și a declarațiilor Google Play pentru configurația efectivă, precum și respectarea condițiilor de consimțământ aplicabile."
+      ],
+      [
+        "Backupuri și exporturi",
+        "Backupurile JSON și exporturile Excel/PDF sunt create la cererea utilizatorului și pot conține date personale și financiare. Backupul poate include fotografii.\n\nAplicația nu criptează fișierul JSON. Protecția foilor Excel nu reprezintă criptarea fișierului. Utilizatorul trebuie să protejeze fișierele și locurile unde le păstrează.\n\nAlegerea unui furnizor cloud în selectorul de fișiere poate transfera documentul către acel furnizor, conform opțiunii utilizatorului și condițiilor serviciului respectiv. Aceasta nu reprezintă sincronizare automată realizată de aplicație.\n\nBackupurile manuale nu conțin sesiunea Google și nu acordă drepturi PREMIUM sau OWNER.\n\nRegulile Android ale aplicației exclud backupul cloud și transferul automat al datelor aplicației. Fișierele exportate separat nu sunt șterse prin aceste reguli."
+      ],
+      [
+        "Scopuri și temeiuri juridice",
+        "{processing}"
+      ],
+      [
+        "Destinatari și transferuri internaționale",
+        "Furnizorii implicați sunt Google/Firebase pentru autentificare, Cloudflare pentru backend și serviciul Google de e-mail pentru suport. Google Play intervine în procesarea achizițiilor atunci când cumpărarea este disponibilă.\n\nPaginile publice sunt găzduite prin GitHub Pages. GitHub poate prelucra date tehnice de conexiune conform propriei politici. Furnizorul de documente ales de utilizator poate primi fișierele pe care acesta decide să le salveze acolo.\n\nGoogle documentează prelucrarea Firebase Authentication în Statele Unite. Cloudflare și ceilalți furnizori pot utiliza infrastructură și subcontractanți din afara Spațiului Economic European.\n\nTermenii Firebase și acordul Cloudflare privind prelucrarea datelor descriu mecanisme pentru transferuri internaționale, inclusiv decizii de adecvare și clauze contractuale standard, în condițiile aplicabile serviciului, entității și transferului respectiv. Acordul Firebase nu este considerat automat aplicabil serviciului de e-mail de suport.\n\nInformații oficiale:\nhttps://firebase.google.com/support/privacy\nhttps://firebase.google.com/terms/data-processing-terms\nhttps://www.cloudflare.com/cloudflare-customer-dpa/\nhttps://policies.google.com/privacy\nhttps://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement\n\nPoți solicita informații despre garanțiile aplicabile prin adresa de contact."
+      ],
+      [
+        "Păstrarea datelor",
+        "{retention}"
+      ],
+      [
+        "Solicitarea ștergerii contului",
+        "Poți solicita ștergerea contului și a datelor online asociate din Meniu → Cont și acces → Solicită ștergerea contului, din pagina publică dedicată sau direct la: {contact}.\n\nIndică adresa Google asociată contului și faptul că soliciți ștergerea contului Apartment Booking Manager. Formularul pregătește un mesaj; trebuie să îl trimiți din aplicația de e-mail sau din webmail. Trimiterea nu produce ștergere automată și nu confirmă finalizarea ei.\n\nOperatorul verifică titularul, de regulă prin controlul adresei Google asociate. Dacă aceasta nu poate fi folosită, se stabilește o alternativă sigură și proporțională. Nu sunt solicitate parole, tokenuri sau copii ale documentelor de identitate.\n\nDupă verificare, operatorul procesează manual ștergerea datelor online eligibile și comunică rezultatul prin e-mail. Dacă rămân date în baza unei excepții aplicabile, sunt explicate categoriile, motivul și criteriul de păstrare. O operațiune parțială nu este prezentată ca ștergere finalizată.\n\nProcedura se aplică inclusiv conturilor PREMIUM și OWNER. Verificările suplimentare nu constituie, singure, motiv de refuz.\n\nȘtergerea contului online nu șterge contul Google, apartamentele, rezervările, fotografiile sau backupurile locale. Gestionarea acestora rămâne o operațiune separată a utilizatorului."
+      ],
+      [
+        "Drepturile tale",
+        "În condițiile GDPR, poți solicita accesul, rectificarea, ștergerea, restricționarea și portabilitatea datelor și te poți opune prelucrărilor întemeiate pe interes legitim. Dacă o prelucrare se bazează pe consimțământ, acesta poate fi retras fără afectarea legalității prelucrării anterioare.\n\nOperatorul răspunde fără întârziere nejustificată, în principiu în cel mult o lună. Obiectivul operațional este de maximum 30 de zile, fără depășirea termenului legal. O prelungire permisă de GDPR se comunică motivat în prima lună.\n\nPoți depune plângere la ANSPDCP, în România, sau la autoritatea de supraveghere competentă și poți utiliza căile judiciare disponibile."
+      ],
+      [
+        "Securitate și actualizări",
+        "Autentificarea și licențierea folosesc HTTPS. Dovezile de acces sunt semnate, iar cache-ul nativ al licenței este criptat folosind Android Keystore.\n\nAceste măsuri nu înlocuiesc securitatea dispozitivului și protejarea exporturilor. Politica va fi actualizată când se schimbă prelucrările efective, cu indicarea datei versiunii."
+      ]
+    ]
+  },
+  "en": {
+    "supportLabel": "Support and privacy contact: ",
+    "deletionSupportLabel": "Support for account deletion requests: ",
+    "title": "Privacy policy",
+    "deletion": "Request account deletion",
+    "eraseLocal": "Delete local data separately",
+    "eraseLocalConfirm": "Delete apartments, reservations and other business data in this installation? Unreferenced photos are removed at a safe startup after other windows close. Exported copies remain under your control.",
+    "close": "Close",
+    "draft": "DRAFT — required information and publication approval are not yet complete.",
+    "scope": "You can request deletion of your account and associated online data through Menu → Account and access → Request account deletion, the dedicated public page or directly at: {contact}.\n\nIdentify the Google email address associated with your account and state that you request deletion of your Apartment Booking Manager account. The form prepares a message; you must send it through your email application or webmail. Sending it does not automatically delete the account or confirm completion.\n\nThe controller verifies the account holder, normally through control of the associated Google email address. If it cannot be used, a secure and proportionate alternative is established. Passwords, tokens and copies of identity documents are not requested.\n\nAfter verification, the controller manually processes deletion of eligible online data and communicates the outcome by email. If information remains under an applicable exception, the categories, reason and retention criterion are explained. Partial processing is not presented as completed deletion.\n\nThe procedure also applies to PREMIUM and OWNER accounts. Additional checks alone do not constitute grounds for refusal.\n\nDeleting the online account does not delete the Google account or local apartments, reservations, photographs or backups. Managing these remains a separate user operation.\n\nSubject to GDPR conditions, you may request access, rectification, erasure, restriction and portability, and object to processing based on legitimate interests. Where processing relies on consent, consent may be withdrawn without affecting the lawfulness of earlier processing.\n\nThe controller responds without undue delay and normally within one month. The operational target is a maximum of 30 days without exceeding the legal deadline. Any extension permitted by GDPR will be explained within the first month.\n\nYou may complain to ANSPDCP in Romania or another competent supervisory authority and use available judicial remedies.\n\nSupport and deletion requests. Information needed to resolve a request is retained until closure. Unnecessary information and copies are removed when the case closes. Only minimal evidence necessary for an identified legal obligation or a specific dispute may remain, with the reason, legal basis and review date or event documented. It is deleted when no longer necessary. This is a manual procedure.",
+    "sendRequestEmail": "Send request by email",
+    "invalidAccountEmail": "Enter a valid email address for your Google account.",
+    "requestAccountEmail": "Google account email address",
+    "requestTemplateLabel": "Message to complete in your email application",
+    "requestTemplate": "I request deletion of my Apartment Booking Manager account and associated online data.\r\nEmail address of the account used in the app: [fill in here]",
+    "openEmail": "Send request by email",
+    "emailNotice": "If your email application does not open, copy the message and send it to the address above. The message is not sent automatically and sending it does not confirm deletion.",
+    "localEraseError": "Local data could not be deleted.",
+    "sections": [
+      [
+        "Controller and contact",
+        "Apartment Booking Manager is an application for managing apartments and reservations, provided under the {brand} brand.\n\nThe controller responsible for personal data processed for accounts, authentication, licensing and support is {operator}, an individual. {brand} is a brand, not a separate legal entity.\n\nFor privacy questions and requests to exercise your rights: {contact}.\n\nVersion: 21 November 2026."
+      ],
+      [
+        "Data stored on your device",
+        "The app stores business information locally: apartments, addresses, owners, photographs, guest information, including names and telephone numbers where entered, reservations, notes, receipts, expenses, maintenance records and drafts.\n\nThis information is not automatically synchronized with the app’s servers and is not sent to Firebase or Cloudflare for license verification.\n\nLocal storage does not provide synchronization between devices. Within the same installation, local data is not automatically separated into distinct databases for each Google account. Signing out or changing accounts does not erase local data. Protect the device if other people also use it.\n\nThe owner or manager entering guest information determines the purposes and legal basis of their processing. They are responsible for informing guests, entering only necessary data and handling requests concerning their records. The app controller is separately responsible for the online processing described in this policy."
+      ],
+      [
+        "Google Sign-In and Firebase Authentication",
+        "Google authentication identifies the user for verification of access rights. Trial activation requires authentication and explicit confirmation after information about its 15-day duration, without a bank card. Availability of activation is determined by the licensing service.\n\nGoogle and Firebase may process the email address, name and profile information supplied by the Google account, account identifiers and technical information needed for authentication and security, such as IP addresses and user-agent information. Firebase assigns an account UID and manages authentication tokens.\n\nThe app does not request your Google password through its forms or send it to the controller through support.\n\nExisting data can be viewed and exported without signing in. Declining authentication prevents account identification and provision of services requiring online access verification."
+      ],
+      [
+        "Cloudflare and access verification",
+        "The licensing backend uses Cloudflare Workers and D1. It receives a Firebase token to verify identity and may retain:\n\n• Firebase UID;\n• trial start and expiry dates and eligibility status;\n• license source and status;\n• security restrictions and information needed to invalidate access;\n• for recorded purchases: product identifier, purchase-token hash, encrypted token and verification status;\n• historical request records, where present, including reference, date, language and status.\n\nOWNER access is authorized on the server for the designated identity. It is not granted by backup contents or merely by changing local data.\n\nApartment, reservation and guest information and photographs are not transmitted for licensing. Infrastructure providers may process technical metadata needed to provide and protect their services.\n\nAutomated system decisions concern technical verification of access rights. If a verification appears incorrect, the user may request review through the support address."
+      ],
+      [
+        "Google Play Billing, advertising and Analytics",
+        "Google Play purchasing and AdMob advertising are disabled in the reviewed commercial version, v1.0.32. The AdMob SDK is excluded from the default build.\n\nThe prepared Google Play Billing integration uses a one-time PREMIUM purchase without a subscription. When purchasing is available, Google Play displays the applicable price and processes payment. The app does not request card numbers. Purchase verification and restoration use purchase information and the authenticated account.\n\nDeleting the app account does not automatically cancel or refund a Google Play purchase. For accounts with purchases, data eligible for deletion, transaction records and consequences for access recovery are reviewed separately. Recovery after deleting and recreating the app account is not presented as an already verified feature.\n\nFirebase Analytics is not active and is not included in the approved initial-release configuration. This policy does not declare collection of Analytics events.\n\nEnabling advertising or other new collection requires an updated policy and Google Play declarations reflecting the actual configuration, together with compliance with applicable consent requirements."
+      ],
+      [
+        "Backups and exports",
+        "JSON backups and Excel/PDF exports are created at the user’s request and may contain personal and financial information. Backups may include photographs.\n\nThe app does not encrypt JSON files. Excel worksheet protection is not file encryption. Users must protect files and their storage locations.\n\nChoosing a cloud provider in the file selector may transfer a document to that provider according to the user’s choice and that service’s terms. This is not automatic synchronization performed by the app.\n\nManual backups do not contain the Google session or grant PREMIUM or OWNER rights.\n\nThe app’s Android rules exclude cloud backup and automatic transfer of app data. Separately exported files are not erased by these rules."
+      ],
+      [
+        "Purposes and legal bases",
+        "{processing}"
+      ],
+      [
+        "Recipients and international transfers",
+        "Providers involved are Google/Firebase for authentication, Cloudflare for the backend and the Google email service for support. Google Play participates in processing purchases when purchasing is available.\n\nPublic pages are hosted through GitHub Pages. GitHub may process technical connection information under its own policy. A document provider selected by the user may receive files the user chooses to store there.\n\nGoogle documents that Firebase Authentication processes data in the United States. Cloudflare and other providers may use infrastructure and subprocessors outside the European Economic Area.\n\nThe Firebase terms and Cloudflare’s data processing agreement describe international-transfer mechanisms, including adequacy decisions and standard contractual clauses, subject to the conditions applicable to the service, entity and transfer. The Firebase agreement is not automatically treated as covering the support email service.\n\nOfficial information:\nhttps://firebase.google.com/support/privacy\nhttps://firebase.google.com/terms/data-processing-terms\nhttps://www.cloudflare.com/cloudflare-customer-dpa/\nhttps://policies.google.com/privacy\nhttps://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement\n\nYou may request information about applicable safeguards through the contact address."
+      ],
+      [
+        "Retention",
+        "{retention}"
+      ],
+      [
+        "Requesting account deletion",
+        "You can request deletion of your account and associated online data through Menu → Account and access → Request account deletion, the dedicated public page or directly at: {contact}.\n\nIdentify the Google email address associated with your account and state that you request deletion of your Apartment Booking Manager account. The form prepares a message; you must send it through your email application or webmail. Sending it does not automatically delete the account or confirm completion.\n\nThe controller verifies the account holder, normally through control of the associated Google email address. If it cannot be used, a secure and proportionate alternative is established. Passwords, tokens and copies of identity documents are not requested.\n\nAfter verification, the controller manually processes deletion of eligible online data and communicates the outcome by email. If information remains under an applicable exception, the categories, reason and retention criterion are explained. Partial processing is not presented as completed deletion.\n\nThe procedure also applies to PREMIUM and OWNER accounts. Additional checks alone do not constitute grounds for refusal.\n\nDeleting the online account does not delete the Google account or local apartments, reservations, photographs or backups. Managing these remains a separate user operation."
+      ],
+      [
+        "Your rights",
+        "Subject to GDPR conditions, you may request access, rectification, erasure, restriction and portability, and object to processing based on legitimate interests. Where processing relies on consent, consent may be withdrawn without affecting the lawfulness of earlier processing.\n\nThe controller responds without undue delay and normally within one month. The operational target is a maximum of 30 days without exceeding the legal deadline. Any extension permitted by GDPR will be explained within the first month.\n\nYou may complain to ANSPDCP in Romania or another competent supervisory authority and use available judicial remedies."
+      ],
+      [
+        "Security and updates",
+        "Authentication and licensing use HTTPS. Access proofs are signed, and the native license cache is encrypted using Android Keystore.\n\nThese safeguards do not replace device security or protection of exports. The policy will be updated when actual processing changes, with the version date displayed."
+      ]
+    ]
+  }
 };
 export function policySections(language,configuration=settings){
  const ro=language==='ro',lang=ro?'ro':'en',copy=privacyCopy[lang];
@@ -155,10 +146,10 @@ export function policySections(language,configuration=settings){
  const operator=typeof configuration.operator==='string'&&configuration.operator.trim()?configuration.operator:(ro?'Persoană fizică titulară a contului Google Play Console; nume legal ':'Individual holder of the Google Play Console account; legal name ')+pending;
  const backup=configuration.automaticBackup==='excluded'?(ro?'Backupul cloud și transferul automat al datelor aplicației sunt excluse; folosește backupul JSON manual.':'Cloud backup and automatic transfer of app data are excluded; use manual JSON backup.'):(ro?'Datele de afaceri pot rămâne eligibile pentru backupul Android, în funcție de sistem și de setările utilizatorului. Alegerea finală privind excluderea lor necesită confirmare.':'Business data may remain eligible for Android backup, depending on system and user settings. The final decision to exclude it requires confirmation.');
  return copy.sections.map(([title,body])=>{
-  return [title,body.replace('{brand}',()=>value(configuration.brand)).replace('{operator}',()=>operator).replace('{contact}',()=>value(configuration.contact)).replace('{retention}',()=>value(configuration.retentionPolicy?.[lang])).replace('{processing}',()=>value(configuration.processingPolicy?.[lang])).replace('{backup}',()=>backup)];
+  return [title,body.replaceAll('{brand}',()=>value(configuration.brand)).replaceAll('{operator}',()=>operator).replaceAll('{contact}',()=>value(configuration.contact)).replace('{retention}',()=>value(configuration.retentionPolicy?.[lang])).replace('{processing}',()=>value(configuration.processingPolicy?.[lang])).replace('{backup}',()=>backup)];
  });
 }
-export function renderPolicy(root,language){const copy=privacyCopy[language==='ro'?'ro':'en'];root.replaceChildren();const warning=document.createElement('p');warning.textContent=copy.draft;warning.setAttribute('role','note');if(!isPrivacyPublicationReady())root.append(warning);for(const [title,body] of policySections(language)){const section=document.createElement('section'),h=document.createElement('h3'),p=document.createElement('p');h.textContent=title;p.textContent=body;section.append(h,p);root.append(section);}renderSupportContact(root,language); }
+export function renderPolicy(root,language){const copy=privacyCopy[language==='ro'?'ro':'en'];root.replaceChildren();const warning=document.createElement('p');warning.textContent=copy.draft;warning.setAttribute('role','note');if(!isPrivacyPublicationReady())root.append(warning);for(const [title,body] of policySections(language)){const section=document.createElement('section'),h=document.createElement('h3'),p=document.createElement('p');h.textContent=title;p.textContent=body;p.style.whiteSpace='pre-line';section.append(h,p);root.append(section);}renderSupportContact(root,language); }
 
 export function renderSupportContact(root,language,deletion=false){
  if(privacyConfigurationIssues().includes('contact'))return;

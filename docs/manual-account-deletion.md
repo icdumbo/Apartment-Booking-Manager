@@ -38,3 +38,14 @@ Referințe oficiale
 5. După aprobarea publicării, completează publicBaseUrl și porțile juridice, generează release și înlocuiește numai cele patru documente publice din /legal/ cu versiunea aprobată. Documentele cu avertisment sunt deja publicate. Workflow-ul are nevoie de o declanșare explicită și de sursa aprobată. Verifică HTTP 200 prin HTTPS fără autentificare pentru toate cele patru pagini și testează primirea solicitărilor. URL-urile de ștergere propuse sunt /legal/delete-account-ro.html și /legal/delete-account-en.html; politicile folosesc /legal/privacy-ro.html și /legal/privacy-en.html.
 
 Referință: https://support.google.com/googleplay/android-developer/answer/13327111?hl=en
+
+
+## Approved publication update — 21 November 2026
+
+The operator approved the final RO/EN policy and publication on 21 November 2026. This is operator approval, not a claim of an external legal opinion. The canonical texts are in src/privacy-content.js and the centralized src/privacy-settings.js. The Android source and four static public documents reuse them.
+
+After closing a support/deletion request, remove unnecessary information and copies. Retain only minimal evidence required for an identified legal obligation or a specific dispute; document its purpose, legal basis and review date/event. Review at that date/event and erase evidence no longer necessary. Do not retain data indefinitely for hypothetical disputes. This is a manual administrative procedure, not an automated endpoint.
+
+Trial retention was activated separately in Production and observed successfully on 21 November 2026. The approved disclosure describes a six-calendar-month eligibility deadline, five-minute scheduled batches, and no exact-second deletion guarantee. This documentation update does not deploy or change any backend.
+
+Earlier sections documenting pending publication are historical. The approval above supersedes those publication prerequisites; it does not certify purchase recovery after account recreation or an external legal assessment.
