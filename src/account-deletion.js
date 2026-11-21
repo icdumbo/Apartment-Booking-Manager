@@ -6,7 +6,7 @@ export function deletionMailto(contact,copy,body=copy.requestTemplate){
 
 export function renderDeletionRequest(root,contact,copy,{enterEmail=false}={}){
  const form=document.createElement('form');
- const intro=document.createElement('p');intro.textContent=copy.scope;
+ const intro=document.createElement('p');intro.textContent=copy.scope.replaceAll('{contact}',()=>contact);intro.style.whiteSpace='pre-line';
  const label=document.createElement('label');label.textContent=copy.requestTemplateLabel;
  const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=4;preview.style.cssText='display:block;width:100%;margin-block:8px;resize:vertical;font:inherit;';preview.value=copy.requestTemplate;label.append(preview);
  const open=document.createElement('a');open.href=deletionMailto(contact,copy);open.textContent=copy.openEmail;

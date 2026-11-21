@@ -52,11 +52,13 @@ test('anonymous BASIC can read RO/EN policy offline; account request works witho
   const draft=new URL(await dialog.locator('form a').getAttribute('data-opened'));
   expect(draft.pathname).toBe(privacySettings.contact);
   expect(draft.searchParams.get('body')).toContain('fictional-user@example.invalid');
-  await expect(dialog).toContainText(language==='ro'?'Suportul verifică manual identitatea':'Support checks your identity manually');
+  await expect(dialog).toContainText(language==='ro'?'Operatorul verifică titularul':'The controller verifies the account holder');
   await dialog.locator('.dialog-heading button').click();
   await page.locator('#open-menu').click();
   await page.locator('#open-privacy').click();
   await expect(page.locator('#privacy-dialog')).toContainText('Cloudflare');
+  await expect(page.locator('#privacy-dialog')).not.toContainText(/DOCUMENT ÎN PREGĂTIRE|DRAFT/);
+  await expect(page.locator('#public-privacy-link')).toHaveAttribute('href','https://icdumbo.github.io/Apartment-Booking-Manager/legal/privacy-'+language+'.html');
   await page.locator('#privacy-dialog .dialog-heading button').click();
  }
  expect(await page.evaluate(()=>localStorage.getItem('apartment-booking-manager:v1'))).toBe(before);

@@ -1,5 +1,5 @@
 import {getLanguage} from './i18n.js?v=0.3.1';
-import {privacySettings} from './privacy-settings.js';
+import {privacySettings,publicLegalUrls} from './privacy-settings.js';
 import {privacyCopy,renderPolicy} from './privacy-content.js';
 import {eraseLocalBusinessData} from './local-data-deletion.js';
 import {renderDeletionRequest} from './account-deletion.js';
@@ -36,6 +36,14 @@ export function mountPrivacy({auth,canEraseLocal=()=>true}){
    return;
   }
   renderPolicy(body,getLanguage());
+  const urls=publicLegalUrls();
+  if(urls){
+   const publicLinks=document.createElement('nav');publicLinks.style.cssText='display:flex;gap:12px;flex-wrap:wrap';
+   for(const [page,label]of [['privacy',copy.title],['deletion',copy.deletion]]){
+    const link=document.createElement('a');link.id='public-'+page+'-link';link.href=urls[page][getLanguage()];link.textContent=label;link.target='_blank';link.rel='noopener noreferrer';link.style.cssText='min-height:44px;overflow-wrap:anywhere';publicLinks.append(link);
+   }
+   body.append(publicLinks);
+  }
   // Existing local-only operation remains separate from requesting account deletion.
   const local=document.createElement('button');local.type='button';local.textContent=copy.eraseLocal;local.disabled=!canEraseLocal();
   const status=document.createElement('p');status.setAttribute('aria-live','polite');

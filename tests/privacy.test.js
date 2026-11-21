@@ -28,56 +28,9 @@ test('manual request prepares a bilingual draft for the configured support addre
  }
  assert.throws(()=>deletionMailto('support@example.invalid?bcc=other@example.invalid',privacyCopy.en),/Invalid support address/);
 });
-test('policy covers actual flows in both languages and does not invent missing controller or retention',()=>{for(const lang of ['ro','en']){const sections=policySections(lang);assert.equal(sections.length,13);const text=sections.flat().join(' ');for(const word of ['Firebase','Cloudflare','JSON','Google Play','AdMob'])assert.ok(text.includes(word));assert.ok(text.includes(lang==='ro'?'scopul':'purpose'));assert.ok(privacyCopy[lang].scope.includes('OWNER'));}});
 test('approved Android policy excludes all backup domains in legacy, cloud and D2D without changing manual JSON',async()=>{
  const manifest=await readFile(new URL('../android/app/src/main/AndroidManifest.xml',import.meta.url),'utf8');assert.ok(manifest.includes('allowBackup="false"'));assert.ok(manifest.includes('fullBackupContent="@xml/backup_rules"'));assert.ok(manifest.includes('dataExtractionRules="@xml/data_extraction_rules"'));
  for(const file of ['backup_rules.xml','data_extraction_rules.xml']){const xml=await readFile(new URL('../android/app/src/main/res/xml/'+file,import.meta.url),'utf8');assert.ok(!xml.includes('<include '));const blocks=file==='backup_rules.xml'?[xml]:['cloud-backup','device-transfer'].map(tag=>xml.split('<'+tag+'>')[1].split('</'+tag+'>')[0]);for(const block of blocks)for(const domain of ['root','file','database','sharedpref','external','device_root','device_file','device_database','device_sharedpref'])assert.ok(block.includes('<exclude domain="'+domain+'" path="."/>'));}
-});
-
-const approvedConfiguration=()=>({...privacySettings,operator:'Fictional Controller',contact:'privacy@example.invalid',retentionPolicy:{ro:'Retenție fictivă RO',en:'Fictional EN retention'},processingPolicy:{ro:'Cadru fictiv RO',en:'Fictional EN framework'},publicBaseUrl:'https://legal.fixture.invalid/legal/',legalReviewApproved:true,publicationApproved:true});
-test('default configuration reports all missing fields and keeps publication and deletion disabled',()=>{
- assert.deepEqual(privacyConfigurationIssues(),['publicBaseUrl','legalReviewApproved','publicationApproved']);
- assert.equal(isPrivacyPublicationReady(),false);assert.equal(publicLegalUrls(),null);assert.equal(privacySettings.controllerType,'individual');assert.equal(Object.hasOwn(privacySettings,'address'),false);
-});
-test('confirmed public contact is reused in RO/EN without enabling publication or requests',()=>{
- assert.equal(privacyConfigurationIssues().includes('contact'),false);
- for(const language of ['ro','en'])assert.ok(policySections(language).flat().join(' ').includes(privacySettings.contact));
- assert.equal(isPrivacyPublicationReady(),false);
-});
-test('single configuration supplies localized retention and processing without copying personal fields into translations',()=>{
- const config=approvedConfiguration();assert.equal(isPrivacyPublicationReady(config),true);
- for(const lang of ['ro','en']){const rendered=policySections(lang,config).flat().join(' ');assert.ok(rendered.includes(config.operator));assert.ok(rendered.includes(config.contact));assert.ok(rendered.includes(config.retentionPolicy[lang]));assert.ok(rendered.includes(config.processingPolicy[lang]));assert.ok(!rendered.includes(config.retentionPolicy[lang==='ro'?'en':'ro']));assert.ok(!rendered.includes('{retention}'));}
- assert.equal(isPrivacyPublicationReady({...config,retentionPolicy:'one unlocalized string'}),false);assert.equal(isPrivacyPublicationReady({...config,processingPolicy:{ro:' ',en:'test'}}),false);
-});
-test('public URLs are derived for both languages; malformed URLs and incomplete configuration fail closed',()=>{
- const config=approvedConfiguration(),urls=publicLegalUrls(config);assert.equal(urls.privacy.ro,'https://legal.fixture.invalid/legal/privacy-ro.html');assert.equal(urls.deletion.en,'https://legal.fixture.invalid/legal/delete-account-en.html');
- for(const publicBaseUrl of ['http://fixture.invalid/','https://user:secret@fixture.invalid/','https://fixture.invalid/legal?token=x','https://fixture.invalid/legal#x','https://fixture.invalid/legal']){assert.equal(publicLegalUrls({...config,publicBaseUrl}),null);assert.equal(isPrivacyPublicationReady({...config,publicBaseUrl}),false);}
- for(const change of [{contact:'bad-email'},{contact:'a@@fixture.invalid'},{operator:' '},{publicationApproved:false}])assert.equal(isPrivacyPublicationReady({...config,...change}),false);
-});
-
-test('confirmed trial retention does not silently approve unrelated periods or publication',()=>{
- for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.ok(text.includes(lang==='ro'?'șase luni calendaristice':'six calendar months'));assert.ok(text.includes('UTC'));assert.ok(text.includes(lang==='ro'?'hash-uri și tokenuri criptate':'hashes and encrypted tokens'));assert.ok(text.includes(lang==='ro'?'ștergere periodică':'periodic deletion'));assert.ok(text.includes(lang==='ro'?'verifică identitatea înainte de procesare':'verifies identity before processing'));}
- assert.equal(typeof privacySettings.operator,'string');assert.ok(privacySettings.operator.trim());assert.ok(privacySettings.retentionPolicy.ro);assert.ok(privacySettings.retentionPolicy.en);assert.equal(isPrivacyPublicationReady(),false);
-});
-
-
-
-test('confirmed individual controller and brand are shared by RO/EN without approving missing legal fields',()=>{
- for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.ok(text.includes(privacySettings.operator));assert.ok(text.includes(privacySettings.brand));assert.ok(text.includes(privacySettings.contact));assert.ok(text.includes('180'));assert.ok(text.includes(lang==='ro'?'SUA':'US'));assert.ok(text.includes(lang==='ro'?'scopul':'purpose'));assert.ok(!text.includes('{brand}'));}
- const fictional={...privacySettings,brand:'Fictional brand',operator:'Fictional individual'};for(const lang of ['ro','en']){const text=policySections(lang,fictional).flat().join(' ');assert.ok(text.includes(fictional.brand));assert.ok(text.includes(fictional.operator));assert.ok(!text.includes(privacySettings.operator));}
- assert.equal(isPrivacyPublicationReady(),false);assert.equal(privacySettings.publicationApproved,false);
-});
-
-
-test('public policies contain actual handling only; recommendations stay in internal documentation',async()=>{
- const internal=JSON.parse(await readFile(new URL('../docs/internal-privacy-recommendations.json',import.meta.url),'utf8'));
- for(const lang of ['ro','en']){const text=policySections(lang).flat().join(' ');assert.equal(policySections(lang).length,13);for(const future of ['PLAN PROPUS','PROPOSED PLAN','24 luni','24 months','90 zile','90 days','12 luni','12 months','7 zile','7 days'])assert.ok(!text.includes(future),future);assert.ok(internal[lang][0][1].includes('24'));assert.ok(text.includes(lang==='ro'?'gestionate manual':'handled manually'));assert.ok(text.includes('6(1)(b)'));assert.ok(text.includes('6(1)(c)'));assert.ok(text.includes('6(1)(f)'));assert.ok(text.includes('https://firebase.google.com/terms/data-processing-terms'));assert.ok(text.includes('https://www.cloudflare.com/cloudflare-customer-dpa/'));assert.ok(text.includes('https://policies.google.com/privacy'));assert.ok(text.includes(lang==='ro'?'garanțiile aplicabile transferurilor':'safeguards applicable to transfers'));}
- assert.equal(isPrivacyPublicationReady(),false);assert.equal(privacySettings.publicationApproved,false);
-});
-
-
-test('setting publication metadata cannot approve a pending legitimate-interest assessment',()=>{
- const config={...privacySettings,publicBaseUrl:'https://fixture.invalid/legal/',publicationApproved:true};assert.equal(isPrivacyPublicationReady(config),false);assert.deepEqual(privacyConfigurationIssues(config),['legalReviewApproved']);
 });
 
 test('separately requested local erase preserves preferences and rolls back a partial write',async()=>{
@@ -104,15 +57,34 @@ test('separately requested local erase preserves preferences and rolls back a pa
  assert.equal(map.get('unrelated'),'keep');
 });
 
-test('release drafts distinguish planned Analytics from active processing in both languages',()=>{
+
+test('operator-approved policy is publication-ready and derives four permanent HTTPS links',()=>{
+ assert.deepEqual(privacyConfigurationIssues(),[]);assert.equal(isPrivacyPublicationReady(),true);
+ assert.equal(privacySettings.documentVersion,'2026-11-21');assert.equal(privacySettings.controllerType,'individual');assert.equal(Object.hasOwn(privacySettings,'address'),false);
+ for(const [page,prefix]of [['privacy','privacy'],['deletion','delete-account']])for(const lang of ['ro','en'])assert.equal(publicLegalUrls()[page][lang],'https://icdumbo.github.io/Apartment-Booking-Manager/legal/'+prefix+'-'+lang+'.html');
+});
+test('both approved languages cover actual services, local data, manual deletion and twelve matching sections',()=>{
  for(const lang of ['ro','en']){
-  const text=policySections(lang).flat().join(' ');
-  assert.match(text,/Firebase Analytics/);
-  assert.match(text,/99 RON|RON 99/);
-  assert.match(text,/2 luni|2 months/);
-  assert.match(text,/nu sunt active în versiunea verificată|are not active in the reviewed version/);
-  assert.match(text,/posibilitatea retragerii|option to withdraw consent/);
-  assert.match(privacyCopy[lang].scope,/trial/);
+  const sections=policySections(lang),text=sections.flat().join(' ');assert.equal(sections.length,12);
+  for(const term of ['Firebase','Cloudflare','Google Play','AdMob','Firebase Analytics','JSON','Excel','OWNER','PREMIUM','180','ANSPDCP','21','2026'])assert.ok(text.includes(term),term);
+  for(const term of ['BASIC','DOCUMENT ÎN PREGĂTIRE','DRAFT','2 luni','2 months','99 RON','RON 99'])assert.ok(!text.includes(term),term);
+  assert.match(text,lang==='ro'?/la fiecare cinci minute/:/every five minutes/);
+  assert.match(text,lang==='ro'?/șase luni calendaristice/:/six calendar months/);
+  assert.match(text,lang==='ro'?/nu este activ și nu este inclus/:/is not active and is not included/);
+  assert.match(text,lang==='ro'?/nu sunt separate automat/:/not automatically separated/);
+  assert.match(text,lang==='ro'?/nu justifică păstrarea nelimitată/:/does not justify indefinite retention/);
+  assert.match(privacyCopy[lang].scope,/PREMIUM/);assert.match(privacyCopy[lang].scope,/OWNER/);
+  assert.ok(text.includes(privacySettings.operator)&&text.includes(privacySettings.contact)&&text.includes(privacySettings.brand));
  }
- assert.equal(isPrivacyPublicationReady(),false);
+});
+test('controller contact processing and retention remain centrally configurable in both languages',()=>{
+ const config={...privacySettings,brand:'Fictional brand',operator:'Fictional controller',contact:'privacy@example.invalid',retentionPolicy:{ro:'Retenție fictivă',en:'Fictional retention'},processingPolicy:{ro:'Temei fictiv',en:'Fictional basis'}};
+ for(const lang of ['ro','en']){const text=policySections(lang,config).flat().join(' ');for(const value of [config.brand,config.operator,config.contact,config.retentionPolicy[lang],config.processingPolicy[lang]])assert.ok(text.includes(value));assert.ok(!text.includes(privacySettings.operator));assert.ok(!text.includes(privacySettings.contact));assert.doesNotMatch(text,/\{(?:brand|operator|contact|retention|processing)\}/);}
+});
+test('approval remains fail-closed when metadata is missing or invalid; approval is not an external legal opinion',()=>{
+ for(const change of [{operator:' '},{contact:'bad-email'},{contact:'a@@fixture.invalid'},{retentionPolicy:'not localized'},{processingPolicy:{ro:' ',en:'test'}},{legalReviewApproved:false},{publicationApproved:false}])assert.equal(isPrivacyPublicationReady({...privacySettings,...change}),false);
+ for(const publicBaseUrl of ['http://fixture.invalid/','https://user:secret@fixture.invalid/','https://fixture.invalid/legal?token=x','https://fixture.invalid/legal#x','https://fixture.invalid/legal']){assert.equal(publicLegalUrls({...privacySettings,publicBaseUrl}),null);assert.equal(isPrivacyPublicationReady({...privacySettings,publicBaseUrl}),false);}
+});
+test('published deletion procedure matches policy, includes response and retention criteria, and grants no automatic deletion',()=>{
+ for(const lang of ['ro','en']){const sections=policySections(lang),copy=privacyCopy[lang];assert.ok(copy.scope.replaceAll('{contact}',()=>privacySettings.contact).includes(sections[9][1]));assert.ok(copy.scope.includes(sections[10][1]));assert.match(copy.scope,lang==='ro'?/litigiu concret/:/specific dispute/);assert.match(copy.scope,lang==='ro'?/nu produce ștergere automată/:/does not automatically delete/);assert.match(copy.scope,lang==='ro'?/nu șterge contul Google/:/does not delete the Google account/);assert.match(copy.scope,lang==='ro'?/o lună/:/one month/);}
 });

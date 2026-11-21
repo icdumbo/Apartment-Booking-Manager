@@ -8,7 +8,7 @@ import {deletionMailto} from '../src/account-deletion.js';
 
 const escape=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export const legalFiles=['privacy-ro.html','privacy-en.html','delete-account-ro.html','delete-account-en.html'];
-const css='*{box-sizing:border-box}html{color-scheme:light}body{margin:0;background:#f5f5f5;color:#202428;font:1rem/1.65 system-ui,sans-serif}main{max-width:52rem;margin:auto;padding:clamp(16px,4vw,32px)}h1,h2,h3{line-height:1.3;overflow-wrap:anywhere}h1{font-size:clamp(1.5rem,5vw,2rem)}h2{font-size:1.4rem}h3{font-size:1.12rem;margin-top:1.8rem}p,a{overflow-wrap:anywhere}nav{display:flex;gap:12px;flex-wrap:wrap}a{color:#174f82}nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #67727b;border-radius:6px}.draft{padding:16px;border:2px solid #8c5700;background:#fff0d0}section{break-inside:avoid}@media print{body{background:white}nav{display:none}}';
+const css='*{box-sizing:border-box}html{color-scheme:light}body{margin:0;background:#f5f5f5;color:#202428;font:1rem/1.65 system-ui,sans-serif}main{max-width:52rem;margin:auto;padding:clamp(16px,4vw,32px)}h1,h2,h3{line-height:1.3;overflow-wrap:anywhere}h1{font-size:clamp(1.5rem,5vw,2rem)}h2{font-size:1.4rem}h3{font-size:1.12rem;margin-top:1.8rem}p,a{overflow-wrap:anywhere}section p{white-space:pre-line}nav{display:flex;gap:12px;flex-wrap:wrap}a{color:#174f82}nav a{display:inline-flex;align-items:center;min-height:44px;padding:8px 12px;border:1px solid #67727b;border-radius:6px}.draft{padding:16px;border:2px solid #8c5700;background:#fff0d0}section{break-inside:avoid}@media print{body{background:white}nav{display:none}}';
 const section=([title,body])=>'<section><h3>'+escape(title)+'</h3><p>'+escape(body)+'</p></section>';
 
 // Publication preparation only: never copies application scripts, storage or credentials.
@@ -24,7 +24,7 @@ export function renderLegalPages({configuration=privacySettings,preview=true}={}
  for(const lang of ['ro','en'])for(const deletion of [false,true]){
   const c=privacyCopy[lang],name=(deletion?'delete-account-':'privacy-')+lang+'.html';
   const title=deletion?c.deletion:c.title;
-  const body=deletion?'<p>'+escape(c.scope)+'</p><p>'+escape(c.requestTemplateLabel)+'</p><blockquote>'+escape(c.requestTemplate).replace(/\r?\n/g,'<br>')+'</blockquote><p><a href="'+escape(deletionMailto(configuration.contact,c))+'">'+escape(c.openEmail)+'</a></p><p>'+escape(c.emailNotice)+'</p>':sections[lang].map(section).join('');
+  const body=deletion?'<p style="white-space:pre-line">'+escape(c.scope.replaceAll('{contact}',()=>configuration.contact))+'</p><p>'+escape(c.requestTemplateLabel)+'</p><blockquote>'+escape(c.requestTemplate).replace(/\r?\n/g,'<br>')+'</blockquote><p><a href="'+escape(deletionMailto(configuration.contact,c))+'">'+escape(c.openEmail)+'</a></p><p>'+escape(c.emailNotice)+'</p>':sections[lang].map(section).join('');
   const warning=preview?'<p class="draft" role="note">'+escape(c.draft)+'</p>':'';
   const support=configuration.contact;
   if(typeof support!=='string'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(support))throw Error('Invalid public contact');
